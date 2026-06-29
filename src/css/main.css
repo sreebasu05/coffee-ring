@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-darkBg: #f8fafc;
+  --color-cardBg: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #64748b;
+  
+  /* Solid high contrast black fallback */
+  --color-accentBlue: #0f172a;
+
+  /* Custom Pastel Accent Colors */
+  --color-pastelMint: #a7f3d0;     /* Soft Pastel Emerald/Green */
+  --color-pastelAmber: #fde68a;    /* Soft Pastel Apricot/Orange */
+  --color-pastelSky: #bae6fd;      /* Soft Pastel Sky Blue */
+  --color-pastelRose: #fecdd3;     /* Soft Pastel Coral/Red */
+  --color-pastelLavender: #ddd6fe; /* Soft Pastel Lavender/Violet */
+  --color-pastelPink: #fbcfe8;     /* Soft Pastel Pink */
+  
+  --color-accentViolet: #6366f1;   /* Primary Violet branding */
+}
+
+/* Custom uniform utility style bindings */
+@utility text-label-muted {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+@utility text-header-bold {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: #0f172a;
+}
+
+@layer base {
+  body {
+    @apply bg-darkBg text-text-primary;
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* Custom transitions and scrollbar hides */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Slide up animations for Note Sheet */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Haptic tick feedback pulse */
+@keyframes feedback-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.active-pulse {
+  animation: feedback-pulse 0.15s ease-in-out;
+}

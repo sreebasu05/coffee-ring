@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>coffee ring</title>
+  
+  <!-- Inline SVG Target Icon Favicon matching stride brand -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%230f172a%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><circle cx=%2212%22 cy=%2212%22 r=%2210%22/><circle cx=%2212%22 cy=%2212%22 r=%226%22/><circle cx=%2212%22 cy=%2212%22 r=%222%22/></svg>">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Tailwind CSS Entry -->
+  <link rel="stylesheet" href="/src/css/main.css">
+</head>
+<body class="bg-darkBg text-text-primary font-sans min-h-screen flex flex-col overflow-x-hidden antialiased">
+
+  <!-- Main App Viewport -->
+  <main id="app-root" class="flex-grow pb-24 max-w-md mx-auto w-full px-4 pt-6"></main>
+
+  <!-- Bottom Navigation Bar (Stays constant) -->
+  <nav id="bottom-navbar" class="fixed bottom-0 left-0 right-0 bg-cardBg/80 backdrop-blur-md border-t border-white/5 py-3 px-6 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-xl"></nav>
+
+  <!-- Module Entrypoint -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
