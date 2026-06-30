@@ -131,6 +131,43 @@ export const HabitInsightPage = {
     const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === habit.category);
     const categoryLabel = categoryMeta ? categoryMeta.name : 'General';
 
+    // Build badges for header
+    const targetBadgeHtml = `
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60 flex-shrink-0">
+        <i data-lucide="target" class="w-2.5 h-2.5"></i>
+        Goal: ${habit.weeklyTarget}d/wk
+      </span>
+    `;
+
+    const scheduleDaysStr = habit.days && habit.days.length > 0 ? habit.days.join(', ') : 'Everyday';
+    const scheduleBadgeHtml = `
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60 flex-shrink-0">
+        <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
+        Days: ${scheduleDaysStr}
+      </span>
+    `;
+
+    let metricBadgeHtml = "";
+    if (habit.type === 'number') {
+      let rangeText = "";
+      if (habit.minGoal !== null && habit.maxGoal !== null) {
+        rangeText = `${habit.minGoal}–${habit.maxGoal}`;
+      } else if (habit.minGoal !== null) {
+        rangeText = `≥ ${habit.minGoal}`;
+      } else if (habit.maxGoal !== null) {
+        rangeText = `≤ ${habit.maxGoal}`;
+      }
+      
+      if (rangeText) {
+        metricBadgeHtml = `
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60 flex-shrink-0">
+            <i data-lucide="activity" class="w-2.5 h-2.5"></i>
+            Range: ${rangeText} ${habit.unit || ''}
+          </span>
+        `;
+      }
+    }
+
     const catColor = state.getCategoryColor(habit.category);
     const colorHexMap = {
       pastelMint: '#10b981',
@@ -487,23 +524,30 @@ export const HabitInsightPage = {
           <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
             <h3 class="text-label-muted">Behavioral Insights</h3>
             
-            <div class="flex flex-col gap-3">
-              <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 mt-0.5"></i>
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-[11px] font-bold text-slate-800">Bounce-Back Strategy</span>
-                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">${bounceBackText}</span>
-                </div>
+            <!-- Bounce-back -->
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 flex-shrink-0">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
               </div>
-
-              <div class="flex items-start gap-3 p-3 ${slumpBg} rounded-xl">
-                <i data-lucide="${slumpIcon}" class="w-4 h-4 mt-0.5"></i>
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-[11px] font-bold text-slate-800">Weekend Performance Variance</span>
-                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">${slumpText}</span>
-                </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs font-bold text-slate-800">Bounce-Back Strategy</span>
+                <span class="text-[10px] text-slate-500 leading-normal">${bounceBackText}</span>
               </div>
             </div>
+
+            <hr class="border-slate-200" />
+
+            <!-- Weekend Performance -->
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 flex-shrink-0">
+                <i data-lucide="${slumpIcon}" class="w-4 h-4"></i>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs font-bold text-slate-800">Weekend Performance Variance</span>
+                <span class="text-[10px] text-slate-500 leading-normal">${slumpText}</span>
+              </div>
+            </div>
+
           </div>
         `;
       }
@@ -632,7 +676,6 @@ export const HabitInsightPage = {
                 />
                 <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
               </label>
-            </div>
               
               <div id="edit-schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1 mt-2.5 bg-slate-50 p-2 rounded-xl border border-slate-200/50">
                 ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
@@ -675,19 +718,15 @@ export const HabitInsightPage = {
         <!-- Row 2: Pause / Resume Habit Row -->
         <div class="flex justify-between items-center p-4 border-b border-slate-100">
           <div class="flex flex-col gap-0.5">
-            <span class="text-xs font-bold text-slate-800">Pause Tracking</span>
+            <span class="text-xs font-bold text-slate-800">${habit.paused ? 'Resume Tracking' : 'Pause Tracking'}</span>
             <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Temporarily freeze streaks without failing.</span>
           </div>
           <button 
             type="button" 
             onclick="window.HabitInsightPageTogglePause('${habit.id}')"
-            class="px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
-              habit.paused 
-                ? 'bg-amber-500/10 border-amber-500 text-amber-600 hover:bg-amber-500/15' 
-                : 'border-slate-200 bg-white text-slate-600 hover:text-slate-850 hover:bg-slate-50 shadow-sm'
-            }"
+            class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm flex-shrink-0"
           >
-            ${habit.paused ? 'Resume Habit' : 'Pause Habit'}
+            <i data-lucide="${habit.paused ? 'play' : 'pause'}" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
@@ -699,10 +738,10 @@ export const HabitInsightPage = {
           </div>
           <button 
             type="button" 
-            onclick="window.HabitInsightPageDelete('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')"
-            class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-500 hover:bg-rose-600 active:scale-98 text-white shadow-sm transition-all"
+            onclick="window.HabitInsightPageDelete('${habit.id}', '${habit.name.replace(/'/g, "\\\\'")}')"
+            class="w-8 h-8 rounded-full bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 hover:bg-rose-100 transition-all shadow-sm flex-shrink-0"
           >
-            Delete Habit
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
@@ -718,13 +757,18 @@ export const HabitInsightPage = {
             <button 
               type="button"
               onclick="window.HabitInsightPageBack()"
-              class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm"
+              class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex-shrink-0"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
             </button>
-            <div class="flex flex-col">
-              <h1 class="text-lg font-extrabold text-slate-800">${habit.name}</h1>
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</p>
+            <div class="flex flex-col min-w-0 gap-1">
+              <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</span>
+              <h1 class="text-base sm:text-lg font-extrabold text-slate-800 break-words leading-tight">${habit.name}</h1>
+              <div class="flex flex-wrap gap-1.5 items-center mt-0.5">
+                ${targetBadgeHtml}
+                ${scheduleBadgeHtml}
+                ${metricBadgeHtml}
+              </div>
             </div>
           </div>
 
@@ -732,23 +776,44 @@ export const HabitInsightPage = {
           ${thisWeekCardHtml}
 
           <!-- Lock Card -->
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 text-center flex flex-col items-center justify-center min-h-[220px]">
+          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
             
-            <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-3">
-              <i data-lucide="lock" class="w-5 h-5"></i>
+            <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+              <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
             
-            <span class="text-sm font-bold text-slate-800">Insights Gathering...</span>
-            <span class="text-xs text-slate-500 mt-1.5 max-w-[240px] leading-relaxed">
-              We need at least 7 days of age on this habit to generate meaningful trends, heatmaps, and behavioral analysis.
-            </span>
-            
-            <div class="w-full max-w-[200px] mt-5">
-              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500 ease-out" style="background-color: ${themeHex}; width: ${progressPct}%"></div>
+            <div class="flex flex-col gap-1.5 max-w-[240px]">
+              <span class="text-xs font-bold text-slate-800">Insights Gathering...</span>
+              <p class="text-[10px] text-slate-500 leading-normal">We need at least 7 days of age on this habit to generate meaningful trends, heatmaps, and behavioral analysis.</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full max-w-[200px] flex flex-col gap-1 mt-1">
+              <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase">
+                <span>Progress</span>
+                <span>${diffDays} / 7 Days</span>
               </div>
-              <span class="text-[9px] font-bold text-slate-400 mt-2 block uppercase tracking-wider">${daysRemaining} Day${daysRemaining > 1 ? 's' : ''} Remaining</span>
+              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500" style="background-color: ${themeHex}; width: ${progressPct}%;"></div>
+              </div>
+            </div>
+
+            <!-- Preview list -->
+            <div class="border-t border-slate-100 w-full mt-2 pt-3 flex flex-col gap-2 text-left opacity-35 select-none pointer-events-none">
+              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Unlocks:</span>
+              <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+                <span>Weekly Consistency Trends</span>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
+                <span>Activity Heatmap</span>
+              </div>
+              <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                <i data-lucide="brain" class="w-3.5 h-3.5"></i>
+                <span>Behavioral Analysis</span>
+              </div>
             </div>
           </div>
 
@@ -766,13 +831,18 @@ export const HabitInsightPage = {
           <button 
             type="button"
             onclick="window.HabitInsightPageBack()"
-            class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm"
+            class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex-shrink-0"
           >
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
           </button>
-          <div class="flex flex-col">
-            <h1 class="text-lg font-extrabold text-slate-800">${habit.name}</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</p>
+          <div class="flex flex-col min-w-0 gap-1">
+            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</span>
+            <h1 class="text-base sm:text-lg font-extrabold text-slate-800 break-words leading-tight">${habit.name}</h1>
+            <div class="flex flex-wrap gap-1.5 items-center mt-0.5">
+              ${targetBadgeHtml}
+              ${scheduleBadgeHtml}
+              ${metricBadgeHtml}
+            </div>
           </div>
         </div>
 

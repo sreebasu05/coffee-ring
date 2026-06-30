@@ -126,35 +126,66 @@ export const HabitCard = {
     // Category badge classes
     const badgeClass = `text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-darkBg text-text-secondary border-border-primary`;
 
-    // Subtitle formatting
-    let subtitle = "";
-    if (habit.type === 'number') {
-      const hasMin = habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "";
-      const hasMax = habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "";
-      
-      let targetLabel = "";
-      if (hasMin && hasMax) targetLabel = `${habit.minGoal}–${habit.maxGoal}`;
-      else if (hasMin) targetLabel = `≥ ${habit.minGoal}`;
-      else if (hasMax) targetLabel = `≤ ${habit.maxGoal}`;
+    // Subtitle formatting has been removed as cautions drive the card parameters layout.
 
-      const unitLabel = habit.unit || '';
-      if (log !== null) {
-        if (log.value !== null && log.value !== undefined && log.value !== '') {
-          const isOutOfRange = !isCompleted;
-          const textHighlight = isOutOfRange ? 'text-rose-600 font-semibold text-xs mt-0.5' : subtitleClass;
-          subtitle = targetLabel
-            ? `<span class="${textHighlight}">${log.value} / ${targetLabel} ${unitLabel}</span>`
-            : `<span class="${textHighlight}">${log.value} ${unitLabel}</span>`;
-        } else {
-          subtitle = `<span class="${subtitleClass}">Completed</span>`;
-        }
+    // Smart Cautions / Weekly Goal Warnings
+    const todayObj = new Date();
+    const dayIdx = todayObj.getDay();
+    const daysLeftInWeek = dayIdx === 0 ? 1 : (8 - dayIdx);
+    const remainingNeeded = weeklyTarget - weeklyCount;
+    const weeklyStreak = state.getWeeklyStreak(habit.id);
+
+    let cautionText = "";
+    if (remainingNeeded <= 0) {
+      cautionText = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Target met!</span>`;
+    } else if (isCompleted) {
+      const affirmations = [
+        "Woohoo, on track to complete your goal!",
+        "Awesome! One step closer to your goal!",
+        "Great job! On track to meet your target!",
+        "Solid progress! Keep this momentum up!",
+        "Nicely done! Keeping the momentum going!"
+      ];
+      const index = (todayObj.getDate() + habit.name.length) % affirmations.length;
+      const affirmation = affirmations[index];
+      cautionText = `<span class="text-slate-400 font-semibold flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-slate-400"></i> ${affirmation}</span>`;
+    } else if (remainingNeeded > daysLeftInWeek) {
+      const missedAffirmations = [
+        "Goal missed—seize the rest of the week!",
+        "Goal missed—seize the remaining days!",
+        "Target out of reach—seize the rest of the days!",
+        "No pressure, reset next week!",
+        "Goal out of reach—keep tracking anyway!",
+        "Missed target—focus on tomorrow!",
+        "No worries, clean slate next week!"
+      ];
+      const mIdx = (todayObj.getDate() + habit.name.length) % missedAffirmations.length;
+      const missedMsg = missedAffirmations[mIdx];
+      cautionText = `<span class="text-rose-500 font-semibold flex items-center gap-1"><i data-lucide="x" class="w-3 h-3 text-rose-500"></i> ${missedMsg}</span>`;
+    } else if (remainingNeeded === daysLeftInWeek) {
+      if (weeklyStreak > 0) {
+        const streakWarnings = [
+          `Save your ${weeklyStreak}w streak today!`,
+          `Protect your ${weeklyStreak}w streak!`,
+          `Streak at risk! Complete today!`,
+          `Hit today to save streak!`
+        ];
+        const sIdx = (todayObj.getDate() + habit.name.length) % streakWarnings.length;
+        const streakMsg = streakWarnings[sIdx];
+        cautionText = `<span class="text-amber-600 font-bold flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3 text-amber-600 animate-pulse"></i> ${streakMsg}</span>`;
       } else {
-        subtitle = targetLabel
-          ? `<span class="${subtitleClass}">${targetLabel} ${unitLabel}</span>`
-          : "";
+        const goalWarnings = [
+          "Complete today to save goal!",
+          "Final day to hit goal!",
+          "Complete today to save target!",
+          "Last chance for weekly goal!"
+        ];
+        const gIdx = (todayObj.getDate() + habit.name.length) % goalWarnings.length;
+        const goalMsg = goalWarnings[gIdx];
+        cautionText = `<span class="text-amber-600 font-bold flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3 text-amber-600 animate-pulse"></i> ${goalMsg}</span>`;
       }
     } else {
-      subtitle = `<span class="${subtitleClass}">${weeklyCount}/${weeklyTarget} days this week</span>`;
+      cautionText = `<span class="text-slate-400 font-semibold flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i> ${remainingNeeded} day${remainingNeeded > 1 ? 's' : ''} left to hit weekly target</span>`;
     }
 
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
@@ -168,10 +199,8 @@ export const HabitCard = {
           data-tag="${tag}" 
           class="inline-tag-chip px-2.5 py-1 rounded-full text-xs transition-all border ${
             isChecked 
-              ? 'bg-slate-900 dark:bg-white border-transparent text-white dark:text-slate-900 font-semibold shadow-sm'
-              : isCompleted
-                ? 'bg-white/40 border-black/5 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
-                : 'bg-darkBg border-border-primary text-text-secondary hover:text-text-primary'
+              ? 'bg-slate-900 text-white border-transparent' 
+              : 'bg-slate-55 border-slate-200 text-slate-500 hover:bg-slate-100'
           }"
         >
           ${tag}
@@ -179,23 +208,19 @@ export const HabitCard = {
       `;
     }).join('');
 
-    // Default numeric placeholder
-    let numPlaceholder = "0";
-    if (habit.type === 'number') {
-      const hasMin = habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "";
-      const hasMax = habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "";
-      if (hasMin && hasMax) numPlaceholder = Math.round((parseFloat(habit.minGoal) + parseFloat(habit.maxGoal)) / 2);
-      else if (hasMin) numPlaceholder = habit.minGoal;
-      else if (hasMax) numPlaceholder = habit.maxGoal;
-    }
+    const numPlaceholder = (habit.minGoal !== null && habit.maxGoal !== null)
+      ? `${habit.minGoal} - ${habit.maxGoal}`
+      : (habit.minGoal !== null ? `Min: ${habit.minGoal}` : (habit.maxGoal !== null ? `Max: ${habit.maxGoal}` : "Value"));
+
+    const topBorderBg = isCompleted ? themeHex : '#cbd5e1';
 
     return `
       <div 
-        data-habit-id="${habit.id}" 
+        data-habit-id="${habit.id}"
         class="${cardClass}"
       >
-        <!-- Top Colored Accent Strip (Completed State Only) -->
-        ${isCompleted ? `<div class="absolute top-0 left-0 right-0 h-[3px] transition-all duration-300" style="background-color: ${themeHex};"></div>` : ''}
+        <!-- Full-Width Top Border Accent Color Line -->
+        ${isCompleted ? `<div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>` : ''}
 
         <!-- Main row -->
         <div class="habit-card-header flex justify-between items-center cursor-pointer select-none">
@@ -208,7 +233,9 @@ export const HabitCard = {
                 <span class="${titleClass}">${habit.name}</span>
                 <span class="${badgeClass}">${categoryLabel}</span>
               </div>
-              ${subtitle}
+              <div class="text-[10px] mt-0.5 flex items-center gap-1">
+                ${cautionText}
+              </div>
             </div>
           </div>
           <button class="habit-check-btn ${checkboxClass}" style="${checkboxStyle}">

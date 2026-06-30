@@ -141,23 +141,44 @@ export const DashboardPage = {
     const logsRemaining = 7 - totalCheckIns;
 
     let highlightsHtml = `
-      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 text-center flex flex-col items-center justify-center min-h-[220px] shadow-sm">
+      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
         <div class="absolute top-0 left-0 right-0 h-1 bg-slate-400"></div>
         
-        <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-3">
-          <i data-lucide="lock" class="w-5 h-5"></i>
+        <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+          <i data-lucide="lock" class="w-4 h-4"></i>
         </div>
         
-        <span class="text-sm font-bold text-slate-800">Standouts Locked</span>
-        <span class="text-xs text-slate-500 mt-1.5 max-w-[240px] leading-relaxed">
-          Log at least 7 check-ins on your Today tab to unlock your habit standouts (Best, Worst, and Streak Champ).
-        </span>
-        
-        <div class="w-full max-w-[200px] mt-5">
-          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div class="h-full rounded-full bg-slate-400 transition-all duration-500 ease-out" style="width: ${progressPct}%"></div>
+        <div class="flex flex-col gap-1.5 max-w-[240px]">
+          <span class="text-xs font-bold text-slate-800">Standouts Locked</span>
+          <p class="text-[10px] text-slate-500 leading-normal">Log at least 7 check-ins on your Today tab to unlock your habit standouts (Best, Worst, and Streak Champ).</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full max-w-[200px] flex flex-col gap-1 mt-1">
+          <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase">
+            <span>Progress</span>
+            <span>${totalCheckIns} / 7 Check-ins</span>
           </div>
-          <span class="text-[9px] font-bold text-slate-400 mt-2 block uppercase tracking-wider">${logsRemaining} Check-in${logsRemaining > 1 ? 's' : ''} Remaining</span>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-slate-900 h-full rounded-full transition-all duration-500" style="width: ${progressPct}%;"></div>
+          </div>
+        </div>
+
+        <!-- Preview list -->
+        <div class="border-t border-slate-100 w-full mt-2 pt-3 flex flex-col gap-2 text-left opacity-35 select-none pointer-events-none">
+          <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Unlocks:</span>
+          <div class="flex items-center gap-2 text-[10px] text-slate-500">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+            <span>Best Performing Habit</span>
+          </div>
+          <div class="flex items-center gap-2 text-[10px] text-slate-500">
+            <i data-lucide="trending-down" class="w-3.5 h-3.5"></i>
+            <span>Needs Attention Habit</span>
+          </div>
+          <div class="flex items-center gap-2 text-[10px] text-slate-500">
+            <i data-lucide="flame" class="w-3.5 h-3.5"></i>
+            <span>Streak Champion</span>
+          </div>
         </div>
       </div>
     `;
@@ -278,9 +299,9 @@ export const DashboardPage = {
               <div class="flex flex-col gap-2.5">
                 <h3 class="text-label-muted">Behavioral Insights</h3>
                 <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
-                  <div class="absolute top-0 left-0 right-0 h-1" style="background-color: #8b5cf6;"></div>
+                  <div class="absolute top-0 left-0 right-0 h-1 bg-slate-400"></div>
                   
-                  <div class="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-500">
+                  <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
                     <i data-lucide="lock" class="w-4 h-4"></i>
                   </div>
                   
@@ -320,49 +341,47 @@ export const DashboardPage = {
           const b = state.getBehavioralInsights();
           if (!b) return '';
 
-          // Build Weekend Slump warning
-          let slumpHtml = "";
+          let slumpTitle = "Weekend Routine Intact";
+          let slumpText = "You maintain similar consistency levels during weekends as weekdays!";
+          let slumpIcon = "sparkles";
           if (b.slumpDiff > 0) {
-            slumpHtml = `
-              <div class="flex items-start gap-3 p-3 bg-amber-50/50 border border-amber-100 rounded-xl">
-                <i data-lucide="sun" class="w-4 h-4 text-amber-600 mt-0.5"></i>
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-xs font-bold text-slate-800">Weekend Slump Warning</span>
-                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Your consistency drops by <strong class="text-amber-700">${b.slumpDiff}%</strong> on weekends (Sat-Sun) compared to weekdays.</span>
-                </div>
-              </div>
-            `;
-          } else {
-            slumpHtml = `
-              <div class="flex items-start gap-3 p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
-                <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600 mt-0.5"></i>
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-xs font-bold text-slate-800">Weekend Routine Intact</span>
-                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">You maintain similar consistency levels during weekends as weekdays!</span>
-                </div>
-              </div>
-            `;
+            slumpTitle = "Weekend Slump Warning";
+            slumpText = `Your consistency drops by <strong class="text-amber-700">${b.slumpDiff}%</strong> on weekends (Sat-Sun) compared to weekdays.`;
+            slumpIcon = "sun";
           }
 
           return `
             <div class="flex flex-col gap-2.5">
               <h3 class="text-label-muted">Behavioral Insights</h3>
-              <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 pt-5 shadow-sm flex flex-col gap-3">
+              <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
                 <div class="absolute top-0 left-0 right-0 h-1" style="background-color: #8b5cf6;"></div>
                 
                 <!-- Bounce-back Rate -->
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <div class="flex items-start justify-between gap-4">
                   <div class="flex items-start gap-3">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 mt-0.5"></i>
-                    <div class="flex flex-col gap-0.5">
+                    <div class="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 flex-shrink-0">
+                      <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </div>
+                    <div class="flex flex-col gap-0.5 min-w-0">
                       <span class="text-xs font-bold text-slate-800">Bounce-Back Rate</span>
-                      <span class="text-[10px] text-slate-500 font-medium leading-relaxed">How often you check in the day after a missed log.</span>
+                      <span class="text-[10px] text-slate-500 leading-normal">How often you check in the day after a missed log.</span>
                     </div>
                   </div>
-                  <span class="text-lg font-bold text-slate-800 pl-4">${b.bounceBackRate}%</span>
+                  <span class="text-base font-extrabold text-slate-850 pl-2 flex-shrink-0">${b.bounceBackRate}%</span>
                 </div>
 
-                ${slumpHtml}
+                <hr class="border-slate-200" />
+
+                <!-- Slump Warning -->
+                <div class="flex items-start gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 flex-shrink-0">
+                    <i data-lucide="${slumpIcon}" class="w-4 h-4"></i>
+                  </div>
+                  <div class="flex flex-col gap-0.5 min-w-0">
+                    <span class="text-xs font-bold text-slate-800">${slumpTitle}</span>
+                    <span class="text-[10px] text-slate-500 leading-normal">${slumpText}</span>
+                  </div>
+                </div>
 
               </div>
             </div>

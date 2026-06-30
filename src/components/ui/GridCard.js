@@ -31,7 +31,7 @@ export const GridCard = {
           
           <i data-lucide="${icon || 'plus'}" class="w-5 h-5 text-slate-500 dark:text-slate-400 mb-1.5 transition-transform duration-300 group-hover:scale-110"></i>
           <span class="text-[8px] font-extrabold tracking-widest text-slate-400 uppercase">Custom</span>
-          <span class="text-xs font-bold text-text-primary line-clamp-1 w-full mt-1">${name}</span>
+          <span class="text-xs font-bold text-text-primary line-clamp-2 text-center leading-tight w-full mt-1">${name}</span>
           <span class="text-[10px] text-text-secondary mt-0.5">${subtitleHtml || 'Blank'}</span>
         </button>
       `;
@@ -64,7 +64,7 @@ export const GridCard = {
         
         <i data-lucide="${iconName}" class="w-5 h-5 mb-1.5 transition-transform duration-300 group-hover:scale-110" style="color: ${themeHex};"></i>
         <span class="text-[8px] font-extrabold tracking-widest uppercase opacity-60" style="color: ${themeHex};">${category}</span>
-        <span class="text-xs font-bold text-text-primary line-clamp-1 w-full mt-1">${name}</span>
+        <span class="text-xs font-bold text-text-primary line-clamp-2 text-center leading-tight w-full mt-1">${name}</span>
         ${subtitleHtml ? subtitleHtml : `<span class="text-[10px] text-text-secondary mt-0.5 uppercase tracking-wider opacity-0 h-0 overflow-hidden">${category}</span>`}
       </button>
     `;
