@@ -12,9 +12,8 @@ class AppController {
   }
 
   init() {
-    // Initialize Dark Mode Check
-    const isDark = localStorage.getItem('coffeering_dark_mode') === 'true';
-    document.documentElement.classList.toggle('dark', isDark);
+    // Force Light Mode Only
+    document.documentElement.classList.remove('dark');
 
     // 1. Initialize State & Data
     appState.init();

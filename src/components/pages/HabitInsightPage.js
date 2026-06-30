@@ -105,6 +105,12 @@ export const HabitInsightPage = {
 
     this.editorType = this.editorType || habit.type;
 
+    if (HabitInsightPage.editDays === undefined || HabitInsightPage.selectedHabitId !== HabitInsightPage.lastSelectedId) {
+      HabitInsightPage.editDays = habit.days ? [...habit.days] : [];
+      HabitInsightPage.lastSelectedId = HabitInsightPage.selectedHabitId;
+    }
+    const activeDays = HabitInsightPage.editDays;
+
     // Calculate habit age to lock insights unless 7 days have passed
     const createdAt = habit.createdAt ? new Date(habit.createdAt) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const diffMs = new Date().getTime() - createdAt.getTime();
@@ -145,12 +151,12 @@ export const HabitInsightPage = {
       pastelPink: 'bg-pastelPink'
     };
     const textMap = {
-      pastelMint: 'text-emerald-800',
-      pastelAmber: 'text-amber-800',
-      pastelSky: 'text-sky-800',
-      pastelRose: 'text-rose-800',
-      pastelLavender: 'text-violet-800',
-      pastelPink: 'text-pink-800'
+      pastelMint: 'text-emerald-800 dark:text-emerald-200',
+      pastelAmber: 'text-amber-800 dark:text-amber-200',
+      pastelSky: 'text-sky-800 dark:text-sky-200',
+      pastelRose: 'text-rose-800 dark:text-rose-200',
+      pastelLavender: 'text-violet-800 dark:text-violet-200',
+      pastelPink: 'text-pink-800 dark:text-pink-200'
     };
     const borderMap = {
       pastelMint: 'border-emerald-250 bg-pastelMint/20',
@@ -264,7 +270,7 @@ export const HabitInsightPage = {
             </div>
           </div>
 
-          <div class="mt-2 py-2 px-3 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs font-semibold">
+          <div class="mt-2 py-2 px-3 rounded-xl border border-slate-100 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs font-semibold">
             <span class="text-slate-500">Value Trend direction:</span>
             <span class="flex items-center gap-1 text-slate-800 font-bold">
               <i data-lucide="${numStats.trend === 'Trending Up' ? 'trending-up' : numStats.trend === 'Trending Down' ? 'trending-down' : 'minus'}" class="w-3.5 h-3.5"></i>
@@ -477,51 +483,29 @@ export const HabitInsightPage = {
           slumpBg = "bg-amber-50/50 border-amber-100 text-amber-800";
         }
 
-        let stacksHtml = "";
-        if (hStacks.length > 0) {
-          stacksHtml = hStacks.map(s => {
-            return `
-              <div class="flex items-start gap-3 p-3 bg-violet-50/50 border border-violet-100 rounded-xl mt-2.5">
-                <i data-lucide="link" class="w-4 h-4 text-violet-600 mt-0.5"></i>
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-[11px] font-bold text-slate-800">Keystone Anchor Trigger</span>
-                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">
-                    ${s.anchor === habit.name 
-                      ? `Completing this habit anchors <strong>${s.follower}</strong> (${s.probability}% connection).`
-                      : `Completing <strong>${s.anchor}</strong> triggers this habit (${s.probability}% connection).`
-                    }
-                  </span>
-                </div>
-              </div>
-            `;
-          }).join('');
-        }
-
         habitBehavioralHtml = `
           <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
             <h3 class="text-label-muted">Behavioral Insights</h3>
             
             <div class="flex flex-col gap-3">
-            <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl">
-              <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 mt-0.5"></i>
-              <div class="flex flex-col gap-0.5">
-                <span class="text-[11px] font-bold text-slate-800">Bounce-Back Strategy</span>
-                <span class="text-[10px] text-slate-500 font-medium leading-relaxed">${bounceBackText}</span>
+              <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 mt-0.5"></i>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[11px] font-bold text-slate-800">Bounce-Back Strategy</span>
+                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">${bounceBackText}</span>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-3 p-3 ${slumpBg} rounded-xl">
+                <i data-lucide="${slumpIcon}" class="w-4 h-4 mt-0.5"></i>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[11px] font-bold text-slate-800">Weekend Performance Variance</span>
+                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">${slumpText}</span>
+                </div>
               </div>
             </div>
-
-            <div class="flex items-start gap-3 p-3 ${slumpBg} rounded-xl">
-              <i data-lucide="${slumpIcon}" class="w-4 h-4 mt-0.5"></i>
-              <div class="flex flex-col gap-0.5">
-                <span class="text-[11px] font-bold text-slate-800">Weekend Performance Variance</span>
-                <span class="text-[10px] text-slate-500 font-medium leading-relaxed">${slumpText}</span>
-              </div>
-            </div>
-
-            ${stacksHtml}
           </div>
-        </div>
-      `;
+        `;
       }
     }
 
@@ -636,11 +620,52 @@ export const HabitInsightPage = {
               </div>
             </div>
 
+            <!-- Custom Schedule Toggle -->
+            <div class="mt-1 border-t border-slate-100 pt-2">
+              <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  id="edit-schedule-toggle" 
+                  class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                  ${activeDays.length > 0 ? 'checked' : ''}
+                  onchange="window.HabitInsightPageToggleSchedule(this.checked)"
+                />
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
+              </label>
+            </div>
+              
+              <div id="edit-schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1 mt-2.5 bg-slate-50 p-2 rounded-xl border border-slate-200/50">
+                ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                  const isSelected = activeDays.includes(day);
+                  return `
+                    <button 
+                      type="button" 
+                      data-edit-day="${day}"
+                      onclick="window.HabitInsightPageToggleEditDay('${day}')"
+                      class="edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all ${
+                        isSelected 
+                          ? 'border-slate-900 bg-slate-900 text-white shadow-sm' 
+                          : 'border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700'
+                      }"
+                    >
+                      ${day.slice(0, 1)}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+              
+              <!-- Validation Tip -->
+              <p id="edit-schedule-validation-tip" class="hidden text-[9px] text-rose-500 font-semibold mt-1.5">
+                <i data-lucide="alert-circle" class="w-3 h-3 inline mr-1"></i>
+                Please select at least <span id="edit-required-days-count">${habit.weeklyTarget}</span> day(s) to match your weekly target.
+              </p>
+            </div>
+
             <!-- Save Action Button -->
             <button 
               type="button" 
               onclick="window.HabitInsightPageSaveGoals('${habit.id}')"
-              class="w-full bg-slate-900 text-white rounded-xl py-2.5 text-xs font-bold hover:bg-slate-850 active:scale-[0.99] transition-all shadow-sm"
+              class="w-full bg-slate-900 text-white rounded-xl py-2.5 text-xs font-bold hover:bg-slate-850 active:scale-[0.99] transition-all shadow-sm mt-2"
             >
               Save Parameters
             </button>
@@ -896,6 +921,46 @@ export const HabitInsightPage = {
       state.notify();
     };
 
+    window.HabitInsightPageToggleSchedule = (checked) => {
+      const wrapper = document.getElementById('edit-schedule-days-wrapper');
+      const tip = document.getElementById('edit-schedule-validation-tip');
+      if (wrapper) wrapper.classList.toggle('hidden', !checked);
+      if (!checked) {
+        HabitInsightPage.editDays = [];
+        document.querySelectorAll('.edit-day-chip-btn').forEach(btn => {
+          btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+        });
+      }
+      if (tip) tip.classList.add('hidden');
+    };
+
+    window.HabitInsightPageToggleEditDay = (day) => {
+      HabitInsightPage.editDays = HabitInsightPage.editDays || [];
+      const btn = document.querySelector(`[data-edit-day="${day}"]`);
+      if (HabitInsightPage.editDays.includes(day)) {
+        HabitInsightPage.editDays = HabitInsightPage.editDays.filter(d => d !== day);
+        if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+      } else {
+        HabitInsightPage.editDays.push(day);
+        if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-900 bg-slate-900 text-white shadow-sm";
+      }
+
+      // Check validation live
+      const weeklyVal = parseInt(document.getElementById('edit-goal-weekly').value);
+      const toggle = document.getElementById('edit-schedule-toggle');
+      const tip = document.getElementById('edit-schedule-validation-tip');
+      const countSpan = document.getElementById('edit-required-days-count');
+      
+      if (toggle && toggle.checked && tip && countSpan) {
+        countSpan.textContent = weeklyVal;
+        if (HabitInsightPage.editDays.length < weeklyVal) {
+          tip.classList.remove('hidden');
+        } else {
+          tip.classList.add('hidden');
+        }
+      }
+    };
+
     window.HabitInsightPageSaveGoals = (habitId) => {
       const habit = state.habits.find(h => h.id === habitId);
       if (!habit) return;
@@ -903,16 +968,33 @@ export const HabitInsightPage = {
       const nameVal = document.getElementById('edit-goal-name').value.trim();
       const weeklyVal = parseInt(document.getElementById('edit-goal-weekly').value);
       const typeVal = HabitInsightPage.editorType;
+      const scheduleChecked = document.getElementById('edit-schedule-toggle').checked;
 
       if (!nameVal) {
         alert("Please enter a valid habit name.");
         return;
       }
 
+      // Enforce selectedDays.length >= weeklyTarget validation
+      if (scheduleChecked) {
+        const daysArray = HabitInsightPage.editDays || [];
+        if (daysArray.length < weeklyVal) {
+          const tip = document.getElementById('edit-schedule-validation-tip');
+          const countSpan = document.getElementById('edit-required-days-count');
+          if (tip && countSpan) {
+            countSpan.textContent = weeklyVal;
+            tip.classList.remove('hidden');
+          }
+          alert(`Please select at least ${weeklyVal} day(s) for your schedule.`);
+          return;
+        }
+      }
+
       const oldWeeklyTarget = habit.weeklyTarget;
       habit.name = nameVal;
       habit.weeklyTarget = weeklyVal;
       habit.type = typeVal;
+      habit.days = scheduleChecked ? [...(HabitInsightPage.editDays || [])] : null;
 
       if (oldWeeklyTarget !== weeklyVal) {
         habit.weeklyTargetHistory = habit.weeklyTargetHistory || [];

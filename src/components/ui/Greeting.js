@@ -104,15 +104,6 @@ export const Greeting = {
               ${dropdownOptions}
             </div>
           </div>
-
-          <!-- Sun/Moon Toggle Button -->
-          <button 
-            id="dark-mode-toggle-btn"
-            class="w-8 h-8 rounded-xl bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition-all shadow-sm flex-shrink-0"
-          >
-            <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
-            <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
-          </button>
         </div>
         
         <!-- Greeting using custom header utilities -->
@@ -148,18 +139,7 @@ export const Greeting = {
     const trigger = document.getElementById('date-dropdown-trigger');
     const dropdown = document.getElementById('header-date-dropdown');
     
-    // Bind Dark Mode Button click
-    const darkToggle = document.getElementById('dark-mode-toggle-btn');
-    if (darkToggle) {
-      darkToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isDark = document.documentElement.classList.toggle('dark');
-        localStorage.setItem('coffeering_dark_mode', isDark ? 'true' : 'false');
-        if (window.lucide) {
-          window.lucide.createIcons();
-        }
-      });
-    }
+
 
     if (!trigger || !dropdown) return;
 

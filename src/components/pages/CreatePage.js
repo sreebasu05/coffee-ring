@@ -74,6 +74,7 @@ export const CreatePage = {
     const activeCategory = prefilled ? prefilled.category : APP_CONFIG.categories[0].id;
     const activeType = prefilled ? prefilled.type : 'checkbox';
     const activeWeeklyTarget = prefilled ? prefilled.weeklyTarget : 7;
+    const activeDays = prefilled && prefilled.days ? prefilled.days : [];
 
     const activeCategoryMeta = APP_CONFIG.categories.find(c => c.id === activeCategory);
     const activeColorKey = activeCategoryMeta ? activeCategoryMeta.defaultColor : 'pastelMint';
@@ -288,6 +289,41 @@ export const CreatePage = {
               />
               <span id="weekly-target-label" class="text-sm font-bold text-slate-800 w-16 text-right">${activeWeeklyTarget}/7 days</span>
             </div>
+
+            <!-- Custom Schedule Checkbox Subtext -->
+            <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                id="schedule-toggle" 
+                class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                ${activeDays.length > 0 ? 'checked' : ''}
+              />
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
+            </label>
+
+            <div id="schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1.5 mt-3.5 bg-slate-50 p-2 rounded-xl border border-slate-200/50">
+              ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                const isSelected = activeDays.includes(day);
+                return `
+                  <button 
+                    type="button" 
+                    data-day-select="${day}"
+                    class="day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all ${
+                      isSelected 
+                        ? 'border-slate-900 bg-slate-900 text-white shadow-sm' 
+                        : 'border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700'
+                    }"
+                  >
+                    ${day.slice(0, 1)}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+            <!-- Validation Tip -->
+            <p id="schedule-validation-tip" class="hidden text-[10px] text-rose-500 font-semibold mt-1.5">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5 inline mr-1"></i>
+              Please select at least <span id="required-days-count">${activeWeeklyTarget}</span> day(s) to match your weekly target.
+            </p>
           </div>
 
           <!-- Number-specific fields -->
@@ -492,9 +528,59 @@ export const CreatePage = {
       btn.addEventListener('click', () => setType(btn.dataset.type));
     });
 
+    // --- Custom Schedule ---
+    const scheduleToggle = document.getElementById('schedule-toggle');
+    const scheduleDaysWrapper = document.getElementById('schedule-days-wrapper');
+    const dayButtons = document.querySelectorAll('.day-chip-btn');
+    const validationTip = document.getElementById('schedule-validation-tip');
+    const requiredDaysCount = document.getElementById('required-days-count');
+
+    let currentDays = this.prefilledData && this.prefilledData.days ? [...this.prefilledData.days] : [];
+
+    const validateScheduleDays = () => {
+      const target = parseInt(weeklySlider.value, 10);
+      requiredDaysCount.textContent = target;
+      
+      if (scheduleToggle.checked) {
+        if (currentDays.length < target) {
+          validationTip.classList.remove('hidden');
+          return false;
+        }
+      }
+      validationTip.classList.add('hidden');
+      return true;
+    };
+
+    scheduleToggle.addEventListener('change', () => {
+      const active = scheduleToggle.checked;
+      scheduleDaysWrapper.classList.toggle('hidden', !active);
+      if (!active) {
+        currentDays = [];
+        dayButtons.forEach(btn => {
+          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+        });
+      }
+      validateScheduleDays();
+    });
+
+    dayButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const day = btn.dataset.daySelect;
+        if (currentDays.includes(day)) {
+          currentDays = currentDays.filter(d => d !== day);
+          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+        } else {
+          currentDays.push(day);
+          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-900 bg-slate-900 text-white shadow-sm";
+        }
+        validateScheduleDays();
+      });
+    });
+
     // --- Weekly target slider ---
     weeklySlider.addEventListener('input', () => {
       weeklyLabel.textContent = `${weeklySlider.value}/7 days`;
+      validateScheduleDays();
     });
 
     // --- Preset dropdown & suggester (Skip in onboarding) ---
@@ -566,6 +652,13 @@ export const CreatePage = {
     // --- Submit ---
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+
+      const targetVal = parseInt(weeklySlider.value, 10);
+      if (scheduleToggle.checked && currentDays.length < targetVal) {
+        validateScheduleDays();
+        scheduleToggle.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
       
       let minGoalValue = null;
       let maxGoalValue = null;
@@ -579,7 +672,6 @@ export const CreatePage = {
         unitValue = document.getElementById('goal-numeric-unit').value.trim() || 'units';
       }
 
-      const targetVal = parseInt(weeklySlider.value, 10);
       const todayStr = state.formatDate(new Date());
 
       const newHabit = {
@@ -589,6 +681,7 @@ export const CreatePage = {
         category: currentCategory,
         weeklyTarget: targetVal,
         weeklyTargetHistory: [{ date: todayStr, target: targetVal }],
+        days: scheduleToggle.checked ? currentDays : null,
         minGoal: minGoalValue,
         maxGoal: maxGoalValue,
         unit: unitValue,

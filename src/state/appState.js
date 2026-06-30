@@ -268,6 +268,18 @@ class AppState {
     return activeTarget;
   }
 
+  isHabitScheduledForDate(habitId, dateStr) {
+    const habit = this.habits.find(h => h.id === habitId);
+    if (!habit) return true;
+    if (!habit.days || !Array.isArray(habit.days) || habit.days.length === 0) return true;
+    
+    // Parse date safely
+    const date = new Date(dateStr + "T00:00:00");
+    const day = date.getDay();
+    const abbrs = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return habit.days.includes(abbrs[day]);
+  }
+
   // ── Weekly Streaks ────────────────────────────────────────
   getWeeklyStreak(habitId) {
     const habit = this.habits.find(h => h.id === habitId);

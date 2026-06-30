@@ -27,6 +27,7 @@ const getDefaultHabits = () => APP_CONFIG.presets
   .map((preset, index) => {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const dateStr = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
+    const isGym = preset.id === 'preset_gym';
     return {
       id: `habit_seed_${index}`,
       name: preset.name,
@@ -34,6 +35,7 @@ const getDefaultHabits = () => APP_CONFIG.presets
       category: preset.category,
       weeklyTarget: preset.weeklyTarget || 7,
       weeklyTargetHistory: [{ date: dateStr, target: preset.weeklyTarget || 7 }],
+      days: isGym ? ['Mon', 'Wed', 'Fri'] : null,
       minGoal: preset.minGoal || null,
       maxGoal: preset.maxGoal || null,
       unit: preset.unit,
@@ -45,6 +47,10 @@ const getDefaultHabits = () => APP_CONFIG.presets
 
 // Helper to generate 30 days of historical logs
 const generate21DaysHistory = (habits) => {
+  return []; // Return empty array so no mock history is seeded
+};
+
+const old_generate21DaysHistory = (habits) => {
   const checkIns = [];
   const today = new Date();
   

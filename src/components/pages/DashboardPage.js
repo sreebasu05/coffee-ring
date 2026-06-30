@@ -32,12 +32,12 @@ export const DashboardPage = {
       };
       
       const textMap = {
-        pastelMint: 'text-emerald-800',
-        pastelAmber: 'text-amber-800',
-        pastelSky: 'text-sky-800',
-        pastelRose: 'text-rose-800',
-        pastelLavender: 'text-violet-800',
-        pastelPink: 'text-pink-800'
+        pastelMint: 'text-emerald-800 dark:text-emerald-200',
+        pastelAmber: 'text-amber-800 dark:text-amber-200',
+        pastelSky: 'text-sky-800 dark:text-sky-200',
+        pastelRose: 'text-rose-800 dark:text-rose-200',
+        pastelLavender: 'text-violet-800 dark:text-violet-200',
+        pastelPink: 'text-pink-800 dark:text-pink-200'
       };
 
       const bgClass = bgMap[colorKey] || 'bg-slate-200';
@@ -344,26 +344,6 @@ export const DashboardPage = {
             `;
           }
 
-          // Build Keystone anchor connection list
-          let keystoneHtml = "";
-          if (b.keystoneStacks && b.keystoneStacks.length > 0) {
-            const stacksList = b.keystoneStacks.map(s => {
-              return `<li class="list-disc ml-3 text-[10px] text-slate-500 font-medium leading-relaxed mt-0.5">Completing <strong>${s.anchor}</strong> triggers <strong>${s.follower}</strong> (${s.probability}% correlation).</li>`;
-            }).join('');
-
-            keystoneHtml = `
-              <div class="flex items-start gap-3 p-3 bg-violet-50/50 border border-violet-100 rounded-xl">
-                <i data-lucide="link" class="w-4 h-4 text-violet-600 mt-0.5"></i>
-                <div class="flex flex-col gap-0.5 w-full">
-                  <span class="text-xs font-bold text-slate-800">Keystone Anchor Connections</span>
-                  <ul class="flex flex-col gap-1 mt-1">
-                    ${stacksList}
-                  </ul>
-                </div>
-              </div>
-            `;
-          }
-
           return `
             <div class="flex flex-col gap-2.5">
               <h3 class="text-label-muted">Behavioral Insights</h3>
@@ -383,7 +363,6 @@ export const DashboardPage = {
                 </div>
 
                 ${slumpHtml}
-                ${keystoneHtml}
 
               </div>
             </div>
