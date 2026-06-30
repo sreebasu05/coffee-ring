@@ -1,4 +1,5 @@
 import { StorageManager } from '../storage/storageManager.js';
+import { APP_CONFIG } from '../config/appConfig.js';
 
 class AppState {
   constructor() {
@@ -26,6 +27,49 @@ class AppState {
     this.user = StorageManager.getUserProfile();
     this.habits = StorageManager.getHabits() || [];
     this.checkIns = StorageManager.getCheckIns() || [];
+    
+    // 1. If database is completely empty (no user profile), auto-register a default profile
+    if (this.user === null) {
+      const defaultPresets = ["preset_gym", "preset_steps", "preset_water", "preset_calories"];
+      StorageManager.registerUser(APP_CONFIG.defaultUser?.name || "Test User", defaultPresets, true);
+      this.user = StorageManager.getUserProfile();
+      this.habits = StorageManager.getHabits() || [];
+      this.checkIns = StorageManager.getCheckIns() || [];
+    } else {
+      // 2. If user exists, ensure they have the default demo habits (Gym, Steps, Water, Calories)
+      const defaultPresetIds = ["preset_gym", "preset_steps", "preset_water", "preset_calories"];
+      const currentHabitNames = new Set(this.habits.map(h => h.name.toLowerCase()));
+      const presets = APP_CONFIG.presets || [];
+      
+      const missingHabits = presets
+        .filter(p => defaultPresetIds.includes(p.id) && !currentHabitNames.has(p.name.toLowerCase()))
+        .map((preset, index) => ({
+          id: `habit_preset_${Date.now()}_${index}`,
+          name: preset.name,
+          type: preset.type,
+          category: preset.category,
+          weeklyTarget: preset.weeklyTarget || 7,
+          minGoal: preset.minGoal || null,
+          maxGoal: preset.maxGoal || null,
+          unit: preset.unit,
+          icon: preset.icon,
+          tags: [...preset.tags],
+          createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+        }));
+
+      if (missingHabits.length > 0) {
+        this.habits = [...this.habits, ...missingHabits];
+        StorageManager.saveHabitsList(this.habits);
+        // Force a fresh seeding of history to include these new habits
+        this.checkIns = StorageManager.seedHistoryForCurrentHabits();
+      }
+    }
+
+    // 3. Auto-seed history if history is completely empty
+    if (this.habits.length > 0 && this.checkIns.length === 0) {
+      this.checkIns = StorageManager.seedHistoryForCurrentHabits();
+    }
+    
     this.categoryColors = StorageManager.getCategoryColors() || {};
     this.notify();
   }
@@ -202,22 +246,47 @@ class AppState {
     }).length;
   }
 
+  getWeeklyTargetForDate(habitId, dateStr) {
+    const habit = this.habits.find(h => h.id === habitId);
+    if (!habit) return 7;
+    
+    if (!habit.weeklyTargetHistory || habit.weeklyTargetHistory.length === 0) {
+      return habit.weeklyTarget || 7;
+    }
+    
+    const sorted = [...habit.weeklyTargetHistory].sort((a, b) => a.date.localeCompare(b.date));
+    
+    let activeTarget = habit.weeklyTarget || 7;
+    for (let i = 0; i < sorted.length; i++) {
+      if (sorted[i].date <= dateStr) {
+        activeTarget = sorted[i].target;
+      } else {
+        break;
+      }
+    }
+    
+    return activeTarget;
+  }
+
   // ── Weekly Streaks ────────────────────────────────────────
   getWeeklyStreak(habitId) {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
-    const target = habit.weeklyTarget || 7;
     
     let streak = 0;
     let offset = 0;
     
+    const { start: currentStart } = this.getWeekStartAndEnd(0);
+    const currentTarget = this.getWeeklyTargetForDate(habitId, this.formatDate(currentStart));
     const currentWeekCount = this.getWeekLogsCount(habitId, 0);
-    const currentWeekMet = currentWeekCount >= target;
+    const currentWeekMet = currentWeekCount >= currentTarget;
     
     if (currentWeekMet) {
       streak = 1;
       offset = 1;
       while (true) {
+        const { start } = this.getWeekStartAndEnd(offset);
+        const target = this.getWeeklyTargetForDate(habitId, this.formatDate(start));
         const count = this.getWeekLogsCount(habitId, offset);
         if (count >= target) {
           streak++;
@@ -229,6 +298,8 @@ class AppState {
     } else {
       offset = 1;
       while (true) {
+        const { start } = this.getWeekStartAndEnd(offset);
+        const target = this.getWeeklyTargetForDate(habitId, this.formatDate(start));
         const count = this.getWeekLogsCount(habitId, offset);
         if (count >= target) {
           streak++;
@@ -244,12 +315,13 @@ class AppState {
   getBestWeeklyStreak(habitId) {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
-    const target = habit.weeklyTarget || 7;
     
     let maxStreak = 0;
     let currentStreak = 0;
     
     for (let offset = 52; offset >= 0; offset--) {
+      const { start } = this.getWeekStartAndEnd(offset);
+      const target = this.getWeeklyTargetForDate(habitId, this.formatDate(start));
       const count = this.getWeekLogsCount(habitId, offset);
       if (count >= target) {
         currentStreak++;
@@ -370,26 +442,75 @@ class AppState {
   }
 
   getCompletionRate(habitId, days = 30) {
-    const now = new Date();
-    const cutoff = new Date();
-    cutoff.setDate(now.getDate() - days);
-    cutoff.setHours(0,0,0,0);
-    
-    const logs = this.checkIns.filter(log => {
-      if (log.habitId !== habitId) return false;
-      const logTime = new Date(log.date).getTime();
-      return logTime >= cutoff.getTime();
-    });
-    
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
+
+    const createdDate = new Date(habit.createdAt);
+    // Find the Monday of the week the habit was created
+    const createdDay = createdDate.getDay();
+    const createdMonday = new Date(createdDate);
+    const diffToMonday = createdDay === 0 ? -6 : 1 - createdDay;
+    createdMonday.setDate(createdDate.getDate() + diffToMonday);
+    createdMonday.setHours(0,0,0,0);
+
+    // Find the Monday of the current week
+    const now = new Date();
+    const nowDay = now.getDay();
+    const currentMonday = new Date(now);
+    const diffToCurrentMonday = nowDay === 0 ? -6 : 1 - nowDay;
+    currentMonday.setDate(now.getDate() + diffToCurrentMonday);
+    currentMonday.setHours(0,0,0,0);
+
+    // If the habit was created this week, there are 0 completed weeks
+    if (createdMonday.getTime() >= currentMonday.getTime()) {
+      return 0; // Not enough full calendar weeks of data yet
+    }
+
+    // Generate list of completed weeks (up to 4 weeks)
+    const completedWeeksMondays = [];
+    let tempMonday = new Date(createdMonday);
     
-    const createdTime = new Date(habit.createdAt).getTime();
-    const startTime = Math.max(createdTime, cutoff.getTime());
-    const diffMs = now.getTime() - startTime;
-    const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-    
-    return Math.round((logs.length / diffDays) * 100);
+    const maxWeeks = Math.ceil(days / 7);
+    const cutoffMonday = new Date(currentMonday);
+    cutoffMonday.setDate(currentMonday.getDate() - (maxWeeks * 7));
+
+    while (tempMonday.getTime() < currentMonday.getTime()) {
+      if (tempMonday.getTime() >= cutoffMonday.getTime()) {
+        completedWeeksMondays.push(new Date(tempMonday));
+      }
+      tempMonday.setDate(tempMonday.getDate() + 7);
+    }
+
+    if (completedWeeksMondays.length === 0) return 0;
+
+    let weeksMet = 0;
+
+    completedWeeksMondays.forEach(monday => {
+      const target = this.getWeeklyTargetForDate(habitId, this.formatDate(monday));
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23,59,59,999);
+
+      const count = this.checkIns.filter(log => {
+        if (log.habitId !== habitId) return false;
+        const logDate = new Date(log.date + "T00:00:00");
+        
+        if (habit.type === 'number' && log.value !== null && log.value !== undefined) {
+          const val = log.value;
+          const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
+          const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
+          if (val < min || val > max) return false;
+        }
+
+        return logDate.getTime() >= monday.getTime() && logDate.getTime() <= sunday.getTime();
+      }).length;
+
+      if (count >= target) {
+        weeksMet++;
+      }
+    });
+
+    return Math.round((weeksMet / completedWeeksMondays.length) * 100);
   }
 
   getLoggingFidelity(habitId) {
@@ -424,9 +545,11 @@ class AppState {
   }
 
   getWeeklyGoalProgress() {
+    const todayStr = this.formatDate(new Date());
     return this.habits.filter(h => {
       const weeklyCount = this.getWeeklyCount(h.id);
-      return weeklyCount >= (h.weeklyTarget || 7);
+      const target = this.getWeeklyTargetForDate(h.id, todayStr);
+      return weeklyCount >= target;
     }).length;
   }
 
@@ -436,9 +559,10 @@ class AppState {
     
     let totalTarget = 0;
     let totalCompleted = 0;
+    const todayStr = this.formatDate(new Date());
     
     catHabits.forEach(h => {
-      totalTarget += (h.weeklyTarget || 7);
+      totalTarget += this.getWeeklyTargetForDate(h.id, todayStr);
       totalCompleted += this.getWeeklyCount(h.id);
     });
     
@@ -469,14 +593,14 @@ class AppState {
   }
 
   getHighlights() {
-    if (this.habits.length === 0 || this.checkIns.length === 0) {
-      return { best: null, worst: null, streakChampion: null };
+    if (this.habits.length === 0 || this.checkIns.length < 7) {
+      return { best: null, worst: null, streakChampion: null, isLocked: true };
     }
 
     const rateHabits = this.habits.map(h => ({ 
       habit: h, 
       rate: this.getCompletionRate(h.id, 30), 
-      streak: this.getDailyStreak(h.id) 
+      streak: this.getWeeklyStreak(h.id) 
     }));
 
     const maxRate = Math.max(...rateHabits.map(x => x.rate));

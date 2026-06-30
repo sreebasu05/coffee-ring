@@ -1,4 +1,5 @@
 import { APP_CONFIG } from '../../config/appConfig.js';
+import { GridCard } from '../ui/GridCard.js';
 
 export const CreatePage = {
   iconList: [
@@ -31,48 +32,32 @@ export const CreatePage = {
   renderSelectionView() {
     const presets = APP_CONFIG.presets || [];
     
-    const customHabitHtml = `
-      <button 
-        type="button"
-        id="drawer-custom-habit"
-        class="onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-4 pb-3 px-3 rounded-2xl border text-center transition-all duration-200 border-slate-200 bg-white dark:bg-slate-900 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
-      >
-        <div class="w-10 h-10 rounded-xl flex items-center justify-center border bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900">
-          <i data-lucide="plus" class="w-5 h-5"></i>
-        </div>
-        <span class="text-xs font-bold text-slate-850 dark:text-slate-100 mt-2 line-clamp-1 w-full">Create custom habit</span>
-        <span class="text-[9px] text-slate-450 dark:text-slate-500 uppercase mt-0.5 font-semibold">Blank</span>
-      </button>
-    `;
+    const customHabitHtml = GridCard.render({
+      id: 'custom',
+      name: 'Create custom...',
+      category: 'blank',
+      icon: 'plus',
+      actionAttr: 'id="drawer-custom-habit"',
+      subtitleHtml: `<span class="text-[9px] text-text-secondary uppercase mt-1 font-bold tracking-wider">Blank</span>`
+    });
 
     const presetCardsHtml = presets.map(p => {
-      const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === p.category);
-      const colorKey = categoryMeta ? categoryMeta.defaultColor : p.defaultColor;
-      
-      const iconBoxClass = 'w-10 h-10 rounded-xl flex items-center justify-center border bg-slate-50 dark:bg-slate-800 border-slate-150 dark:border-slate-700 text-slate-400';
-
-      return `
-        <button 
-          type="button"
-          data-drawer-preset="${p.id}"
-          class="onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-4 pb-3 px-3 rounded-2xl border text-center transition-all duration-200 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm"
-        >
-          <div class="${iconBoxClass}">
-            <i data-lucide="${p.icon || 'target'}" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-slate-850 dark:text-slate-100 mt-2 line-clamp-1 w-full">${p.name}</span>
-          <span class="text-[9px] text-slate-450 dark:text-slate-500 uppercase mt-0.5 font-semibold">${p.category}</span>
-        </button>
-      `;
+      return GridCard.render({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        icon: p.icon,
+        actionAttr: `data-drawer-preset="${p.id}"`
+      });
     }).join('');
 
     return `
       <div id="create-page-selection-view" class="flex flex-col gap-6 animate-fade-in pb-8">
         <div>
-          <h1 class="text-xl font-bold text-slate-800">Choose an option</h1>
-          <p class="text-xs text-slate-500 mt-1">Start from scratch or pick a template.</p>
+          <h1 class="text-xl font-bold text-text-primary">Choose an option</h1>
+          <p class="text-xs text-text-secondary mt-1">Start from scratch or pick a template.</p>
         </div>
-        <div class="grid grid-cols-3 gap-2.5">
+        <div class="grid grid-cols-3 gap-4">
           ${customHabitHtml}
           ${presetCardsHtml}
         </div>
@@ -90,17 +75,33 @@ export const CreatePage = {
     const activeType = prefilled ? prefilled.type : 'checkbox';
     const activeWeeklyTarget = prefilled ? prefilled.weeklyTarget : 7;
 
+    const activeCategoryMeta = APP_CONFIG.categories.find(c => c.id === activeCategory);
+    const activeColorKey = activeCategoryMeta ? activeCategoryMeta.defaultColor : 'pastelMint';
+    const colorHexMap = {
+      pastelMint: '#10b981',
+      pastelAmber: '#f59e0b',
+      pastelSky: '#0ea5e9',
+      pastelRose: '#f43f5e',
+      pastelLavender: '#8b5cf6',
+      pastelPink: '#ec4899'
+    };
+    const activeThemeHex = colorHexMap[activeColorKey] || '#64748b';
+
     const iconGridHtml = this.iconList.map(icon => {
       const isSelected = icon === activeIcon;
+      const buttonStyle = isSelected 
+        ? `border-color: ${activeThemeHex}; color: ${activeThemeHex}; background-color: ${activeThemeHex}1a;`
+        : '';
+      const buttonClass = isSelected
+        ? 'icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-sm'
+        : 'icon-grid-btn w-11 h-11 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-all flex items-center justify-center';
+
       return `
         <button 
           type="button"
           data-icon-select="${icon}"
-          class="icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all ${
-            isSelected 
-              ? 'border-accentViolet bg-slate-100 text-accentViolet shadow-sm' 
-              : 'border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700'
-          }"
+          class="${buttonClass}"
+          style="${buttonStyle}"
         >
           <i data-lucide="${icon}" class="w-4.5 h-4.5"></i>
         </button>
@@ -108,16 +109,24 @@ export const CreatePage = {
     }).join('');
 
     const categoryChipsHtml = APP_CONFIG.categories.map(cat => {
-      const pastelColor = APP_CONFIG.pastelColors.find(p => p.key === cat.defaultColor);
-      const pastelHex = pastelColor ? pastelColor.hex : '#e2e8f0';
       const isSelected = cat.id === activeCategory;
+      
+      const colorHexMap = {
+        pastelMint: '#10b981',
+        pastelAmber: '#f59e0b',
+        pastelSky: '#0ea5e9',
+        pastelRose: '#f43f5e',
+        pastelLavender: '#8b5cf6',
+        pastelPink: '#ec4899'
+      };
+      const themeHex = colorHexMap[cat.defaultColor] || '#64748b';
         
       const chipClass = isSelected
         ? 'border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700'
         : 'border-border-primary bg-cardBg text-text-secondary hover:border-slate-400 dark:hover:border-slate-500';
 
       const circleClass = 'w-2.5 h-2.5 rounded-full inline-block';
-      const circleStyle = `background-color: ${pastelHex};`;
+      const circleStyle = `background-color: ${themeHex};`;
 
       return `
         <button 
@@ -156,7 +165,7 @@ export const CreatePage = {
       `;
     }).join('<div class="border-t border-slate-100"></div>');
 
-    const pageTitle = prefilled 
+    const pageTitle = (prefilled && totalSteps > 0)
       ? `Configure: ${prefilled.name} (${currentStep} of ${totalSteps})` 
       : 'Create New Habit';
     const pageSub = prefilled 
@@ -351,6 +360,7 @@ export const CreatePage = {
         customBtn.addEventListener('click', () => {
           this.viewMode = 'form';
           this.prefilledData = null;
+          window.scrollTo(0, 0);
           const root = document.getElementById('app-root');
           root.innerHTML = this.renderFormView();
           this.bindEvents(state, onCreatedCallback);
@@ -365,6 +375,7 @@ export const CreatePage = {
           if (preset) {
             this.viewMode = 'form';
             this.prefilledData = preset;
+            window.scrollTo(0, 0);
             const root = document.getElementById('app-root');
             root.innerHTML = this.renderFormView();
             this.bindEvents(state, onCreatedCallback);
@@ -419,10 +430,29 @@ export const CreatePage = {
     const selectIcon = (iconName) => {
       currentIcon = iconName;
       iconInput.value = iconName;
+
+      const activeCategoryMeta = APP_CONFIG.categories.find(c => c.id === currentCategory);
+      const activeColorKey = activeCategoryMeta ? activeCategoryMeta.defaultColor : 'pastelMint';
+      const colorHexMap = {
+        pastelMint: '#10b981',
+        pastelAmber: '#f59e0b',
+        pastelSky: '#0ea5e9',
+        pastelRose: '#f43f5e',
+        pastelLavender: '#8b5cf6',
+        pastelPink: '#ec4899'
+      };
+      const themeHex = colorHexMap[activeColorKey] || '#64748b';
+
       iconGrid.querySelectorAll('.icon-grid-btn').forEach(btn => {
-        btn.className = btn.dataset.iconSelect === iconName
-          ? "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all border-accentViolet bg-slate-100 text-accentViolet shadow-sm"
+        const isSelected = btn.dataset.iconSelect === iconName;
+        
+        btn.className = isSelected
+          ? "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-sm"
           : "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700";
+        
+        btn.style = isSelected
+          ? `border-color: ${themeHex}; color: ${themeHex}; background-color: ${themeHex}1a;`
+          : "";
       });
     };
 
@@ -439,6 +469,8 @@ export const CreatePage = {
           ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700"
           : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-border-primary bg-cardBg text-text-secondary hover:border-slate-400 dark:hover:border-slate-500";
       });
+      // Synchronize the selected icon's border and background color to match the new category color
+      selectIcon(currentIcon);
     };
 
     categoryPicker.querySelectorAll('.category-chip-btn').forEach(btn => {
@@ -547,12 +579,16 @@ export const CreatePage = {
         unitValue = document.getElementById('goal-numeric-unit').value.trim() || 'units';
       }
 
+      const targetVal = parseInt(weeklySlider.value, 10);
+      const todayStr = state.formatDate(new Date());
+
       const newHabit = {
         id: this.prefilledData ? this.prefilledData.id : `habit_${Date.now()}`,
         name: nameInput.value.trim(),
         type: currentType,
         category: currentCategory,
-        weeklyTarget: parseInt(weeklySlider.value, 10),
+        weeklyTarget: targetVal,
+        weeklyTargetHistory: [{ date: todayStr, target: targetVal }],
         minGoal: minGoalValue,
         maxGoal: maxGoalValue,
         unit: unitValue,

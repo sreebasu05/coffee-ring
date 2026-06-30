@@ -1,15 +1,18 @@
 import { APP_CONFIG } from '../../config/appConfig.js';
+import { GridCard } from '../ui/GridCard.js';
 
 export const HabitInsightPage = {
   selectedHabitId: null,
   activeSubTab: 'habits', // 'habits' or 'behavior'
   isEditing: false,
   editorType: null,
+  viewedMonthOffset: 0,
 
   render(state) {
     // Expose global click helpers on window to ensure click handler is 100% bulletproof
     window.HabitInsightPageSelect = (habitId) => {
       HabitInsightPage.selectedHabitId = habitId;
+      HabitInsightPage.viewedMonthOffset = 0;
       state.notify();
     };
 
@@ -17,6 +20,7 @@ export const HabitInsightPage = {
       HabitInsightPage.selectedHabitId = null;
       HabitInsightPage.isEditing = false;
       HabitInsightPage.editorType = null;
+      HabitInsightPage.viewedMonthOffset = 0;
       state.notify();
     };
 
@@ -49,46 +53,29 @@ export const HabitInsightPage = {
           const catColor = state.getCategoryColor(h.category);
           const dailyStreak = state.getDailyStreak(h.id);
           
-          const colorHexMap = {
-            pastelMint: '#10b981',
-            pastelAmber: '#f59e0b',
-            pastelSky: '#0ea5e9',
-            pastelRose: '#f43f5e',
-            pastelLavender: '#8b5cf6',
-            pastelPink: '#ec4899'
-          };
-          const themeHex = colorHexMap[catColor] || '#0f172a';
-          
-          const iconBoxStyle = `background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};`;
-          const iconBoxClass = `w-14 h-14 rounded-xl flex items-center justify-center border shadow-sm transition-all duration-300`;
+          let subtitleHtml = '';
+          if (h.paused) {
+            subtitleHtml = `<span class="text-[9px] font-extrabold text-amber-500 uppercase flex items-center gap-0.5 mt-1 tracking-wider"><i data-lucide="pause" class="w-2.5 h-2.5"></i> Paused</span>`;
+          } else if (dailyStreak > 0) {
+            subtitleHtml = `<span class="text-[9px] font-extrabold text-amber-600 uppercase flex items-center gap-0.5 mt-1 tracking-wider"><i data-lucide="flame" class="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> ${dailyStreak}d</span>`;
+          } else {
+            subtitleHtml = `<span class="text-[9px] font-bold text-text-secondary mt-1 uppercase tracking-wider">Track</span>`;
+          }
 
-          const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
-          const iconName = (!h.icon || isEmoji(h.icon)) ? 'target' : h.icon;
-
-          return `
-            <button 
-              type="button"
-              onclick="window.HabitInsightPageSelect('${h.id}')"
-              class="flex flex-col items-center p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 active:scale-95 transition-all duration-200"
-            >
-              <div class="${iconBoxClass}" style="${iconBoxStyle}">
-                <i data-lucide="${iconName}" class="w-6 h-6"></i>
-              </div>
-              <span class="text-xs font-bold text-slate-800 text-center mt-2.5 line-clamp-1 w-full">${h.name}</span>
-              ${h.paused 
-                ? `<span class="text-[9px] font-extrabold text-amber-500 uppercase flex items-center gap-0.5 mt-0.5"><i data-lucide="pause" class="w-2.5 h-2.5"></i> Paused</span>`
-                : dailyStreak > 0 
-                  ? `<span class="text-[9px] font-extrabold text-amber-600 uppercase flex items-center gap-0.5 mt-0.5"><i data-lucide="flame" class="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> ${dailyStreak}d</span>` 
-                  : `<span class="text-[9px] font-semibold text-slate-400 mt-1 uppercase">Track</span>`
-              }
-            </button>
-          `;
+          return GridCard.render({
+            id: h.id,
+            name: h.name,
+            category: h.category,
+            icon: h.icon,
+            actionAttr: `onclick="window.HabitInsightPageSelect('${h.id}')"`,
+            subtitleHtml: subtitleHtml
+          });
         }).join('');
 
         return `
           <div class="flex flex-col gap-3">
             <h3 class="text-[10px] font-extrabold tracking-widest uppercase text-slate-400">${cat.name}</h3>
-            <div class="grid grid-cols-3 gap-3">
+            <div class="grid grid-cols-3 gap-4">
               ${gridItemsHtml}
             </div>
           </div>
@@ -117,6 +104,13 @@ export const HabitInsightPage = {
     }
 
     this.editorType = this.editorType || habit.type;
+
+    // Calculate habit age to lock insights unless 7 days have passed
+    const createdAt = habit.createdAt ? new Date(habit.createdAt) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const diffMs = new Date().getTime() - createdAt.getTime();
+    const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    const isInsightsLocked = diffDays < 7;
+    const daysRemaining = 7 - diffDays;
 
     const dailyStreak = state.getDailyStreak(habit.id);
     const bestDailyStreak = state.getBestDailyStreak(habit.id);
@@ -171,8 +165,9 @@ export const HabitInsightPage = {
     const pastelText = textMap[catColor] || 'text-slate-800';
     const softBorderClass = borderMap[catColor] || 'border-slate-200';
 
-    // Generate Heatmap calendar
+    // Generate Heatmap calendar (switchable by month offset)
     const currentDate = new Date();
+    currentDate.setMonth(currentDate.getMonth() + (HabitInsightPage.viewedMonthOffset || 0));
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
     const monthName = currentDate.toLocaleString('default', { month: 'long' });
@@ -530,6 +525,214 @@ export const HabitInsightPage = {
       }
     }
 
+    // ── Manage Habit Actions Group Card ──
+    const manageHabitCardHtml = `
+      <div class="mt-5 mb-2.5 flex items-center">
+        <h3 class="text-label-muted">Manage Habit</h3>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col mb-8">
+        
+        <!-- Row 1: Edit Row -->
+        <div class="flex flex-col p-4 border-b border-slate-100">
+          <div class="flex justify-between items-center">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs font-bold text-slate-800">Edit Goals & Parameters</span>
+              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Modify name, type, targets, and parameters.</span>
+            </div>
+            <button 
+              type="button"
+              id="habit-edit-toggle-btn"
+              onclick="window.HabitInsightPageToggleEditor()"
+              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm flex-shrink-0"
+            >
+              <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Inline editor block -->
+          <div id="habit-goal-editor-panel" class="${this.isEditing ? '' : 'hidden'} flex flex-col gap-4 pt-4 mt-2 border-t border-slate-100 animate-fade-in">
+            <!-- Habit Name -->
+            <div class="flex flex-col gap-1.5 text-xs">
+              <span class="text-[9px] font-bold text-slate-400 uppercase">Habit Name</span>
+              <input 
+                type="text" 
+                id="edit-goal-name"
+                value="${habit.name}" 
+                class="border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <!-- Habit Type Toggle Button (Locked after creation) -->
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[9px] font-bold text-slate-400 uppercase">Habit Type</span>
+                <div class="flex bg-slate-100 p-0.5 rounded-xl w-full border border-slate-200/50 pointer-events-none opacity-60">
+                  <button 
+                    type="button"
+                    class="flex-grow py-1.5 text-[10px] font-bold rounded-lg text-center transition-all duration-200 ${
+                      this.editorType === 'boolean' || this.editorType === 'checkbox' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
+                    }"
+                  >
+                    Yes / No
+                  </button>
+                  <button 
+                    type="button"
+                    class="flex-grow py-1.5 text-[10px] font-bold rounded-lg text-center transition-all duration-200 ${
+                      this.editorType === 'number' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
+                    }"
+                  >
+                    Metric
+                  </button>
+                </div>
+                <p class="text-[8px] text-slate-400 mt-1 font-semibold">Type cannot be changed after creation.</p>
+              </div>
+
+              <!-- Weekly Target -->
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[9px] font-bold text-slate-400 uppercase">Weekly Target</span>
+                <select 
+                  id="edit-goal-weekly"
+                  class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none bg-white text-slate-800 font-bold"
+                >
+                  ${[1, 2, 3, 4, 5, 6, 7].map(num => `<option value="${num}" ${habit.weeklyTarget === num ? 'selected' : ''}>${num} days / wk</option>`).join('')}
+                </select>
+              </div>
+            </div>
+
+            <!-- Metric specific inputs -->
+            <div id="edit-goal-metric-fields" class="${this.editorType === 'number' ? '' : 'hidden'} flex flex-col gap-3">
+              <div class="grid grid-cols-3 gap-2.5 text-xs pt-2 border-t border-slate-100">
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Unit</span>
+                  <input 
+                    type="text" 
+                    id="edit-goal-unit"
+                    value="${habit.unit || ''}" 
+                    placeholder="e.g. ml, steps"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Min Target</span>
+                  <input 
+                    type="number" 
+                    id="edit-goal-min"
+                    value="${habit.minGoal ?? ''}" 
+                    placeholder="None"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Max Target</span>
+                  <input 
+                    type="number" 
+                    id="edit-goal-max"
+                    value="${habit.maxGoal ?? ''}" 
+                    placeholder="None"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Save Action Button -->
+            <button 
+              type="button" 
+              onclick="window.HabitInsightPageSaveGoals('${habit.id}')"
+              class="w-full bg-slate-900 text-white rounded-xl py-2.5 text-xs font-bold hover:bg-slate-850 active:scale-[0.99] transition-all shadow-sm"
+            >
+              Save Parameters
+            </button>
+          </div>
+        </div>
+
+        <!-- Row 2: Pause / Resume Habit Row -->
+        <div class="flex justify-between items-center p-4 border-b border-slate-100">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs font-bold text-slate-800">Pause Tracking</span>
+            <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Temporarily freeze streaks without failing.</span>
+          </div>
+          <button 
+            type="button" 
+            onclick="window.HabitInsightPageTogglePause('${habit.id}')"
+            class="px-4 py-2 text-xs font-bold rounded-xl border transition-all ${
+              habit.paused 
+                ? 'bg-amber-500/10 border-amber-500 text-amber-600 hover:bg-amber-500/15' 
+                : 'border-slate-200 bg-white text-slate-600 hover:text-slate-850 hover:bg-slate-50 shadow-sm'
+            }"
+          >
+            ${habit.paused ? 'Resume Habit' : 'Pause Habit'}
+          </button>
+        </div>
+
+        <!-- Row 3: Delete Habit Row -->
+        <div class="flex justify-between items-center p-4">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs font-bold text-slate-800">Delete Habit</span>
+            <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Permanently delete this habit and all history.</span>
+          </div>
+          <button 
+            type="button" 
+            onclick="window.HabitInsightPageDelete('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')"
+            class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-500 hover:bg-rose-600 active:scale-98 text-white shadow-sm transition-all"
+          >
+            Delete Habit
+          </button>
+        </div>
+
+      </div>
+    `;
+
+    if (isInsightsLocked) {
+      const progressPct = Math.round((diffDays / 7) * 100);
+      return `
+        <div id="habit-insights-view" class="flex flex-col gap-5 pb-24 animate-fade-in">
+          <!-- Header row with Back Button -->
+          <div class="flex items-center gap-4">
+            <button 
+              type="button"
+              onclick="window.HabitInsightPageBack()"
+              class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </button>
+            <div class="flex flex-col">
+              <h1 class="text-lg font-extrabold text-slate-800">${habit.name}</h1>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</p>
+            </div>
+          </div>
+
+          <!-- This Week Status Card -->
+          ${thisWeekCardHtml}
+
+          <!-- Lock Card -->
+          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 text-center flex flex-col items-center justify-center min-h-[220px]">
+            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+            
+            <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-3">
+              <i data-lucide="lock" class="w-5 h-5"></i>
+            </div>
+            
+            <span class="text-sm font-bold text-slate-800">Insights Gathering...</span>
+            <span class="text-xs text-slate-500 mt-1.5 max-w-[240px] leading-relaxed">
+              We need at least 7 days of age on this habit to generate meaningful trends, heatmaps, and behavioral analysis.
+            </span>
+            
+            <div class="w-full max-w-[200px] mt-5">
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500 ease-out" style="background-color: ${themeHex}; width: ${progressPct}%"></div>
+              </div>
+              <span class="text-[9px] font-bold text-slate-400 mt-2 block uppercase tracking-wider">${daysRemaining} Day${daysRemaining > 1 ? 's' : ''} Remaining</span>
+            </div>
+          </div>
+
+          <!-- Manage Habit Actions Group Card -->
+          ${manageHabitCardHtml}
+        </div>
+      `;
+    }
+
     return `
       <div id="habit-insights-view" class="flex flex-col gap-5 pb-24 animate-fade-in">
         
@@ -587,7 +790,23 @@ export const HabitInsightPage = {
         <!-- Heatmap Calendar Grid -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
           <div class="flex justify-between items-center border-b border-slate-50 pb-2">
-            <h3 class="text-label-muted">${monthName} ${currentYear}</h3>
+            <div class="flex items-center gap-3">
+              <button 
+                type="button"
+                onclick="window.HabitInsightPagePrevMonth()"
+                class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+              >
+                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+              </button>
+              <h3 class="text-label-muted">${monthName} ${currentYear}</h3>
+              <button 
+                type="button"
+                onclick="window.HabitInsightPageNextMonth()"
+                class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+              >
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
             <span class="text-[9px] font-bold text-slate-400 uppercase">Monthly Check-ins</span>
           </div>
           
@@ -635,173 +854,25 @@ export const HabitInsightPage = {
         <!-- Notes Feed -->
         ${notesFeedHtml}
 
-        <!-- ── Manage Habit Actions Group Card ── -->
-        <div class="mt-5 mb-2.5 flex items-center">
-          <h3 class="text-label-muted">Manage Habit</h3>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col mb-8">
-          
-          <!-- Row 1: Edit Row -->
-          <div class="flex flex-col p-4 border-b border-slate-100">
-            <div class="flex justify-between items-center">
-              <div class="flex flex-col gap-0.5">
-                <span class="text-xs font-bold text-slate-800">Edit Goals & Parameters</span>
-                <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Modify name, type, targets, and parameters.</span>
-              </div>
-              <button 
-                type="button"
-                id="habit-edit-toggle-btn"
-                onclick="window.HabitInsightPageToggleEditor()"
-                class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm flex-shrink-0"
-              >
-                <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-
-            <!-- Inline editor block -->
-            <div id="habit-goal-editor-panel" class="${this.isEditing ? '' : 'hidden'} flex flex-col gap-4 pt-4 mt-2 border-t border-slate-100 animate-fade-in">
-              <!-- Habit Name -->
-              <div class="flex flex-col gap-1.5 text-xs">
-                <span class="text-[9px] font-bold text-slate-400 uppercase">Habit Name</span>
-                <input 
-                  type="text" 
-                  id="edit-goal-name"
-                  value="${habit.name}" 
-                  class="border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
-                />
-              </div>
-
-              <div class="grid grid-cols-2 gap-3 text-xs">
-                <!-- Habit Type Toggle Button -->
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Habit Type</span>
-                  <div class="flex bg-slate-100 p-0.5 rounded-xl w-full border border-slate-200/50">
-                    <button 
-                      type="button"
-                      onclick="window.HabitInsightPageSetEditorType('boolean')"
-                      id="edit-type-boolean-btn"
-                      class="flex-grow py-1.5 text-[10px] font-bold rounded-lg text-center transition-all duration-200 ${
-                        this.editorType === 'boolean' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
-                      }"
-                    >
-                      Yes / No
-                    </button>
-                    <button 
-                      type="button"
-                      onclick="window.HabitInsightPageSetEditorType('number')"
-                      id="edit-type-number-btn"
-                      class="flex-grow py-1.5 text-[10px] font-bold rounded-lg text-center transition-all duration-200 ${
-                        this.editorType === 'number' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
-                      }"
-                    >
-                      Metric
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Weekly Target -->
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Weekly Target</span>
-                  <select 
-                    id="edit-goal-weekly"
-                    class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none bg-white text-slate-800 font-bold"
-                  >
-                    ${[1, 2, 3, 4, 5, 6, 7].map(num => `<option value="${num}" ${habit.weeklyTarget === num ? 'selected' : ''}>${num} days / wk</option>`).join('')}
-                  </select>
-                </div>
-              </div>
-
-              <!-- Metric specific inputs -->
-              <div id="edit-goal-metric-fields" class="${this.editorType === 'number' ? '' : 'hidden'} flex flex-col gap-3">
-                <div class="grid grid-cols-3 gap-2.5 text-xs pt-2 border-t border-slate-100">
-                  <div class="flex flex-col gap-1.5">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase">Unit</span>
-                    <input 
-                      type="text" 
-                      id="edit-goal-unit"
-                      value="${habit.unit || ''}" 
-                      placeholder="ml, steps"
-                      class="border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800 focus:outline-none"
-                    />
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase">Min Goal</span>
-                    <input 
-                      type="number" 
-                      id="edit-goal-min"
-                      value="${habit.minGoal !== null && habit.minGoal !== undefined ? habit.minGoal : ''}" 
-                      placeholder="Min"
-                      class="border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800 focus:outline-none"
-                    />
-                  </div>
-                  <div class="flex flex-col gap-1.5">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase">Max Goal</span>
-                    <input 
-                      type="number" 
-                      id="edit-goal-max"
-                      value="${habit.maxGoal !== null && habit.maxGoal !== undefined ? habit.maxGoal : ''}" 
-                      placeholder="Max"
-                      class="border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold bg-white text-slate-800 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button 
-                type="button"
-                onclick="window.HabitInsightPageSaveGoals('${habit.id}')"
-                class="w-full py-3 bg-slate-900 hover:bg-slate-850 active:scale-98 text-white rounded-xl font-bold text-xs shadow-sm transition-all tracking-wide uppercase flex items-center justify-center gap-1.5 mt-2"
-              >
-                <i data-lucide="check" class="w-4 h-4"></i>
-                Save Goals Configuration
-              </button>
-            </div>
-          </div>
-
-          <!-- Row 2: Pause Row -->
-          <div class="flex justify-between items-center p-4 border-b border-slate-100">
-            <div class="flex flex-col gap-0.5 pr-2">
-              <span class="text-xs font-bold text-slate-800">${habit.paused ? 'Resume Routine' : 'Pause Routine'}</span>
-              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">
-                ${habit.paused ? 'Re-activate and restore this habit back to your active list.' : 'Temporarily freeze and hide this habit from your active lists.'}
-              </span>
-            </div>
-            <button 
-              type="button"
-              onclick="window.HabitInsightPageTogglePause('${habit.id}')"
-              class="w-8 h-8 rounded-full border flex items-center justify-center shadow-sm transition-all flex-shrink-0 ${
-                habit.paused 
-                  ? 'border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700' 
-                  : 'border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-700'
-              }"
-            >
-              <i data-lucide="${habit.paused ? 'play' : 'pause'}" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-
-          <!-- Row 3: Delete Row -->
-          <div class="flex justify-between items-center p-4">
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-rose-600">Delete Habit</span>
-              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Permanently erase this habit and all check-in history.</span>
-            </div>
-            <button 
-              type="button"
-              onclick="window.HabitInsightPageDelete('${habit.id}', '${habit.name.replace(/'/g, "\\'")}')"
-              class="w-8 h-8 rounded-full border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 flex items-center justify-center shadow-sm transition-all flex-shrink-0"
-            >
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
-
-        </div>
+        <!-- Manage Habit Actions Group Card -->
+        ${manageHabitCardHtml}
 
       </div>
     `;
   },
 
   bindEvents(state) {
+    // Window-level handlers for month switching
+    window.HabitInsightPagePrevMonth = () => {
+      HabitInsightPage.viewedMonthOffset = (HabitInsightPage.viewedMonthOffset || 0) - 1;
+      state.notify();
+    };
+
+    window.HabitInsightPageNextMonth = () => {
+      HabitInsightPage.viewedMonthOffset = (HabitInsightPage.viewedMonthOffset || 0) + 1;
+      state.notify();
+    };
+
     // Window-level handlers for bulletproof click reliability
     window.HabitInsightPageTogglePause = (habitId) => {
       state.togglePauseHabit(habitId);
@@ -838,9 +909,25 @@ export const HabitInsightPage = {
         return;
       }
 
+      const oldWeeklyTarget = habit.weeklyTarget;
       habit.name = nameVal;
       habit.weeklyTarget = weeklyVal;
       habit.type = typeVal;
+
+      if (oldWeeklyTarget !== weeklyVal) {
+        habit.weeklyTargetHistory = habit.weeklyTargetHistory || [];
+        if (habit.weeklyTargetHistory.length === 0) {
+          const createdDateStr = state.formatDate(new Date(habit.createdAt));
+          habit.weeklyTargetHistory.push({ date: createdDateStr, target: oldWeeklyTarget || 7 });
+        }
+        const todayStr = state.formatDate(new Date());
+        const todayEntry = habit.weeklyTargetHistory.find(e => e.date === todayStr);
+        if (todayEntry) {
+          todayEntry.target = weeklyVal;
+        } else {
+          habit.weeklyTargetHistory.push({ date: todayStr, target: weeklyVal });
+        }
+      }
 
       if (typeVal === 'number') {
         const unitVal = document.getElementById('edit-goal-unit').value.trim();

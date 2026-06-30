@@ -1,4 +1,5 @@
 import { APP_CONFIG } from '../../config/appConfig.js';
+import { GridCard } from '../ui/GridCard.js';
 import { CreatePage } from './CreatePage.js';
 
 export const OnboardingPage = {
@@ -166,50 +167,14 @@ export const OnboardingPage = {
 
     const presetCardsHtml = presets.map(p => {
       const isSelected = this.selectedPresets.includes(p.id);
-      
-      const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === p.category);
-      const colorKey = categoryMeta ? categoryMeta.defaultColor : p.defaultColor;
-      const pastelColorObj = APP_CONFIG.pastelColors.find(x => x.key === colorKey);
-      const pastelHex = pastelColorObj ? pastelColorObj.hex : '#cbd5e1';
-
-      const colorHexMap = {
-        pastelMint: '#10b981',
-        pastelAmber: '#f59e0b',
-        pastelSky: '#0ea5e9',
-        pastelRose: '#f43f5e',
-        pastelLavender: '#8b5cf6',
-        pastelPink: '#ec4899'
-      };
-      const themeHex = colorHexMap[colorKey] || '#0f172a';
-      
-      const iconBoxStyle = isSelected 
-        ? `background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};` 
-        : '';
-        
-      const iconBoxClass = isSelected 
-        ? 'w-10 h-10 rounded-xl flex items-center justify-center border'
-        : 'w-10 h-10 rounded-xl flex items-center justify-center border bg-slate-50 dark:bg-slate-800 border-slate-150 dark:border-slate-700 text-slate-400';
-
-      return `
-        <button 
-          type="button"
-          data-preset-id="${p.id}"
-          class="onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-4 pb-3 px-3 rounded-2xl border text-center transition-all duration-200 ${
-            isSelected 
-              ? `border-slate-200/80 bg-white dark:bg-slate-900 shadow-sm`
-              : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-200 dark:hover:border-slate-700'
-          }"
-        >
-          <!-- Top Accent Color Line when selected -->
-          ${isSelected ? `<div class="absolute top-0 left-0 right-0 h-[3px]" style="background-color: ${pastelHex};"></div>` : ''}
-
-          <div class="${iconBoxClass}" style="${iconBoxStyle}">
-            <i data-lucide="${p.icon || 'target'}" class="w-5 h-5"></i>
-          </div>
-          <span class="text-xs font-bold text-slate-850 dark:text-slate-100 mt-2 line-clamp-1 w-full">${p.name}</span>
-          <span class="text-[9px] text-slate-450 dark:text-slate-500 uppercase mt-0.5 font-semibold">${p.category}</span>
-        </button>
-      `;
+      return GridCard.render({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        icon: p.icon,
+        isSelected: isSelected,
+        actionAttr: `data-preset-id="${p.id}"`
+      });
     }).join('');
 
     return `
@@ -227,11 +192,11 @@ export const OnboardingPage = {
           </div>
 
           <div class="flex flex-col gap-2.5 max-w-sm mx-auto w-full mb-6">
-            <h2 class="text-xl font-bold text-slate-900">Choose your starter habits</h2>
-            <p class="text-xs text-slate-500 leading-relaxed">Select habits to begin with. You will configure types and goals in the next step.</p>
+            <h2 class="text-xl font-bold text-text-primary">Choose your starter habits</h2>
+            <p class="text-xs text-text-secondary leading-relaxed">Select habits to begin with. You will configure types and goals in the next step.</p>
           </div>
 
-          <div class="grid grid-cols-3 gap-2.5 max-w-sm mx-auto w-full">
+          <div class="grid grid-cols-3 gap-4 max-w-sm mx-auto w-full">
             ${presetCardsHtml}
           </div>
         </div>

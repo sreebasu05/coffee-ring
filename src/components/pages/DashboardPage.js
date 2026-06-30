@@ -72,15 +72,31 @@ export const DashboardPage = {
         ></button>
       `).join('');
 
+      const pastelColorObj = APP_CONFIG.pastelColors.find(x => x.key === colorKey);
+      const pastelHex = pastelColorObj ? pastelColorObj.hex : '#cbd5e1';
+
+      const colorHexMap = {
+        pastelMint: '#10b981',
+        pastelAmber: '#f59e0b',
+        pastelSky: '#0ea5e9',
+        pastelRose: '#f43f5e',
+        pastelLavender: '#8b5cf6',
+        pastelPink: '#ec4899'
+      };
+      const themeHex = colorHexMap[colorKey] || '#64748b';
+
       return `
         <div 
           data-category-id="${cat.id}"
-          class="border border-slate-200 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-3"
+          class="relative overflow-hidden border border-slate-200 bg-white rounded-2xl p-4 pt-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-3"
         >
+          <!-- Top Accent Color Line -->
+          <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+
           <!-- Card Row Header -->
           <div class="flex justify-between items-center cursor-pointer select-none category-header-row">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-xl flex items-center justify-center border bg-slate-50 border-slate-100 text-slate-600">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center border" style="background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};">
                 <i data-lucide="${cat.icon || 'folder'}" class="w-4 h-4"></i>
               </div>
               <div class="flex flex-col">
@@ -120,8 +136,33 @@ export const DashboardPage = {
       `;
     }).join('');
 
-    let highlightsHtml = `<div class="text-xs text-slate-400 py-2">No logs found yet. Check off habits on the Today tab to generate statistics!</div>`;
-    if (highlights.best || highlights.worst || highlights.streakChampion) {
+    const totalCheckIns = state.checkIns.length;
+    const progressPct = Math.round((totalCheckIns / 7) * 100);
+    const logsRemaining = 7 - totalCheckIns;
+
+    let highlightsHtml = `
+      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-6 text-center flex flex-col items-center justify-center min-h-[220px] shadow-sm">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-slate-400"></div>
+        
+        <div class="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-3">
+          <i data-lucide="lock" class="w-5 h-5"></i>
+        </div>
+        
+        <span class="text-sm font-bold text-slate-800">Standouts Locked</span>
+        <span class="text-xs text-slate-500 mt-1.5 max-w-[240px] leading-relaxed">
+          Log at least 7 check-ins on your Today tab to unlock your habit standouts (Best, Worst, and Streak Champ).
+        </span>
+        
+        <div class="w-full max-w-[200px] mt-5">
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="h-full rounded-full bg-slate-400 transition-all duration-500 ease-out" style="width: ${progressPct}%"></div>
+          </div>
+          <span class="text-[9px] font-bold text-slate-400 mt-2 block uppercase tracking-wider">${logsRemaining} Check-in${logsRemaining > 1 ? 's' : ''} Remaining</span>
+        </div>
+      </div>
+    `;
+    
+    if (!highlights.isLocked && (highlights.best || highlights.worst || highlights.streakChampion)) {
       highlightsHtml = `
         <div class="grid grid-cols-3 gap-3">
           <!-- Best habit -->
@@ -149,7 +190,7 @@ export const DashboardPage = {
               <i data-lucide="flame" class="w-5 h-5 text-amber-500 fill-amber-500/10 mb-1.5"></i>
               <span class="text-[9px] font-bold tracking-widest text-amber-600 uppercase">Streak Champ</span>
               <span class="text-xs font-bold text-slate-800 line-clamp-1 mt-1 w-full">${highlights.streakChampion.habit.name}</span>
-              <span class="text-[10px] font-bold text-amber-600 mt-0.5">${highlights.streakChampion.streak}d streak</span>
+              <span class="text-[10px] font-bold text-amber-600 mt-0.5">${highlights.streakChampion.streak}w streak</span>
             </div>
           ` : `
             <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-3.5 pt-5 text-center flex flex-col items-center justify-center min-h-[105px]">

@@ -18,6 +18,7 @@ class AppController {
 
     // 1. Initialize State & Data
     appState.init();
+    window.appState = appState;
 
     // 2. Setup onboarding global handlers
     window.OnboardingGoToStep = (stepNum) => {

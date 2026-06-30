@@ -24,86 +24,125 @@ const STARTER_PRESET_IDS = [
 
 const getDefaultHabits = () => APP_CONFIG.presets
   .filter(p => STARTER_PRESET_IDS.includes(p.id))
-  .map((preset, index) => ({
-    id: `habit_seed_${index}`,
-    name: preset.name,
-    type: preset.type,
-    category: preset.category,
-    weeklyTarget: preset.weeklyTarget || 7,
-    minGoal: preset.minGoal || null,
-    maxGoal: preset.maxGoal || null,
-    unit: preset.unit,
-    icon: preset.icon,
-    tags: [...preset.tags],
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days ago
-  }));
+  .map((preset, index) => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const dateStr = `${thirtyDaysAgo.getFullYear()}-${String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(thirtyDaysAgo.getDate()).padStart(2, '0')}`;
+    return {
+      id: `habit_seed_${index}`,
+      name: preset.name,
+      type: preset.type,
+      category: preset.category,
+      weeklyTarget: preset.weeklyTarget || 7,
+      weeklyTargetHistory: [{ date: dateStr, target: preset.weeklyTarget || 7 }],
+      minGoal: preset.minGoal || null,
+      maxGoal: preset.maxGoal || null,
+      unit: preset.unit,
+      icon: preset.icon,
+      tags: [...preset.tags],
+      createdAt: thirtyDaysAgo.toISOString()
+    };
+  });
 
-// Helper to generate 21 days of historical logs
+// Helper to generate 30 days of historical logs
 const generate21DaysHistory = (habits) => {
   const checkIns = [];
   const today = new Date();
   
-  // Go back 21 days
-  for (let i = 21; i >= 1; i--) {
-    const logDate = new Date();
-    logDate.setDate(today.getDate() - i);
-    
-    const year = logDate.getFullYear();
-    const month = String(logDate.getMonth() + 1).padStart(2, '0');
-    const day = String(logDate.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    
-    const dayOfWeek = logDate.getDay(); // 0=Sunday, 1=Monday ...
+  // Define 4 weeks of day offsets: Week 1 (30-22), Week 2 (21-15), Week 3 (14-8), Week 4 (7-1)
+  const weeks = [
+    [30, 29, 28, 27, 26, 25, 24, 23, 22],
+    [21, 20, 19, 18, 17, 16, 15],
+    [14, 13, 12, 11, 10, 9, 8],
+    [7, 6, 5, 4, 3, 2, 1]
+  ];
 
-    habits.forEach(h => {
-      let shouldLog = false;
-      let val = null;
-      let tags = [];
-      let note = "";
+  // For each habit, assign a consistency profile:
+  // - 'perfect': Meets the weekly target 100% of the time.
+  // - 'average': Meets about 70% of the weekly target.
+  // - 'failing': Meets only 30% of the weekly target.
+  const profiles = habits.map((h, idx) => {
+    if (idx % 3 === 0) return 'perfect';
+    if (idx % 3 === 1) return 'average';
+    return 'failing';
+  });
 
-      if (h.name === "Gym Workout") {
-        // Gym is 4x a week: Mon, Wed, Fri, Sat
-        shouldLog = [1, 3, 5, 6].includes(dayOfWeek);
-        val = 1;
-        const routineTags = ["Leg Day", "Push Day", "Pull Day", "Cardio"];
-        tags = [routineTags[dayOfWeek % routineTags.length]];
-        note = `Workout session completed`;
-      } 
-      else if (h.name === "Walk / Steps") {
-        // Steps logged most days, target is 8000
-        shouldLog = Math.random() > 0.15;
-        val = Math.floor(6500 + Math.random() * 5000); // 6500 to 11500
-        note = `Walked around the park`;
-      }
-      else if (h.name === "Drink Water") {
-        // Drink water target 8, logged every day
-        shouldLog = true;
-        val = Math.floor(6 + Math.random() * 5); // 6 to 10 glasses
-      }
-      else if (h.name === "Calorie Budget") {
-        // Calories logged every day, target 1800-2200
-        shouldLog = true;
-        val = Math.floor(1700 + Math.random() * 600); // 1700 to 2300 kcal
-        if (val > 2200) note = "Slightly over budget today";
-      }
-      else if (h.name === "No Junk Food") {
-        // Yes/No habit, 85% success rate
-        shouldLog = Math.random() > 0.15;
-        val = 1;
-      }
-      else if (h.name === "Bathing") {
-        // Bathing completed daily
-        shouldLog = true;
-        val = 1;
-      }
-      else if (h.name === "Daily Spend Budget") {
-        // Spend budget logged daily, max target 500
-        shouldLog = Math.random() > 0.05;
-        val = Math.floor(150 + Math.random() * 450); // 150 to 600 rupees
-        if (val > 500) note = "Bought some groceries";
+  weeks.forEach((weekOffsets, weekIdx) => {
+    habits.forEach((h, hIdx) => {
+      const profile = profiles[hIdx];
+      const target = h.weeklyTarget || 7;
+      const weekLength = weekOffsets.length;
+      
+      // Scale target depending on the number of days in the week block (e.g. 9 days vs 7 days)
+      const scaledTarget = Math.max(1, Math.round((target / 7) * weekLength));
+      
+      // Determine how many days to log for this habit this week
+      let daysToLog = 0;
+      if (profile === 'perfect') {
+        daysToLog = scaledTarget;
+      } else if (profile === 'average') {
+        daysToLog = Math.max(1, Math.round(scaledTarget * 0.7));
+      } else { // failing
+        daysToLog = Math.max(0, Math.floor(scaledTarget * 0.3));
       }
 
-      if (shouldLog) {
+      // Randomly select which days of the week to log
+      const shuffledOffsets = [...weekOffsets].sort(() => 0.5 - Math.random());
+      const selectedOffsets = shuffledOffsets.slice(0, daysToLog);
+
+      selectedOffsets.forEach(offset => {
+        const logDate = new Date();
+        logDate.setDate(today.getDate() - offset);
+        
+        const year = logDate.getFullYear();
+        const month = String(logDate.getMonth() + 1).padStart(2, '0');
+        const day = String(logDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
+        let val = 1;
+        let tags = [];
+        let note = "";
+
+        // Determine value if it's a numeric habit
+        if (h.type === 'number') {
+          const hasMin = h.minGoal !== null && h.minGoal !== undefined && h.minGoal !== "";
+          const hasMax = h.maxGoal !== null && h.maxGoal !== undefined && h.maxGoal !== "";
+          
+          if (hasMin && hasMax) {
+            const min = parseFloat(h.minGoal);
+            const max = parseFloat(h.maxGoal);
+            // Some logs might slightly miss the goal if the profile is failing
+            if (profile === 'failing' && Math.random() > 0.5) {
+              val = Math.floor(min - 1 - Math.random() * 5);
+            } else {
+              val = Math.floor(min + Math.random() * (max - min + 1));
+            }
+          } else if (hasMin) {
+            const min = parseFloat(h.minGoal);
+            val = profile === 'failing' && Math.random() > 0.5
+              ? Math.floor(min - 1 - Math.random() * 3)
+              : Math.floor(min + Math.random() * 5);
+          } else if (hasMax) {
+            const max = parseFloat(h.maxGoal);
+            val = profile === 'failing' && Math.random() > 0.5
+              ? Math.floor(max + 1 + Math.random() * 3)
+              : Math.floor(max - Math.random() * 5);
+          } else {
+            val = Math.floor(5 + Math.random() * 10);
+          }
+        }
+
+        // Add some realistic notes and tags if the preset has them
+        if (h.tags && h.tags.length > 0) {
+          // Log 1 or 2 tags
+          const numTags = Math.floor(1 + Math.random() * 2);
+          tags = [...h.tags].sort(() => 0.5 - Math.random()).slice(0, numTags);
+        }
+
+        if (Math.random() > 0.7) {
+          const notes = ["Feeling good", "Productive session", "Completed early", "Routine maintained"];
+          note = notes[Math.floor(Math.random() * notes.length)];
+        }
+
         checkIns.push({
           id: `log_seed_${h.id}_${dateStr}`,
           habitId: h.id,
@@ -113,9 +152,9 @@ const generate21DaysHistory = (habits) => {
           note,
           timestamp: logDate.getTime()
         });
-      }
+      });
     });
-  }
+  });
 
   return checkIns;
 };
@@ -186,6 +225,14 @@ export const StorageManager = {
     }
   },
 
+  seedHistoryForCurrentHabits() {
+    const habits = this.getHabits() || [];
+    if (habits.length === 0) return [];
+    const seeded = generate21DaysHistory(habits);
+    localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(seeded));
+    return seeded;
+  },
+
   getUserProfile() {
     this.init();
     return JSON.parse(localStorage.getItem(KEYS.USER_PROFILE));
@@ -208,6 +255,11 @@ export const StorageManager = {
     } else {
       habits.push(habit);
     }
+    localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
+    return habits;
+  },
+
+  saveHabitsList(habits) {
     localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
     return habits;
   },

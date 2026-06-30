@@ -119,13 +119,13 @@ export const Greeting = {
         <div class="flex justify-between items-end mt-3">
           <div>
             <h1 class="text-header-bold">${greet}</h1>
-            <h2 class="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 mt-1.5">${user}</h2>
+            <h2 class="text-3xl font-extrabold tracking-tight text-text-primary mt-1.5">${user}</h2>
           </div>
           
           <!-- Numeric Ratio Indicator -->
           <div class="text-right flex flex-col items-end">
-            <div class="text-3xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
-              ${completedToday}<span class="text-lg font-bold text-slate-400 dark:text-slate-500">/${totalHabits}</span>
+            <div class="text-3xl font-extrabold text-text-primary leading-none tracking-tight">
+              ${completedToday}<span class="text-lg font-bold text-text-secondary">/${totalHabits}</span>
             </div>
             <span class="text-label-muted mt-1">done today</span>
           </div>

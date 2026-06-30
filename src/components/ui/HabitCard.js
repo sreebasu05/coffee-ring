@@ -102,27 +102,29 @@ export const HabitCard = {
       pastelPink: '#ec4899'
     };
     const themeHex = colorHexMap[colorKey] || '#0f172a';
+    const pastelColorObj = APP_CONFIG.pastelColors.find(x => x.key === colorKey);
+    const pastelHex = pastelColorObj ? pastelColorObj.hex : '#cbd5e1';
 
     // Apply color class rules
-    let cardClass = "relative overflow-hidden habit-card border border-slate-200 rounded-2xl p-4 pt-5 flex flex-col shadow-sm transition-all duration-300 bg-white text-slate-800 hover:shadow-md";
+    let cardClass = "relative overflow-hidden habit-card border border-border-primary rounded-2xl p-4 pt-5 flex flex-col shadow-sm transition-all duration-300 bg-cardBg text-text-primary hover:shadow-md";
     let iconBoxStyle = "";
     let checkboxStyle = "";
     
     let iconBoxClass = "w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-300";
     let checkboxClass = "w-7 h-7 rounded-full border flex items-center justify-center transition-all duration-150 cursor-pointer";
-    let titleClass = "font-bold text-sm leading-snug text-slate-800";
-    let subtitleClass = "text-xs mt-0.5 text-slate-500";
+    let titleClass = "font-bold text-sm leading-snug text-text-primary";
+    let subtitleClass = "text-xs mt-0.5 text-text-secondary";
 
     if (isCompleted) {
       iconBoxStyle = `background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};`;
       checkboxStyle = `border-color: ${themeHex}; color: ${themeHex}; background-color: ${themeHex}10;`;
     } else {
-      iconBoxClass += " bg-slate-50 border-slate-200 text-slate-500";
-      checkboxClass += " bg-slate-50/50 border-slate-200 text-slate-400 hover:border-slate-400 hover:text-slate-600";
+      iconBoxClass += " bg-darkBg border-border-primary text-text-secondary";
+      checkboxClass += " bg-darkBg border-border-primary text-slate-400 hover:border-slate-500 hover:text-slate-600 dark:text-slate-500 dark:hover:border-slate-400 dark:hover:text-slate-300";
     }
 
     // Category badge classes
-    const badgeClass = `text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-slate-100 text-slate-500 border-slate-200`;
+    const badgeClass = `text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-darkBg text-text-secondary border-border-primary`;
 
     // Subtitle formatting
     let subtitle = "";
@@ -158,7 +160,6 @@ export const HabitCard = {
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
     const iconName = (!habit.icon || isEmoji(habit.icon)) ? 'target' : habit.icon;
 
-    // Render tags
     const selectedTags = log?.tags || [];
     const tagsHTML = habit.tags.map(tag => {
       const isChecked = selectedTags.includes(tag);
@@ -167,10 +168,10 @@ export const HabitCard = {
           data-tag="${tag}" 
           class="inline-tag-chip px-2.5 py-1 rounded-full text-xs transition-all border ${
             isChecked 
-              ? 'bg-slate-900 border-transparent text-white font-semibold shadow-sm'
+              ? 'bg-slate-900 dark:bg-white border-transparent text-white dark:text-slate-900 font-semibold shadow-sm'
               : isCompleted
-                ? 'bg-white/40 border-black/5 text-slate-700 hover:text-slate-900'
-                : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
+                ? 'bg-white/40 border-black/5 text-slate-700 hover:text-slate-900 dark:text-slate-200 dark:hover:text-white'
+                : 'bg-darkBg border-border-primary text-text-secondary hover:text-text-primary'
           }"
         >
           ${tag}
@@ -194,10 +195,10 @@ export const HabitCard = {
         class="${cardClass}"
       >
         <!-- Top Colored Accent Strip (Completed State Only) -->
-        ${isCompleted ? `<div class="absolute top-0 left-0 right-0 h-1.5 transition-all duration-300" style="background-color: ${themeHex};"></div>` : ''}
+        ${isCompleted ? `<div class="absolute top-0 left-0 right-0 h-[3px] transition-all duration-300" style="background-color: ${themeHex};"></div>` : ''}
 
         <!-- Main row -->
-        <div class="flex justify-between items-center cursor-pointer select-none">
+        <div class="habit-card-header flex justify-between items-center cursor-pointer select-none">
           <div class="flex items-center gap-3">
             <div class="${iconBoxClass}" style="${iconBoxStyle}">
               <i data-lucide="${iconName}" class="w-5 h-5"></i>
@@ -299,7 +300,7 @@ export const HabitCard = {
       const habitId = card.dataset.habitId;
       const habit = state.habits.find(h => h.id === habitId);
       const checkBtn = card.querySelector('.habit-check-btn');
-      const cardHeader = card.firstElementChild;
+      const cardHeader = card.querySelector('.habit-card-header');
 
       const addTriggerBtn = card.querySelector('.tag-add-trigger-btn');
       const tagInputBar = card.querySelector('.tag-input-bar');
