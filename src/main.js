@@ -12,12 +12,17 @@ class AppController {
   }
 
   init() {
+    // Initialize Dark Mode Check
+    const isDark = localStorage.getItem('coffeering_dark_mode') === 'true';
+    document.documentElement.classList.toggle('dark', isDark);
+
     // 1. Initialize State & Data
     appState.init();
 
     // 2. Setup onboarding global handlers
     window.OnboardingGoToStep = (stepNum) => {
       OnboardingPage.step = stepNum;
+      OnboardingPage.saveState();
       this.render();
     };
 
@@ -60,6 +65,7 @@ class AppController {
     const root = document.getElementById('app-root');
     if (!root) return;
 
+    OnboardingPage.loadState();
     root.innerHTML = OnboardingPage.render();
     OnboardingPage.bindEvents(appState, () => {
       // Upon completion, navigate back to homepage today view

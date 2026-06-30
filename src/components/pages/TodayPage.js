@@ -12,7 +12,7 @@ export const TodayPage = {
       : `
         <div class="flex flex-col items-center justify-center py-12 text-center border border-dashed border-slate-200 rounded-2xl p-6 bg-white shadow-sm animate-fade-in">
           <span class="w-12 h-12 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center text-slate-500 mb-3">
-            <i data-lucide="plus-circle" class="w-6 h-6"></i>
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
           </span>
           <h3 class="font-bold text-slate-700 text-sm">No Habits Tracked Yet</h3>
           <p class="text-xs text-slate-400 max-w-[200px] mt-1">Tap the plus button below to setup your very first habit.</p>

@@ -4,32 +4,32 @@ export const Navbar = {
     if (!nav) return;
 
     // Apply high-contrast light theme colors: white background with gray border and charcoal/black text
-    nav.className = "fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 py-2.5 px-4 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-lg";
+    nav.className = "fixed bottom-0 left-0 right-0 bg-cardBg/90 backdrop-blur-md border-t border-border-primary py-2.5 px-4 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-lg";
 
     nav.innerHTML = `
       <button id="nav-today" class="flex flex-col items-center gap-1 transition-all ${
-        currentTab === 'today' ? 'text-slate-900 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
+        currentTab === 'today' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
       }">
         <i data-lucide="calendar" class="w-4.5 h-4.5"></i>
         <span class="text-[9px] font-semibold tracking-wide">Today</span>
       </button>
       
       <button id="nav-create" class="flex flex-col items-center gap-1 transition-all ${
-        currentTab === 'create' ? 'text-slate-900 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
+        currentTab === 'create' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
       }">
         <i data-lucide="plus-circle" class="w-4.5 h-4.5"></i>
         <span class="text-[9px] font-semibold tracking-wide">Add Habit</span>
       </button>
 
       <button id="nav-dashboard" class="flex flex-col items-center gap-1 transition-all ${
-        currentTab === 'dashboard' ? 'text-slate-900 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
+        currentTab === 'dashboard' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
       }">
         <i data-lucide="bar-chart" class="w-4.5 h-4.5"></i>
         <span class="text-[9px] font-semibold tracking-wide">Dashboard</span>
       </button>
 
       <button id="nav-insights" class="flex flex-col items-center gap-1 transition-all ${
-        currentTab === 'habit-insight' ? 'text-slate-900 font-bold scale-105' : 'text-slate-400 hover:text-slate-600'
+        currentTab === 'habit-insight' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
       }">
         <i data-lucide="line-chart" class="w-4.5 h-4.5"></i>
         <span class="text-[9px] font-semibold tracking-wide">Insights</span>

@@ -211,7 +211,7 @@ export const HabitCard = {
             </div>
           </div>
           <button class="habit-check-btn ${checkboxClass}" style="${checkboxStyle}">
-            <i data-lucide="${isCompleted ? 'check' : 'plus'}" class="w-4 h-4"></i>
+            <i data-lucide="check" class="w-4 h-4"></i>
           </button>
         </div>
 

@@ -1,23 +1,59 @@
 @import "tailwindcss";
 
 @theme {
-  --color-darkBg: #f8fafc;
-  --color-cardBg: #ffffff;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #64748b;
+  --color-darkBg: var(--darkBg);
+  --color-cardBg: var(--cardBg);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-border-primary: var(--border-primary);
   
   /* Solid high contrast black fallback */
-  --color-accentBlue: #0f172a;
+  --color-accentBlue: var(--accentBlue);
 
-  /* Custom Pastel Accent Colors */
-  --color-pastelMint: #a7f3d0;     /* Soft Pastel Emerald/Green */
-  --color-pastelAmber: #fde68a;    /* Soft Pastel Apricot/Orange */
-  --color-pastelSky: #bae6fd;      /* Soft Pastel Sky Blue */
-  --color-pastelRose: #fecdd3;     /* Soft Pastel Coral/Red */
-  --color-pastelLavender: #ddd6fe; /* Soft Pastel Lavender/Violet */
-  --color-pastelPink: #fbcfe8;     /* Soft Pastel Pink */
+  /* Custom Pastel Accent Colors - adjusted for dark mode readability */
+  --color-pastelMint: var(--pastelMint);
+  --color-pastelAmber: var(--pastelAmber);
+  --color-pastelSky: var(--pastelSky);
+  --color-pastelRose: var(--pastelRose);
+  --color-pastelLavender: var(--pastelLavender);
+  --color-pastelPink: var(--pastelPink);
   
   --color-accentViolet: #6366f1;   /* Primary Violet branding */
+}
+
+:root {
+  --darkBg: #f8fafc;
+  --cardBg: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --border-primary: #e2e8f0;
+  
+  --accentBlue: #0f172a;
+
+  --pastelMint: #a7f3d0;
+  --pastelAmber: #fde68a;
+  --pastelSky: #bae6fd;
+  --pastelRose: #fecdd3;
+  --pastelLavender: #ddd6fe;
+  --pastelPink: #fbcfe8;
+}
+
+html.dark {
+  --darkBg: #090d16;       /* Midnight dark blue/black */
+  --cardBg: #111827;       /* Rich dark card slate */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-primary: #1f2937; /* Dark slate borders */
+  
+  --accentBlue: #ffffff;    /* Light text for high contrast on dark */
+
+  /* Slightly deeper pastel tones for premium readability on dark backgrounds */
+  --pastelMint: #065f46;
+  --pastelAmber: #78350f;
+  --pastelSky: #075985;
+  --pastelRose: #991b1b;
+  --pastelLavender: #3730a3;
+  --pastelPink: #831843;
 }
 
 /* Custom uniform utility style bindings */
@@ -26,7 +62,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 @utility text-header-bold {
@@ -34,13 +70,31 @@
   font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1.15;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 @layer base {
   body {
     @apply bg-darkBg text-text-primary;
     font-family: 'Outfit', sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* Automatically map tailwind utility defaults to theme CSS variables in dark mode */
+  .bg-white {
+    background-color: var(--cardBg) !important;
+  }
+  .bg-slate-50, .bg-slate-100, .bg-slate-200 {
+    background-color: var(--darkBg) !important;
+  }
+  .border-slate-200, .border-slate-150, .border-slate-100 {
+    border-color: var(--border-primary) !important;
+  }
+  html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700 {
+    color: var(--text-primary) !important;
+  }
+  html.dark .text-slate-600, html.dark .text-slate-500, html.dark .text-slate-400 {
+    color: var(--text-secondary) !important;
   }
 }
 

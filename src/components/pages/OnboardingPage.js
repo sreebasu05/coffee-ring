@@ -8,6 +8,34 @@ export const OnboardingPage = {
   currentPresetIndex: 0, // Tracker index for Step 4 Create queue
   customGoals: [], // Accumulator array for finalized habits
 
+  saveState() {
+    localStorage.setItem('coffeering_onboarding_draft', JSON.stringify({
+      step: this.step,
+      userName: this.userName,
+      selectedPresets: this.selectedPresets,
+      currentPresetIndex: this.currentPresetIndex,
+      customGoals: this.customGoals
+    }));
+  },
+
+  loadState() {
+    try {
+      const data = localStorage.getItem('coffeering_onboarding_draft');
+      if (data) {
+        const parsed = JSON.parse(data);
+        this.step = parsed.step || 1;
+        this.userName = parsed.userName || "";
+        this.selectedPresets = parsed.selectedPresets || ['preset_gym', 'preset_steps', 'preset_water'];
+        this.currentPresetIndex = parsed.currentPresetIndex || 0;
+        this.customGoals = parsed.customGoals || [];
+      }
+    } catch(e) {}
+  },
+
+  clearState() {
+    localStorage.removeItem('coffeering_onboarding_draft');
+  },
+
   render() {
     if (this.step === 1) {
       return this.renderStep1();
@@ -139,33 +167,47 @@ export const OnboardingPage = {
     const presetCardsHtml = presets.map(p => {
       const isSelected = this.selectedPresets.includes(p.id);
       
-      const colorMap = {
-        pastelMint: 'border-emerald-100 bg-emerald-50/10 text-emerald-600',
-        pastelAmber: 'border-amber-100 bg-amber-50/10 text-amber-600',
-        pastelSky: 'border-sky-100 bg-sky-50/10 text-sky-600',
-        pastelRose: 'border-rose-100 bg-rose-50/10 text-rose-600',
-        pastelLavender: 'border-indigo-100 bg-indigo-50/10 text-indigo-600',
-        pastelPink: 'border-pink-100 bg-pink-50/10 text-pink-600'
+      const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === p.category);
+      const colorKey = categoryMeta ? categoryMeta.defaultColor : p.defaultColor;
+      const pastelColorObj = APP_CONFIG.pastelColors.find(x => x.key === colorKey);
+      const pastelHex = pastelColorObj ? pastelColorObj.hex : '#cbd5e1';
+
+      const colorHexMap = {
+        pastelMint: '#10b981',
+        pastelAmber: '#f59e0b',
+        pastelSky: '#0ea5e9',
+        pastelRose: '#f43f5e',
+        pastelLavender: '#8b5cf6',
+        pastelPink: '#ec4899'
       };
-      const activeColor = colorMap[p.defaultColor] || 'border-slate-200 text-slate-500';
+      const themeHex = colorHexMap[colorKey] || '#0f172a';
+      
+      const iconBoxStyle = isSelected 
+        ? `background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};` 
+        : '';
+        
+      const iconBoxClass = isSelected 
+        ? 'w-10 h-10 rounded-xl flex items-center justify-center border'
+        : 'w-10 h-10 rounded-xl flex items-center justify-center border bg-slate-50 dark:bg-slate-800 border-slate-150 dark:border-slate-700 text-slate-400';
 
       return `
         <button 
           type="button"
           data-preset-id="${p.id}"
-          class="onboarding-preset-card flex flex-col items-center p-3 rounded-2xl border text-center transition-all duration-200 ${
+          class="onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-4 pb-3 px-3 rounded-2xl border text-center transition-all duration-200 ${
             isSelected 
-              ? `border-slate-900 bg-white ring-1 ring-slate-900`
-              : 'border-slate-100 bg-white hover:border-slate-350'
+              ? `border-slate-200/80 bg-white dark:bg-slate-900 shadow-sm`
+              : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-200 dark:hover:border-slate-700'
           }"
         >
-          <div class="w-10 h-10 rounded-full flex items-center justify-center border ${
-            isSelected ? activeColor : 'bg-slate-50 border-slate-150 text-slate-400'
-          }">
+          <!-- Top Accent Color Line when selected -->
+          ${isSelected ? `<div class="absolute top-0 left-0 right-0 h-[3px]" style="background-color: ${pastelHex};"></div>` : ''}
+
+          <div class="${iconBoxClass}" style="${iconBoxStyle}">
             <i data-lucide="${p.icon || 'target'}" class="w-5 h-5"></i>
           </div>
-          <span class="text-xs font-bold text-slate-800 mt-2 line-clamp-1 w-full">${p.name}</span>
-          <span class="text-[9px] text-slate-400 uppercase mt-0.5 font-semibold">${p.category}</span>
+          <span class="text-xs font-bold text-slate-850 dark:text-slate-100 mt-2 line-clamp-1 w-full">${p.name}</span>
+          <span class="text-[9px] text-slate-450 dark:text-slate-500 uppercase mt-0.5 font-semibold">${p.category}</span>
         </button>
       `;
     }).join('');
@@ -226,6 +268,7 @@ export const OnboardingPage = {
       if (nameInput) {
         nameInput.addEventListener('input', (e) => {
           this.userName = e.target.value;
+          this.saveState();
           const nextBtn = document.getElementById('onboarding-name-next-btn');
           if (nextBtn) {
             const isInvalid = !this.userName || this.userName.trim() === "";
@@ -249,6 +292,7 @@ export const OnboardingPage = {
           } else {
             this.selectedPresets.push(id);
           }
+          this.saveState();
           
           // Refresh step 3 view
           const root = document.getElementById('app-root');
@@ -278,6 +322,7 @@ export const OnboardingPage = {
         if (this.currentPresetIndex < this.selectedPresets.length - 1) {
           // Move to next prefilled card
           this.currentPresetIndex++;
+          this.saveState();
           const root = document.getElementById('app-root');
           if (root) {
             root.innerHTML = this.render();
@@ -319,6 +364,8 @@ export const OnboardingPage = {
 
           // Initialize app state
           state.init();
+          this.clearState();
+          
           if (onComplete) {
             onComplete();
           }

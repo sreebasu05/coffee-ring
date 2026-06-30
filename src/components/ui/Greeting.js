@@ -85,35 +85,47 @@ export const Greeting = {
     return `
       <div class="mb-8 select-none relative">
         
-        <!-- Dropdown Date Trigger using custom utility -->
-        <div class="relative inline-block z-30">
-          <button 
-            id="date-dropdown-trigger" 
-            class="flex items-center gap-1.5 text-label-muted hover:text-slate-800 transition-colors"
-          >
-            <span>${activeDateLabel}</span>
-            <i data-lucide="chevron-down" class="w-3 h-3"></i>
-          </button>
-          
-          <div 
-            id="header-date-dropdown" 
-            class="hidden absolute left-0 mt-2 bg-cardBg border border-slate-200/80 rounded-xl shadow-xl overflow-hidden w-40 z-50"
-          >
-            ${dropdownOptions}
+        <!-- Top Row with Date Dropdown + Dark Mode Toggle -->
+        <div class="flex justify-between items-center z-30 relative">
+          <!-- Dropdown Date Trigger -->
+          <div class="relative inline-block">
+            <button 
+              id="date-dropdown-trigger" 
+              class="flex items-center gap-1.5 text-label-muted hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            >
+              <span>${activeDateLabel}</span>
+              <i data-lucide="chevron-down" class="w-3 h-3"></i>
+            </button>
+            
+            <div 
+              id="header-date-dropdown" 
+              class="hidden absolute left-0 mt-2 bg-cardBg border border-slate-200/80 rounded-xl shadow-xl overflow-hidden w-40 z-50"
+            >
+              ${dropdownOptions}
+            </div>
           </div>
+
+          <!-- Sun/Moon Toggle Button -->
+          <button 
+            id="dark-mode-toggle-btn"
+            class="w-8 h-8 rounded-xl bg-white border border-slate-200 dark:bg-slate-900 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition-all shadow-sm flex-shrink-0"
+          >
+            <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+            <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          </button>
         </div>
         
         <!-- Greeting using custom header utilities -->
         <div class="flex justify-between items-end mt-3">
           <div>
             <h1 class="text-header-bold">${greet}</h1>
-            <h2 class="text-3xl font-extrabold tracking-tight text-slate-800 mt-1.5">${user}</h2>
+            <h2 class="text-3xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100 mt-1.5">${user}</h2>
           </div>
           
           <!-- Numeric Ratio Indicator -->
           <div class="text-right flex flex-col items-end">
-            <div class="text-3xl font-extrabold text-slate-900 leading-none tracking-tight">
-              ${completedToday}<span class="text-lg font-bold text-slate-400">/${totalHabits}</span>
+            <div class="text-3xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
+              ${completedToday}<span class="text-lg font-bold text-slate-400 dark:text-slate-500">/${totalHabits}</span>
             </div>
             <span class="text-label-muted mt-1">done today</span>
           </div>
@@ -135,6 +147,20 @@ export const Greeting = {
   bindEvents(state) {
     const trigger = document.getElementById('date-dropdown-trigger');
     const dropdown = document.getElementById('header-date-dropdown');
+    
+    // Bind Dark Mode Button click
+    const darkToggle = document.getElementById('dark-mode-toggle-btn');
+    if (darkToggle) {
+      darkToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('coffeering_dark_mode', isDark ? 'true' : 'false');
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+    }
+
     if (!trigger || !dropdown) return;
 
     trigger.addEventListener('click', (e) => {

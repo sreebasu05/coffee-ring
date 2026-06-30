@@ -133,7 +133,14 @@ export const DashboardPage = {
               <span class="text-xs font-bold text-slate-800 line-clamp-1 mt-1 w-full">${highlights.best.habit.name}</span>
               <span class="text-[10px] font-bold text-emerald-600 mt-0.5">${highlights.best.rate}% done</span>
             </div>
-          ` : ''}
+          ` : `
+            <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-3.5 pt-5 text-center flex flex-col items-center justify-center min-h-[105px]">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-slate-300"></div>
+              <i data-lucide="trending-up" class="w-5 h-5 text-slate-400 mb-1.5"></i>
+              <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Crushing It</span>
+              <span class="text-xs text-slate-500 mt-1">Need data!</span>
+            </div>
+          `}
 
           <!-- Streak Champion -->
           ${highlights.streakChampion && highlights.streakChampion.streak > 0 ? `
@@ -162,7 +169,14 @@ export const DashboardPage = {
               <span class="text-xs font-bold text-slate-800 line-clamp-1 mt-1 w-full">${highlights.worst.habit.name}</span>
               <span class="text-[10px] font-bold text-rose-600 mt-0.5">${highlights.worst.rate}% done</span>
             </div>
-          ` : ''}
+          ` : `
+            <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-3.5 pt-5 text-center flex flex-col items-center justify-center min-h-[105px]">
+              <div class="absolute top-0 left-0 right-0 h-1 bg-slate-300"></div>
+              <i data-lucide="alert-circle" class="w-5 h-5 text-slate-400 mb-1.5"></i>
+              <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Needs Focus</span>
+              <span class="text-xs text-slate-500 mt-1">Need data!</span>
+            </div>
+          `}
         </div>
       `;
     }

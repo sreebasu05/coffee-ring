@@ -468,43 +468,33 @@ class AppState {
     });
   }
 
-  // Get highlights (best, worst, streak champion)
   getHighlights() {
-    if (this.habits.length === 0) {
+    if (this.habits.length === 0 || this.checkIns.length === 0) {
       return { best: null, worst: null, streakChampion: null };
     }
 
-    let bestHabit = null;
-    let maxRate = -1;
-    
-    let worstHabit = null;
-    let minRate = 101;
+    const rateHabits = this.habits.map(h => ({ 
+      habit: h, 
+      rate: this.getCompletionRate(h.id, 30), 
+      streak: this.getDailyStreak(h.id) 
+    }));
 
-    let streakHabit = null;
-    let maxStreak = -1;
+    const maxRate = Math.max(...rateHabits.map(x => x.rate));
+    const minRate = Math.min(...rateHabits.map(x => x.rate));
+    const maxStreak = Math.max(...rateHabits.map(x => x.streak));
 
-    this.habits.forEach(h => {
-      const rate = this.getCompletionRate(h.id, 30);
-      const streak = this.getDailyStreak(h.id); // Default to daily streak for champion
+    const bestHabits = rateHabits.filter(x => x.rate === maxRate && maxRate > 0);
+    const worstHabits = rateHabits.filter(x => x.rate === minRate && minRate < 100);
+    const streakHabits = rateHabits.filter(x => x.streak === maxStreak && maxStreak > 0);
 
-      if (rate > maxRate) {
-        maxRate = rate;
-        bestHabit = h;
-      }
-      if (rate < minRate) {
-        minRate = rate;
-        worstHabit = h;
-      }
-      if (streak > maxStreak) {
-        maxStreak = streak;
-        streakHabit = h;
-      }
-    });
+    const best = bestHabits.length > 0 ? bestHabits[Math.floor(Math.random() * bestHabits.length)] : null;
+    const worst = worstHabits.length > 0 ? worstHabits[Math.floor(Math.random() * worstHabits.length)] : null;
+    const streakChamp = streakHabits.length > 0 ? streakHabits[Math.floor(Math.random() * streakHabits.length)] : null;
 
     return {
-      best: bestHabit ? { habit: bestHabit, rate: maxRate } : null,
-      worst: worstHabit ? { habit: worstHabit, rate: minRate } : null,
-      streakChampion: streakHabit ? { habit: streakHabit, streak: maxStreak } : null
+      best: best ? { habit: best.habit, rate: best.rate } : null,
+      worst: worst ? { habit: worst.habit, rate: worst.rate } : null,
+      streakChampion: streakChamp ? { habit: streakChamp.habit, streak: streakChamp.streak } : null
     };
   }
 

@@ -11,10 +11,79 @@ export const CreatePage = {
   currentStep: 0,
   totalSteps: 0,
 
+  viewMode: 'selection',
+
   render(prefilled = null, currentStep = 0, totalSteps = 0) {
     this.prefilledData = prefilled;
     this.currentStep = currentStep;
     this.totalSteps = totalSteps;
+
+    // If onboarding or a preset was clicked from the drawer, we are in form mode
+    if (totalSteps > 0 || this.viewMode === 'form') {
+      this.viewMode = 'form';
+      return this.renderFormView();
+    }
+
+    this.viewMode = 'selection';
+    return this.renderSelectionView();
+  },
+
+  renderSelectionView() {
+    const presets = APP_CONFIG.presets || [];
+    
+    const customHabitHtml = `
+      <button 
+        type="button"
+        id="drawer-custom-habit"
+        class="onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-4 pb-3 px-3 rounded-2xl border text-center transition-all duration-200 border-slate-200 bg-white dark:bg-slate-900 shadow-sm hover:border-slate-300 dark:hover:border-slate-700"
+      >
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center border bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900">
+          <i data-lucide="plus" class="w-5 h-5"></i>
+        </div>
+        <span class="text-xs font-bold text-slate-850 dark:text-slate-100 mt-2 line-clamp-1 w-full">Create custom habit</span>
+        <span class="text-[9px] text-slate-450 dark:text-slate-500 uppercase mt-0.5 font-semibold">Blank</span>
+      </button>
+    `;
+
+    const presetCardsHtml = presets.map(p => {
+      const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === p.category);
+      const colorKey = categoryMeta ? categoryMeta.defaultColor : p.defaultColor;
+      
+      const iconBoxClass = 'w-10 h-10 rounded-xl flex items-center justify-center border bg-slate-50 dark:bg-slate-800 border-slate-150 dark:border-slate-700 text-slate-400';
+
+      return `
+        <button 
+          type="button"
+          data-drawer-preset="${p.id}"
+          class="onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-4 pb-3 px-3 rounded-2xl border text-center transition-all duration-200 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm"
+        >
+          <div class="${iconBoxClass}">
+            <i data-lucide="${p.icon || 'target'}" class="w-5 h-5"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-850 dark:text-slate-100 mt-2 line-clamp-1 w-full">${p.name}</span>
+          <span class="text-[9px] text-slate-450 dark:text-slate-500 uppercase mt-0.5 font-semibold">${p.category}</span>
+        </button>
+      `;
+    }).join('');
+
+    return `
+      <div id="create-page-selection-view" class="flex flex-col gap-6 animate-fade-in pb-8">
+        <div>
+          <h1 class="text-xl font-bold text-slate-800">Choose an option</h1>
+          <p class="text-xs text-slate-500 mt-1">Start from scratch or pick a template.</p>
+        </div>
+        <div class="grid grid-cols-3 gap-2.5">
+          ${customHabitHtml}
+          ${presetCardsHtml}
+        </div>
+      </div>
+    `;
+  },
+
+  renderFormView() {
+    const prefilled = this.prefilledData;
+    const currentStep = this.currentStep;
+    const totalSteps = this.totalSteps;
 
     const activeIcon = prefilled ? prefilled.icon : this.iconList[0];
     const activeCategory = prefilled ? prefilled.category : APP_CONFIG.categories[0].id;
@@ -38,22 +107,25 @@ export const CreatePage = {
       `;
     }).join('');
 
-    // Category chip selector
     const categoryChipsHtml = APP_CONFIG.categories.map(cat => {
       const pastelColor = APP_CONFIG.pastelColors.find(p => p.key === cat.defaultColor);
+      const pastelHex = pastelColor ? pastelColor.hex : '#e2e8f0';
       const isSelected = cat.id === activeCategory;
+        
+      const chipClass = isSelected
+        ? 'border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700'
+        : 'border-border-primary bg-cardBg text-text-secondary hover:border-slate-400 dark:hover:border-slate-500';
+
+      const circleClass = 'w-2.5 h-2.5 rounded-full inline-block';
+      const circleStyle = `background-color: ${pastelHex};`;
+
       return `
         <button 
           type="button"
           data-category-select="${cat.id}"
-          style="--cat-color: ${pastelColor?.hex || '#e2e8f0'};"
-          class="category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 whitespace-nowrap ${
-            isSelected
-              ? 'border-slate-900 bg-slate-900 text-white'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400'
-          }"
+          class="category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap ${chipClass}"
         >
-          <span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${pastelColor?.hex || '#e2e8f0'};"></span>
+          <span class="${circleClass}" style="${circleStyle}"></span>
           ${cat.name}
         </button>
       `;
@@ -97,7 +169,8 @@ export const CreatePage = {
     return `
       <div id="create-page-view" class="flex flex-col gap-5 animate-fade-in pb-8">
         <!-- Back trigger if onboarding prefill -->
-        ${prefilled ? `
+        <!-- Back triggers -->
+        ${prefilled && totalSteps > 0 ? `
           <div class="flex items-center gap-3 mb-1">
             <button 
               type="button" 
@@ -108,7 +181,18 @@ export const CreatePage = {
             </button>
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Configure Goals</span>
           </div>
-        ` : ''}
+        ` : `
+          <div class="flex items-center gap-3 mb-1">
+            <button 
+              type="button" 
+              id="create-form-back-btn"
+              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-800"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </button>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Back to Templates</span>
+          </div>
+        `}
 
         <div>
           <h1 class="text-xl font-bold text-slate-800">${pageTitle}</h1>
@@ -261,7 +345,38 @@ export const CreatePage = {
   },
 
   bindEvents(state, onCreatedCallback) {
+    if (this.viewMode === 'selection') {
+      const customBtn = document.getElementById('drawer-custom-habit');
+      if (customBtn) {
+        customBtn.addEventListener('click', () => {
+          this.viewMode = 'form';
+          this.prefilledData = null;
+          const root = document.getElementById('app-root');
+          root.innerHTML = this.renderFormView();
+          this.bindEvents(state, onCreatedCallback);
+          if (window.lucide) window.lucide.createIcons();
+        });
+      }
+      
+      document.querySelectorAll('[data-drawer-preset]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const presetId = btn.dataset.drawerPreset;
+          const preset = APP_CONFIG.presets.find(p => p.id === presetId);
+          if (preset) {
+            this.viewMode = 'form';
+            this.prefilledData = preset;
+            const root = document.getElementById('app-root');
+            root.innerHTML = this.renderFormView();
+            this.bindEvents(state, onCreatedCallback);
+            if (window.lucide) window.lucide.createIcons();
+          }
+        });
+      });
+      return;
+    }
+
     const form = document.getElementById('habit-form');
+    const backBtn = document.getElementById('create-form-back-btn');
     const nameInput = document.getElementById('habit-name');
     const dropdown = document.getElementById('presets-dropdown');
     const iconInput = document.getElementById('habit-icon');
@@ -321,8 +436,8 @@ export const CreatePage = {
       categoryInput.value = catId;
       categoryPicker.querySelectorAll('.category-chip-btn').forEach(btn => {
         btn.className = btn.dataset.categorySelect === catId
-          ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 whitespace-nowrap border-slate-900 bg-slate-900 text-white"
-          : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold border transition-all flex items-center gap-1.5 whitespace-nowrap border-slate-200 bg-white text-slate-600 hover:border-slate-400";
+          ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700"
+          : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-border-primary bg-cardBg text-text-secondary hover:border-slate-400 dark:hover:border-slate-500";
       });
     };
 
@@ -446,7 +561,7 @@ export const CreatePage = {
         createdAt: new Date().toISOString()
       };
 
-      if (this.prefilledData) {
+      if (this.prefilledData && this.totalSteps > 0) {
         // If onboarding mode, pass configured object to callback without saving automatically
         onCreatedCallback(newHabit);
       } else {
@@ -454,5 +569,15 @@ export const CreatePage = {
         onCreatedCallback();
       }
     });
+
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        this.viewMode = 'selection';
+        const root = document.getElementById('app-root');
+        root.innerHTML = this.renderSelectionView();
+        this.bindEvents(state, onCreatedCallback);
+        if (window.lucide) window.lucide.createIcons();
+      });
+    }
   }
 };

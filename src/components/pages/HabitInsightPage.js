@@ -49,15 +49,18 @@ export const HabitInsightPage = {
           const catColor = state.getCategoryColor(h.category);
           const dailyStreak = state.getDailyStreak(h.id);
           
-          const bgMap = {
-            pastelMint: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-            pastelAmber: 'bg-amber-50 text-amber-600 border-amber-100',
-            pastelSky: 'bg-sky-50 text-sky-600 border-sky-100',
-            pastelRose: 'bg-rose-50 text-rose-600 border-rose-100',
-            pastelLavender: 'bg-indigo-50 text-indigo-600 border-indigo-100',
-            pastelPink: 'bg-pink-50 text-pink-600 border-pink-100'
+          const colorHexMap = {
+            pastelMint: '#10b981',
+            pastelAmber: '#f59e0b',
+            pastelSky: '#0ea5e9',
+            pastelRose: '#f43f5e',
+            pastelLavender: '#8b5cf6',
+            pastelPink: '#ec4899'
           };
-          const activeBg = bgMap[catColor] || 'bg-slate-100 text-slate-500 border-slate-200';
+          const themeHex = colorHexMap[catColor] || '#0f172a';
+          
+          const iconBoxStyle = `background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};`;
+          const iconBoxClass = `w-14 h-14 rounded-xl flex items-center justify-center border shadow-sm transition-all duration-300`;
 
           const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
           const iconName = (!h.icon || isEmoji(h.icon)) ? 'target' : h.icon;
@@ -68,7 +71,7 @@ export const HabitInsightPage = {
               onclick="window.HabitInsightPageSelect('${h.id}')"
               class="flex flex-col items-center p-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 active:scale-95 transition-all duration-200"
             >
-              <div class="w-14 h-14 rounded-full flex items-center justify-center border ${activeBg} shadow-sm">
+              <div class="${iconBoxClass}" style="${iconBoxStyle}">
                 <i data-lucide="${iconName}" class="w-6 h-6"></i>
               </div>
               <span class="text-xs font-bold text-slate-800 text-center mt-2.5 line-clamp-1 w-full">${h.name}</span>
@@ -426,52 +429,84 @@ export const HabitInsightPage = {
       </div>
     `;
 
-    const b = state.getBehavioralInsights();
+    const uniqueDays = new Set(state.checkIns.map(l => l.date)).size;
+    const isLocked = uniqueDays < 7;
+    
     let habitBehavioralHtml = "";
-    if (b) {
-      const hb = b.habitBounceBacks.find(x => x.name === habit.name);
-      const hs = b.habitSlumps.find(x => x.name === habit.name);
-      const hStacks = b.keystoneStacks.filter(s => s.anchor === habit.name || s.follower === habit.name);
-
-      let bounceBackText = "No recovery data logged yet.";
-      if (hb) {
-        bounceBackText = `You recover <strong>${hb.rate}%</strong> of the time on the day immediately following a missed log.`;
-      }
-
-      let slumpText = "Weekend tracking is stable.";
-      let slumpIcon = "sparkles";
-      let slumpBg = "bg-emerald-50/50 border-emerald-100 text-emerald-800";
-      if (hs && hs.diff > 0) {
-        slumpText = `Your consistency drops by <strong class="text-amber-700">${hs.diff}%</strong> on weekends compared to weekdays (${hs.weekdayRate}% weekdays vs ${hs.weekendRate}% weekends).`;
-        slumpIcon = "sun";
-        slumpBg = "bg-amber-50/50 border-amber-100 text-amber-800";
-      }
-
-      let stacksHtml = "";
-      if (hStacks.length > 0) {
-        stacksHtml = hStacks.map(s => {
-          return `
-            <div class="flex items-start gap-3 p-3 bg-violet-50/50 border border-violet-100 rounded-xl mt-2.5">
-              <i data-lucide="link" class="w-4 h-4 text-violet-600 mt-0.5"></i>
-              <div class="flex flex-col gap-0.5">
-                <span class="text-[11px] font-bold text-slate-800">Keystone Anchor Trigger</span>
-                <span class="text-[10px] text-slate-500 font-medium leading-relaxed">
-                  ${s.anchor === habit.name 
-                    ? `Completing this habit anchors <strong>${s.follower}</strong> (${s.probability}% connection).`
-                    : `Completing <strong>${s.anchor}</strong> triggers this habit (${s.probability}% connection).`
-                  }
-                </span>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
+    if (isLocked) {
+      const progressPct = Math.round((uniqueDays / 7) * 100);
       habitBehavioralHtml = `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-          <h3 class="text-label-muted">Personalized Behavioral Insights</h3>
-          
-          <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2.5">
+          <h3 class="text-label-muted">Behavioral Insights</h3>
+          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
+            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+            
+            <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            
+            <div class="flex flex-col gap-1">
+              <span class="text-xs font-bold text-slate-800">Insights Locked</span>
+              <span class="text-[10px] text-slate-500 max-w-[200px] leading-relaxed">
+                Log for ${7 - uniqueDays} more day${7 - uniqueDays > 1 ? 's' : ''} to unlock personalized bounce-back strategies and keystone habit links.
+              </span>
+            </div>
+
+            <div class="w-full mt-2">
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500 ease-out" style="background-color: ${themeHex}; width: ${progressPct}%"></div>
+              </div>
+              <span class="text-[9px] font-bold text-slate-400 mt-2 block uppercase tracking-wider">${progressPct}% Data Gathered</span>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      const b = state.getBehavioralInsights();
+      if (b) {
+        const hb = b.habitBounceBacks.find(x => x.name === habit.name);
+        const hs = b.habitSlumps.find(x => x.name === habit.name);
+        const hStacks = b.keystoneStacks.filter(s => s.anchor === habit.name || s.follower === habit.name);
+
+        let bounceBackText = "No recovery data logged yet.";
+        if (hb) {
+          bounceBackText = `You recover <strong>${hb.rate}%</strong> of the time on the day immediately following a missed log.`;
+        }
+
+        let slumpText = "Weekend tracking is stable.";
+        let slumpIcon = "sparkles";
+        let slumpBg = "bg-emerald-50/50 border-emerald-100 text-emerald-800";
+        if (hs && hs.diff > 0) {
+          slumpText = `Your consistency drops by <strong class="text-amber-700">${hs.diff}%</strong> on weekends compared to weekdays (${hs.weekdayRate}% weekdays vs ${hs.weekendRate}% weekends).`;
+          slumpIcon = "sun";
+          slumpBg = "bg-amber-50/50 border-amber-100 text-amber-800";
+        }
+
+        let stacksHtml = "";
+        if (hStacks.length > 0) {
+          stacksHtml = hStacks.map(s => {
+            return `
+              <div class="flex items-start gap-3 p-3 bg-violet-50/50 border border-violet-100 rounded-xl mt-2.5">
+                <i data-lucide="link" class="w-4 h-4 text-violet-600 mt-0.5"></i>
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-[11px] font-bold text-slate-800">Keystone Anchor Trigger</span>
+                  <span class="text-[10px] text-slate-500 font-medium leading-relaxed">
+                    ${s.anchor === habit.name 
+                      ? `Completing this habit anchors <strong>${s.follower}</strong> (${s.probability}% connection).`
+                      : `Completing <strong>${s.anchor}</strong> triggers this habit (${s.probability}% connection).`
+                    }
+                  </span>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        habitBehavioralHtml = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+            <h3 class="text-label-muted">Behavioral Insights</h3>
+            
+            <div class="flex flex-col gap-3">
             <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl">
               <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 mt-0.5"></i>
               <div class="flex flex-col gap-0.5">
@@ -492,6 +527,7 @@ export const HabitInsightPage = {
           </div>
         </div>
       `;
+      }
     }
 
     return `
