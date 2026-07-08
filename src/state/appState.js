@@ -180,14 +180,6 @@ class AppState {
       const log = this.checkIns.find(l => l.habitId === habitId && l.date === dateStr);
       let isCompleted = log !== null && log !== undefined;
       
-      const habit = this.habits.find(h => h.id === habitId);
-      if (habit && habit.type === 'number' && log && log.value !== null && log.value !== undefined) {
-        const val = log.value;
-        const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-        const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-        isCompleted = val >= min && val <= max;
-      }
-      
       days.push({
         dateStr,
         isCompleted,
@@ -201,18 +193,8 @@ class AppState {
     const { start, end } = this.getWeekStartAndEnd(offset);
     return this.checkIns.filter(log => {
       if (log.habitId !== habitId) return false;
-      
-      let isCompleted = true;
-      const habit = this.habits.find(h => h.id === habitId);
-      if (habit && habit.type === 'number' && log.value !== null && log.value !== undefined) {
-        const val = log.value;
-        const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-        const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-        isCompleted = val >= min && val <= max;
-      }
-
       const logTime = new Date(log.date).getTime();
-      return isCompleted && logTime >= start.getTime() && logTime <= end.getTime();
+      return logTime >= start.getTime() && logTime <= end.getTime();
     }).length;
   }
 
@@ -322,16 +304,7 @@ class AppState {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
 
-    const habitLogs = this.checkIns.filter(log => {
-      if (log.habitId !== habitId) return false;
-      if (habit.type === 'number' && log.value !== null && log.value !== undefined) {
-        const val = log.value;
-        const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-        const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-        return val >= min && val <= max;
-      }
-      return true;
-    });
+    const habitLogs = this.checkIns.filter(log => log.habitId === habitId);
 
     const loggedDates = new Set(habitLogs.map(l => l.date));
     
@@ -384,16 +357,7 @@ class AppState {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
 
-    const habitLogs = this.checkIns.filter(log => {
-      if (log.habitId !== habitId) return false;
-      if (habit.type === 'number' && log.value !== null && log.value !== undefined) {
-        const val = log.value;
-        const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-        const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-        return val >= min && val <= max;
-      }
-      return true;
-    });
+    const habitLogs = this.checkIns.filter(log => log.habitId === habitId);
 
     const loggedDates = new Set(habitLogs.map(l => l.date));
     if (loggedDates.size === 0) return 0;
@@ -476,14 +440,6 @@ class AppState {
       const count = this.checkIns.filter(log => {
         if (log.habitId !== habitId) return false;
         const logDate = new Date(log.date + "T00:00:00");
-        
-        if (habit.type === 'number' && log.value !== null && log.value !== undefined) {
-          const val = log.value;
-          const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-          const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-          if (val < min || val > max) return false;
-        }
-
         return logDate.getTime() >= monday.getTime() && logDate.getTime() <= sunday.getTime();
       }).length;
 
@@ -703,17 +659,7 @@ class AppState {
     this.habits.forEach(habit => {
       const dates = new Set(
         this.checkIns
-          .filter(log => {
-            if (log.habitId !== habit.id) return false;
-            // For number habits, verify target condition was met
-            if (habit.type === 'number' && log.value !== null && log.value !== undefined) {
-              const val = log.value;
-              const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-              const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-              return val >= min && val <= max;
-            }
-            return true;
-          })
+          .filter(log => log.habitId === habit.id)
           .map(log => log.date)
       );
 

@@ -38,7 +38,8 @@ export const CreatePage = {
       category: 'blank',
       icon: 'plus',
       actionAttr: 'id="drawer-custom-habit"',
-      subtitleHtml: `<span class="text-[9px] text-text-secondary uppercase mt-1 font-bold tracking-wider">Blank</span>`
+      subtitleHtml: `<span class="text-[9px] text-text-secondary uppercase mt-1 font-bold tracking-wider">Blank</span>`,
+      alwaysColor: true
     });
 
     const presetCardsHtml = presets.map(p => {
@@ -47,7 +48,8 @@ export const CreatePage = {
         name: p.name,
         category: p.category,
         icon: p.icon,
-        actionAttr: `data-drawer-preset="${p.id}"`
+        actionAttr: `data-drawer-preset="${p.id}"`,
+        alwaysColor: true
       });
     }).join('');
 

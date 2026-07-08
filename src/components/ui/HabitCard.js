@@ -72,12 +72,6 @@ export const HabitCard = {
     
     // Completion Logic
     let isCompleted = log !== null;
-    if (habit.type === 'number' && log && log.value !== null && log.value !== undefined) {
-      const val = log.value;
-      const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-      const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-      isCompleted = val >= min && val <= max;
-    }
 
     const isExpanded = this.expandedHabitId === habit.id;
     

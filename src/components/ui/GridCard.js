@@ -5,7 +5,7 @@ export const GridCard = {
    * Render a grid card used in Create, Onboarding, and Insights pages.
    */
   render(options) {
-    const { id, name, category, icon, isSelected, actionAttr, subtitleHtml } = options;
+    const { id, name, category, icon, isSelected, actionAttr, subtitleHtml, alwaysColor } = options;
     
     // Resolve category color config
     const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === category);
@@ -28,13 +28,16 @@ export const GridCard = {
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
     const iconName = (!icon || isEmoji(icon)) ? 'target' : icon;
 
-    // Selections styling overrides (color only on selection, otherwise black and white)
-    const activeTopBorderBg = isSelected ? themeHex : '#e2e8f0';
-    const activeIconClass = isSelected ? '' : 'text-slate-400';
-    const activeIconStyle = isSelected ? `style="color: ${themeHex};"` : '';
+    // Determine if we should show the color theme (alwaysColor or selected state)
+    const showColor = isSelected || alwaysColor;
+
+    // Selections styling overrides
+    const activeTopBorderBg = showColor ? themeHex : '#e2e8f0';
+    const activeIconClass = showColor ? '' : 'text-slate-400';
+    const activeIconStyle = showColor ? `style="color: ${themeHex};"` : '';
     
-    const activeLabelClass = isSelected ? '' : 'text-slate-400';
-    const activeLabelStyle = isSelected ? `style="color: ${themeHex};"` : '';
+    const activeLabelClass = showColor ? '' : 'text-slate-400';
+    const activeLabelStyle = showColor ? `style="color: ${themeHex};"` : '';
     
     const cardSelectedClasses = isSelected
       ? 'border-transparent bg-slate-50/50 scale-98 shadow-sm' 

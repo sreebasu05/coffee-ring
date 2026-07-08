@@ -56,8 +56,6 @@ export const HabitInsightPage = {
           let subtitleHtml = '';
           if (h.paused) {
             subtitleHtml = `<span class="text-[9px] font-extrabold text-amber-500 uppercase flex items-center gap-0.5 mt-1 tracking-wider"><i data-lucide="pause" class="w-2.5 h-2.5"></i> Paused</span>`;
-          } else if (dailyStreak > 0) {
-            subtitleHtml = `<span class="text-[9px] font-extrabold text-amber-600 uppercase flex items-center gap-0.5 mt-1 tracking-wider"><i data-lucide="flame" class="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> ${dailyStreak}d</span>`;
           } else {
             subtitleHtml = `<span class="text-[9px] font-bold text-text-secondary mt-1 uppercase tracking-wider">Track</span>`;
           }
@@ -68,7 +66,8 @@ export const HabitInsightPage = {
             category: h.category,
             icon: h.icon,
             actionAttr: `onclick="window.HabitInsightPageSelect('${h.id}')"`,
-            subtitleHtml: subtitleHtml
+            subtitleHtml: subtitleHtml,
+            alwaysColor: true
           });
         }).join('');
 
@@ -261,7 +260,8 @@ export const HabitInsightPage = {
 
     const heatmapHtml = `
       <!-- Heatmap Calendar Grid -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+        <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
         <div class="flex justify-between items-center border-b border-slate-50 pb-2">
           <div class="flex items-center gap-3">
             <button 
@@ -376,20 +376,29 @@ export const HabitInsightPage = {
         .filter(l => l.habitId === habit.id && l.value !== null && l.value !== undefined)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      if (validLogs.length >= 2) {
-        const oldestDate = new Date(validLogs[0].date);
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        oldestDate.setHours(0,0,0,0);
+      if (validLogs.length >= 1) {
+        const pageSize = 30;
+        const chartOffset = HabitInsightPage.viewedChartOffset || 0;
 
-        const diffTime = Math.abs(today - oldestDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive of today
-        const chartSpanDays = Math.min(30, diffDays);
+        const pageEndDate = new Date(today);
+        pageEndDate.setDate(today.getDate() + (chartOffset * pageSize));
+
+        const pageStartDate = new Date(pageEndDate);
+        pageStartDate.setDate(pageEndDate.getDate() - (pageSize - 1));
+
+        // Constrain start date to oldest log date
+        if (pageStartDate < oldestDate) {
+          pageStartDate.setTime(oldestDate.getTime());
+        }
+
+        const pageTime = Math.abs(pageEndDate - pageStartDate);
+        const pageSpanDays = Math.ceil(pageTime / (1000 * 60 * 60 * 24)) + 1;
+        const hasOlderData = pageStartDate > oldestDate;
 
         const dataPoints = [];
-        for (let i = chartSpanDays - 1; i >= 0; i--) {
-          const d = new Date(today);
-          d.setDate(today.getDate() - i);
+        for (let i = pageSpanDays - 1; i >= 0; i--) {
+          const d = new Date(pageEndDate);
+          d.setDate(pageEndDate.getDate() - i);
           const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
           const log = state.checkIns.find(l => l.habitId === habit.id && l.date === dateStr);
           const val = (log && log.value !== null && log.value !== undefined) ? parseFloat(log.value) : null;
@@ -397,66 +406,130 @@ export const HabitInsightPage = {
         }
 
         const validValues = dataPoints.filter(p => p.value !== null).map(p => p.value);
-        if (validValues.length >= 2) {
+        if (validValues.length >= 1) {
           // Prepare labels and clean data arrays
           const labels = dataPoints.map(p => {
             return new Date(p.date).toLocaleDateString('default', { month: 'short', day: 'numeric' });
           });
           const values = dataPoints.map(p => p.value);
 
-        // Save metadata on window so bindEvents can initialize Chart.js
-        window.currentChartConfig = {
-          labels,
-          values,
-          themeHex,
-          unit: habit.unit || 'units',
-          minGoal: habit.minGoal ? parseFloat(habit.minGoal) : null,
-          maxGoal: habit.maxGoal ? parseFloat(habit.maxGoal) : null
-        };
+          // Save metadata on window so bindEvents can initialize Chart.js
+          window.currentChartConfig = {
+            labels,
+            values,
+            themeHex,
+            unit: habit.unit || 'units',
+            minGoal: habit.minGoal ? parseFloat(habit.minGoal) : null,
+            maxGoal: habit.maxGoal ? parseFloat(habit.maxGoal) : null
+          };
 
+          valueChartHtml = `
+            <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
+              <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+              <div class="flex justify-between items-center mb-1">
+                <div class="flex items-center gap-2">
+                  <button 
+                    type="button"
+                    onclick="window.HabitInsightPagePrevChartRange()"
+                    class="w-5 h-5 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+                    ${!hasOlderData ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+                  >
+                    <i data-lucide="chevron-left" class="w-3 h-3"></i>
+                  </button>
+                  <h3 class="text-label-muted">Value Trend (${pageSpanDays} Days)</h3>
+                  <button 
+                    type="button"
+                    onclick="window.HabitInsightPageNextChartRange()"
+                    class="w-5 h-5 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+                    ${chartOffset >= 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
+                  >
+                    <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                  </button>
+                </div>
+                <span class="text-[9px] font-bold text-slate-400 uppercase">${habit.unit || 'units'}</span>
+              </div>
+              <div class="w-full relative h-40">
+                <canvas id="habit-trend-chart"></canvas>
+              </div>
+            </div>
+          `;
+        } else {
+          // Fallback locked placeholder when validValues length is insufficient
+          valueChartHtml = `
+            <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
+              <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+              <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+              </div>
+              <span class="text-xs font-bold text-slate-800">Value Trend Locked</span>
+              <span class="text-[10px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">
+                Log at least 1 check-in with a metric value to see your progress chart.
+              </span>
+            </div>
+          `;
+        }
+      } else {
+        // Fallback locked placeholder when validLogs length is insufficient
         valueChartHtml = `
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
-            <div class="flex justify-between items-center mb-1">
-              <h3 class="text-label-muted">Value Trend (30 Days)</h3>
-              <span class="text-[9px] font-bold text-slate-400 uppercase">${habit.unit || 'units'}</span>
+          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
+            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+            <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-2">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
             </div>
-            <div class="w-full relative h-40">
-              <canvas id="habit-trend-chart"></canvas>
-            </div>
+            <span class="text-xs font-bold text-slate-800">Value Trend Locked</span>
+            <span class="text-[10px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">
+              Log at least 1 check-in with a metric value to see your progress chart.
+            </span>
           </div>
         `;
-        }
       }
     }
 
     // Tag frequency HTML
     let tagsBreakdownHtml = "";
-    if (tagsFrequency.length > 0) {
-      const maxCount = tagsFrequency[0].count || 1;
-      const barsHtml = tagsFrequency.map(tf => {
-        const pct = Math.round((tf.count / maxCount) * 100);
-        return `
-          <div class="flex items-center gap-3.5 w-full text-xs">
-            <span class="text-[11px] font-bold text-slate-700 w-20 truncate flex-shrink-0" title="${tf.name}">${tf.name}</span>
-            <div class="flex-grow bg-slate-50 border border-slate-200/60 h-3 rounded-full overflow-hidden relative">
-              <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
+    if (habit.tags && habit.tags.length > 0) {
+      if (tagsFrequency.length > 0) {
+        const maxCount = tagsFrequency[0].count || 1;
+        const barsHtml = tagsFrequency.map(tf => {
+          const pct = Math.round((tf.count / maxCount) * 100);
+          return `
+            <div class="flex items-center gap-3.5 w-full text-xs">
+              <span class="text-[11px] font-bold text-slate-700 w-20 truncate flex-shrink-0" title="${tf.name}">${tf.name}</span>
+              <div class="flex-grow bg-slate-50 border border-slate-200/60 h-3 rounded-full overflow-hidden relative">
+                <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
+              </div>
+              <span class="text-[10px] font-bold text-slate-500 w-8 text-right flex-shrink-0">${tf.count}x</span>
             </div>
-            <span class="text-[10px] font-bold text-slate-500 w-8 text-right flex-shrink-0">${tf.count}x</span>
+          `;
+        }).join('');
+
+        tagsBreakdownHtml = `
+          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
+            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+            <div class="flex justify-between items-center mb-1">
+              <h3 class="text-label-muted">Tag Frequency Breakdown</h3>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">Tags used</span>
+            </div>
+            <div class="flex flex-col gap-3 pt-1">
+              ${barsHtml}
+            </div>
           </div>
         `;
-      }).join('');
-
-      tagsBreakdownHtml = `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
-          <div class="flex justify-between items-center mb-1">
-            <h3 class="text-label-muted">Tag Frequency Breakdown</h3>
-            <span class="text-[9px] font-bold text-slate-400 uppercase">Tags used</span>
+      } else {
+        // Fallback locked placeholder when tags are configured but not logged yet
+        tagsBreakdownHtml = `
+          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
+            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
+            <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-2">
+              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-800">Tag Distribution Locked</span>
+            <span class="text-[10px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">
+              Log at least 1 check-in with tags selected to unlock your tag breakdown.
+            </span>
           </div>
-          <div class="flex flex-col gap-3 pt-1">
-            ${barsHtml}
-          </div>
-        </div>
-      `;
+        `;
+      }
     }
 
     // Recent Notes HTML
@@ -476,7 +549,8 @@ export const HabitInsightPage = {
       }).join('');
 
       notesFeedHtml = `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+        <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
           <h3 class="text-label-muted">Recent Notes Feed</h3>
           <div class="flex flex-col gap-3">
             ${feedsHtml}
@@ -500,7 +574,8 @@ export const HabitInsightPage = {
     }).join('');
 
     const thisWeekCardHtml = `
-      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-5">
+      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-5">
+        <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
         <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
           <svg class="absolute w-full h-full transform -rotate-90">
             <circle cx="32" cy="32" r="26" stroke="#f1f5f9" stroke-width="4.5" fill="transparent" />
@@ -615,7 +690,8 @@ export const HabitInsightPage = {
         <h3 class="text-label-muted">Manage Habit</h3>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col mb-8">
+      <div class="relative bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col mb-8 pt-1">
+        <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
         
         <!-- Row 1: Edit Row -->
         <div class="flex flex-col p-4 border-b border-slate-100">
@@ -969,6 +1045,16 @@ export const HabitInsightPage = {
       state.notify();
     };
 
+    window.HabitInsightPagePrevChartRange = () => {
+      HabitInsightPage.viewedChartOffset = (HabitInsightPage.viewedChartOffset || 0) - 1;
+      state.notify();
+    };
+
+    window.HabitInsightPageNextChartRange = () => {
+      HabitInsightPage.viewedChartOffset = (HabitInsightPage.viewedChartOffset || 0) + 1;
+      state.notify();
+    };
+
     // Window-level handlers for bulletproof click reliability
     window.HabitInsightPageTogglePause = (habitId) => {
       state.togglePauseHabit(habitId);
@@ -983,6 +1069,8 @@ export const HabitInsightPage = {
     };
 
     window.HabitInsightPageToggleEditor = () => {
+      const habit = state.habits.find(h => h.id === HabitInsightPage.selectedHabitId);
+      if (!habit) return;
       HabitInsightPage.isEditing = !HabitInsightPage.isEditing;
       if (HabitInsightPage.isEditing) {
         HabitInsightPage.editorType = habit.type;
@@ -1123,25 +1211,53 @@ export const HabitInsightPage = {
       gradient.addColorStop(0, cfg.themeHex + '33'); // 20% opacity
       gradient.addColorStop(1, cfg.themeHex + '00'); // 0% opacity
 
+      const datasets = [{
+        label: `Logged (${cfg.unit})`,
+        data: cfg.values,
+        borderColor: cfg.themeHex,
+        borderWidth: 2,
+        tension: 0.45,
+        fill: true,
+        backgroundColor: gradient,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointBackgroundColor: cfg.themeHex,
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 1.5,
+        spanGaps: true
+      }];
+
+      if (cfg.minGoal !== null && cfg.minGoal !== undefined) {
+        datasets.push({
+          label: `Min Target (${cfg.minGoal})`,
+          data: Array(cfg.values.length).fill(cfg.minGoal),
+          borderColor: '#94a3b8',
+          borderWidth: 1.2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: false,
+          spanGaps: true
+        });
+      }
+
+      if (cfg.maxGoal !== null && cfg.maxGoal !== undefined) {
+        datasets.push({
+          label: `Max Target (${cfg.maxGoal})`,
+          data: Array(cfg.values.length).fill(cfg.maxGoal),
+          borderColor: '#94a3b8',
+          borderWidth: 1.2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          fill: false,
+          spanGaps: true
+        });
+      }
+
       new window.Chart(ctx, {
         type: 'line',
         data: {
           labels: cfg.labels,
-          datasets: [{
-            label: `Logged (${cfg.unit})`,
-            data: cfg.values,
-            borderColor: cfg.themeHex,
-            borderWidth: 2,
-            tension: 0.45,
-            fill: true,
-            backgroundColor: gradient,
-            pointRadius: 0,
-            pointHoverRadius: 5,
-            pointBackgroundColor: cfg.themeHex,
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 1.5,
-            spanGaps: true
-          }]
+          datasets: datasets
         },
         options: {
           responsive: true,
