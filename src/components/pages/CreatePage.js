@@ -252,30 +252,16 @@ export const CreatePage = {
             <input type="hidden" id="habit-icon" value="${activeIcon}" />
           </div>
 
-          <!-- Type Selector (Checkbox vs Number) -->
-          <div>
-            <label class="block text-label-muted mb-2">Type</label>
-            <div class="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200/60">
-              <button 
-                type="button" 
-                data-type="checkbox" 
-                class="type-tab-btn py-2.5 text-center text-xs font-semibold rounded-lg transition-all ${
-                  activeType === 'checkbox' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }"
-              >
-                Yes / No
-              </button>
-              <button 
-                type="button" 
-                data-type="number" 
-                class="type-tab-btn py-2.5 text-center text-xs font-semibold rounded-lg transition-all ${
-                  activeType === 'number' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                }"
-              >
-                Metric Value
-              </button>
-            </div>
-          </div>
+          <!-- Optional Metric Tracking Toggle -->
+          <label class="flex items-center gap-2 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              id="enable-metric-toggle" 
+              class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+              ${activeType === 'number' ? 'checked' : ''}
+            />
+            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
+          </label>
 
           <!-- Weekly Target -->
           <div>
@@ -433,7 +419,7 @@ export const CreatePage = {
     const weeklySlider = document.getElementById('weekly-target-slider');
     const weeklyLabel = document.getElementById('weekly-target-label');
     
-    const typeButtons = document.querySelectorAll('.type-tab-btn');
+    const enableMetricToggle = document.getElementById('enable-metric-toggle');
     const numberFieldsWrapper = document.getElementById('number-fields-wrapper');
 
     const tagsListDiv = document.getElementById('form-tags-list');
@@ -513,20 +499,20 @@ export const CreatePage = {
       btn.addEventListener('click', (e) => { e.stopPropagation(); selectCategory(btn.dataset.categorySelect); });
     });
 
-    // --- Type selection ---
+    // --- Metric Toggle selection ---
     const setType = (type) => {
       currentType = type;
-      typeButtons.forEach(btn => {
-        btn.className = btn.dataset.type === type
-          ? "type-tab-btn py-2.5 text-center text-xs font-semibold rounded-lg bg-slate-900 text-white transition-all shadow-sm"
-          : "type-tab-btn py-2.5 text-center text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-800 transition-all";
-      });
+      if (enableMetricToggle) {
+        enableMetricToggle.checked = type === 'number';
+      }
       numberFieldsWrapper.classList.toggle('hidden', type !== 'number');
     };
 
-    typeButtons.forEach(btn => {
-      btn.addEventListener('click', () => setType(btn.dataset.type));
-    });
+    if (enableMetricToggle) {
+      enableMetricToggle.addEventListener('change', (e) => {
+        setType(e.target.checked ? 'number' : 'checkbox');
+      });
+    }
 
     // --- Custom Schedule ---
     const scheduleToggle = document.getElementById('schedule-toggle');
@@ -630,6 +616,10 @@ export const CreatePage = {
           document.getElementById('goal-numeric-min').value = preset.minGoal ?? '';
           document.getElementById('goal-numeric-max').value = preset.maxGoal ?? '';
           document.getElementById('goal-numeric-unit').value = preset.unit || '';
+        } else {
+          document.getElementById('goal-numeric-min').value = '';
+          document.getElementById('goal-numeric-max').value = '';
+          document.getElementById('goal-numeric-unit').value = '';
         }
 
         dropdown.classList.add('hidden');

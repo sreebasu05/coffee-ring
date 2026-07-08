@@ -134,58 +134,13 @@ export const HabitCard = {
     const daysLeftInWeek = dayIdx === 0 ? 1 : (8 - dayIdx);
     const remainingNeeded = weeklyTarget - weeklyCount;
     const weeklyStreak = state.getWeeklyStreak(habit.id);
+    const dailyStreak = state.getDailyStreak(habit.id);
 
     let cautionText = "";
     if (remainingNeeded <= 0) {
       cautionText = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Target met!</span>`;
-    } else if (isCompleted) {
-      const affirmations = [
-        "Woohoo, on track to complete your goal!",
-        "Awesome! One step closer to your goal!",
-        "Great job! On track to meet your target!",
-        "Solid progress! Keep this momentum up!",
-        "Nicely done! Keeping the momentum going!"
-      ];
-      const index = (todayObj.getDate() + habit.name.length) % affirmations.length;
-      const affirmation = affirmations[index];
-      cautionText = `<span class="text-slate-400 font-semibold flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3 text-slate-400"></i> ${affirmation}</span>`;
-    } else if (remainingNeeded > daysLeftInWeek) {
-      const missedAffirmations = [
-        "Goal missed—seize the rest of the week!",
-        "Goal missed—seize the remaining days!",
-        "Target out of reach—seize the rest of the days!",
-        "No pressure, reset next week!",
-        "Goal out of reach—keep tracking anyway!",
-        "Missed target—focus on tomorrow!",
-        "No worries, clean slate next week!"
-      ];
-      const mIdx = (todayObj.getDate() + habit.name.length) % missedAffirmations.length;
-      const missedMsg = missedAffirmations[mIdx];
-      cautionText = `<span class="text-rose-500 font-semibold flex items-center gap-1"><i data-lucide="x" class="w-3 h-3 text-rose-500"></i> ${missedMsg}</span>`;
-    } else if (remainingNeeded === daysLeftInWeek) {
-      if (weeklyStreak > 0) {
-        const streakWarnings = [
-          `Save your ${weeklyStreak}w streak today!`,
-          `Protect your ${weeklyStreak}w streak!`,
-          `Streak at risk! Complete today!`,
-          `Hit today to save streak!`
-        ];
-        const sIdx = (todayObj.getDate() + habit.name.length) % streakWarnings.length;
-        const streakMsg = streakWarnings[sIdx];
-        cautionText = `<span class="text-amber-600 font-bold flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3 text-amber-600 animate-pulse"></i> ${streakMsg}</span>`;
-      } else {
-        const goalWarnings = [
-          "Complete today to save goal!",
-          "Final day to hit goal!",
-          "Complete today to save target!",
-          "Last chance for weekly goal!"
-        ];
-        const gIdx = (todayObj.getDate() + habit.name.length) % goalWarnings.length;
-        const goalMsg = goalWarnings[gIdx];
-        cautionText = `<span class="text-amber-600 font-bold flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3 text-amber-600 animate-pulse"></i> ${goalMsg}</span>`;
-      }
     } else {
-      cautionText = `<span class="text-slate-400 font-semibold flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i> ${remainingNeeded} day${remainingNeeded > 1 ? 's' : ''} left to hit weekly target</span>`;
+      cautionText = "";
     }
 
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
@@ -238,9 +193,17 @@ export const HabitCard = {
               </div>
             </div>
           </div>
-          <button class="habit-check-btn ${checkboxClass}" style="${checkboxStyle}">
-            <i data-lucide="check" class="w-4 h-4"></i>
-          </button>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            ${weeklyStreak > 0 ? `
+              <div class="flex items-center gap-0.5 text-xs font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shadow-sm dark:bg-amber-950/20 dark:border-amber-900/30" title="Weekly Streak">
+                <i data-lucide="flame" class="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i>
+                <span>${weeklyStreak}w</span>
+              </div>
+            ` : ''}
+            <button class="habit-check-btn ${checkboxClass}" style="${checkboxStyle}">
+              <i data-lucide="check" class="w-4 h-4"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Inline Downward Expanding Segment -->

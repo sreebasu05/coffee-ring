@@ -172,6 +172,7 @@ export const StorageManager = {
       localStorage.removeItem(KEYS.HABITS);
       localStorage.removeItem(KEYS.CHECK_INS);
       localStorage.removeItem(KEYS.CATEGORY_COLORS);
+      localStorage.removeItem('coffeering_onboarding_draft');
     }
     
     // If not registered yet, do not seed default values

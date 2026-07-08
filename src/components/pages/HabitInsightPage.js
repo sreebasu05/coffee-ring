@@ -233,12 +233,6 @@ export const HabitInsightPage = {
       const log = state.checkIns.find(l => l.habitId === habit.id && l.date === dateStr);
       
       let isCompleted = log !== null && log !== undefined;
-      if (habit.type === 'number' && log && log.value !== null && log.value !== undefined) {
-        const val = log.value;
-        const min = (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : -Infinity;
-        const max = (habit.maxGoal !== null && habit.maxGoal !== undefined && habit.maxGoal !== "") ? parseFloat(habit.maxGoal) : Infinity;
-        isCompleted = val >= min && val <= max;
-      }
 
       const hasDetails = log && (
         (log.value !== null && log.value !== undefined) || 
@@ -248,9 +242,7 @@ export const HabitInsightPage = {
 
       let cellClass = "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all border ";
       if (log) {
-        if (habit.type === 'number' && log.value !== null && !isCompleted) {
-          cellClass += "border-rose-400 bg-white text-rose-600 shadow-sm";
-        } else if (hasDetails) {
+        if (hasDetails) {
           cellClass += `border-transparent ${pastelBg} ${pastelText} shadow-sm`;
         } else {
           cellClass += `border-transparent ${softBorderClass} ${pastelText}`;
@@ -266,6 +258,57 @@ export const HabitInsightPage = {
       `);
     }
     const calendarGridHtml = dayCells.join('');
+
+    const heatmapHtml = `
+      <!-- Heatmap Calendar Grid -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+        <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+          <div class="flex items-center gap-3">
+            <button 
+              type="button"
+              onclick="window.HabitInsightPagePrevMonth()"
+              class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+            >
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+            </button>
+            <h3 class="text-label-muted">${monthName} ${currentYear}</h3>
+            <button 
+              type="button"
+              onclick="window.HabitInsightPageNextMonth()"
+              class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+            >
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+          <span class="text-[9px] font-bold text-slate-800 uppercase">Monthly Check-ins</span>
+        </div>
+        
+        <div class="flex flex-col gap-2">
+          <div class="grid grid-cols-7 gap-1">
+            ${calendarHeaderHtml}
+          </div>
+          <div class="grid grid-cols-7 gap-y-2.5 gap-x-1 pt-1.5">
+            ${calendarGridHtml}
+          </div>
+        </div>
+        
+        <!-- Heatmap Legend -->
+        <div class="flex items-center gap-4 text-[9px] font-bold text-slate-400 uppercase pt-2 border-t border-slate-50">
+          <div class="flex items-center gap-1.5">
+            <div class="w-3.5 h-3.5 rounded-full border border-slate-100 bg-white"></div>
+            <span>Missed</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-3.5 h-3.5 rounded-full border ${softBorderClass}"></div>
+            <span>Quick Tick</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <div class="w-3.5 h-3.5 rounded-full ${pastelBg}"></div>
+            <span>Detailed Log</span>
+          </div>
+        </div>
+      </div>
+    `;
 
     // Number stats
     let numberStatsHtml = "";
@@ -328,27 +371,38 @@ export const HabitInsightPage = {
       const innerW = chartW - padX * 2;
       const innerH = chartH - padY * 2;
 
-      // Collect last 30 days of data
-      const today = new Date();
-      const dataPoints = [];
-      const dateLabels = [];
-      for (let i = 29; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const log = state.checkIns.find(l => l.habitId === habit.id && l.date === dateStr);
-        const val = (log && log.value !== null && log.value !== undefined) ? parseFloat(log.value) : null;
-        dataPoints.push({ day: i, date: dateStr, value: val, dayLabel: d.getDate() });
-        dateLabels.push(d.getDate());
-      }
+      // Collect dynamic days of data based on first logged value
+      const validLogs = state.checkIns
+        .filter(l => l.habitId === habit.id && l.value !== null && l.value !== undefined)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      const validValues = dataPoints.filter(p => p.value !== null).map(p => p.value);
-      if (validValues.length >= 2) {
-        // Prepare labels and clean data arrays
-        const labels = dataPoints.map(p => {
-          return new Date(p.date).toLocaleDateString('default', { month: 'short', day: 'numeric' });
-        });
-        const values = dataPoints.map(p => p.value);
+      if (validLogs.length >= 2) {
+        const oldestDate = new Date(validLogs[0].date);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        oldestDate.setHours(0,0,0,0);
+
+        const diffTime = Math.abs(today - oldestDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive of today
+        const chartSpanDays = Math.min(30, diffDays);
+
+        const dataPoints = [];
+        for (let i = chartSpanDays - 1; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          const log = state.checkIns.find(l => l.habitId === habit.id && l.date === dateStr);
+          const val = (log && log.value !== null && log.value !== undefined) ? parseFloat(log.value) : null;
+          dataPoints.push({ date: dateStr, value: val });
+        }
+
+        const validValues = dataPoints.filter(p => p.value !== null).map(p => p.value);
+        if (validValues.length >= 2) {
+          // Prepare labels and clean data arrays
+          const labels = dataPoints.map(p => {
+            return new Date(p.date).toLocaleDateString('default', { month: 'short', day: 'numeric' });
+          });
+          const values = dataPoints.map(p => p.value);
 
         // Save metadata on window so bindEvents can initialize Chart.js
         window.currentChartConfig = {
@@ -371,6 +425,7 @@ export const HabitInsightPage = {
             </div>
           </div>
         `;
+        }
       }
     }
 
@@ -381,22 +436,23 @@ export const HabitInsightPage = {
       const barsHtml = tagsFrequency.map(tf => {
         const pct = Math.round((tf.count / maxCount) * 100);
         return `
-          <div class="flex flex-col gap-1.5 w-full text-xs">
-            <div class="flex justify-between items-center text-[11px] font-semibold text-slate-700">
-              <span>${tf.name}</span>
-              <span>Used ${tf.count}x</span>
+          <div class="flex items-center gap-3.5 w-full text-xs">
+            <span class="text-[11px] font-bold text-slate-700 w-20 truncate flex-shrink-0" title="${tf.name}">${tf.name}</span>
+            <div class="flex-grow bg-slate-50 border border-slate-200/60 h-3 rounded-full overflow-hidden relative">
+              <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
             </div>
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-              <div class="bg-slate-900 h-full rounded-full transition-all duration-300" style="width: ${pct}%;"></div>
-            </div>
+            <span class="text-[10px] font-bold text-slate-500 w-8 text-right flex-shrink-0">${tf.count}x</span>
           </div>
         `;
       }).join('');
 
       tagsBreakdownHtml = `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-          <h3 class="text-label-muted">Sub-Tag Frequencies</h3>
-          <div class="flex flex-col gap-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
+          <div class="flex justify-between items-center mb-1">
+            <h3 class="text-label-muted">Tag Frequency Breakdown</h3>
+            <span class="text-[9px] font-bold text-slate-400 uppercase">Tags used</span>
+          </div>
+          <div class="flex flex-col gap-3 pt-1">
             ${barsHtml}
           </div>
         </div>
@@ -457,7 +513,7 @@ export const HabitInsightPage = {
 
         <div class="flex flex-col gap-2.5 flex-grow">
           <div>
-            <h3 class="font-bold text-xs text-slate-800 leading-none">This week</h3>
+            <h3 class="text-[9px] font-bold text-slate-800 uppercase">THIS WEEK</h3>
             <span class="text-[10px] text-slate-400 font-semibold mt-1 inline-block">${completedDaysThisWeek} of 7 days</span>
           </div>
           <div class="flex items-center justify-between w-full gap-1">
@@ -591,41 +647,26 @@ export const HabitInsightPage = {
               />
             </div>
 
-            <div class="grid grid-cols-2 gap-3 text-xs">
-              <!-- Habit Type Toggle Button (Locked after creation) -->
-              <div class="flex flex-col gap-1.5">
-                <span class="text-[9px] font-bold text-slate-400 uppercase">Habit Type</span>
-                <div class="flex bg-slate-100 p-0.5 rounded-xl w-full border border-slate-200/50 pointer-events-none opacity-60">
-                  <button 
-                    type="button"
-                    class="flex-grow py-1.5 text-[10px] font-bold rounded-lg text-center transition-all duration-200 ${
-                      this.editorType === 'boolean' || this.editorType === 'checkbox' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
-                    }"
-                  >
-                    Yes / No
-                  </button>
-                  <button 
-                    type="button"
-                    class="flex-grow py-1.5 text-[10px] font-bold rounded-lg text-center transition-all duration-200 ${
-                      this.editorType === 'number' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'
-                    }"
-                  >
-                    Metric
-                  </button>
-                </div>
-                <p class="text-[8px] text-slate-400 mt-1 font-semibold">Type cannot be changed after creation.</p>
-              </div>
+            <!-- Optional Metric Tracking Toggle -->
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input 
+                type="checkbox" 
+                id="edit-enable-metric-toggle" 
+                class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                ${this.editorType === 'number' ? 'checked' : ''}
+              />
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
+            </label>
 
-              <!-- Weekly Target -->
-              <div class="flex flex-col gap-1.5">
-                <span class="text-[9px] font-bold text-slate-400 uppercase">Weekly Target</span>
-                <select 
-                  id="edit-goal-weekly"
-                  class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none bg-white text-slate-800 font-bold"
-                >
-                  ${[1, 2, 3, 4, 5, 6, 7].map(num => `<option value="${num}" ${habit.weeklyTarget === num ? 'selected' : ''}>${num} days / wk</option>`).join('')}
-                </select>
-              </div>
+            <!-- Weekly Target -->
+            <div class="flex flex-col gap-1.5 text-xs">
+              <span class="text-[9px] font-bold text-slate-400 uppercase">Weekly Target</span>
+              <select 
+                id="edit-goal-weekly"
+                class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none bg-white text-slate-800 font-bold"
+              >
+                ${[1, 2, 3, 4, 5, 6, 7].map(num => `<option value="${num}" ${habit.weeklyTarget === num ? 'selected' : ''}>${num} days / wk</option>`).join('')}
+              </select>
             </div>
 
             <!-- Metric specific inputs -->
@@ -817,6 +858,18 @@ export const HabitInsightPage = {
             </div>
           </div>
 
+          <!-- Heatmap Calendar Grid -->
+          ${heatmapHtml}
+
+          <!-- Tags Breakdown chart (Only if tags are used) -->
+          ${tagsBreakdownHtml}
+
+          <!-- Value trend line chart -->
+          ${valueChartHtml}
+
+          <!-- Notes Feed -->
+          ${notesFeedHtml}
+
           <!-- Manage Habit Actions Group Card -->
           ${manageHabitCardHtml}
         </div>
@@ -883,65 +936,13 @@ export const HabitInsightPage = {
         ${habitBehavioralHtml}
 
         <!-- Heatmap Calendar Grid -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
-          <div class="flex justify-between items-center border-b border-slate-50 pb-2">
-            <div class="flex items-center gap-3">
-              <button 
-                type="button"
-                onclick="window.HabitInsightPagePrevMonth()"
-                class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
-              >
-                <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-              </button>
-              <h3 class="text-label-muted">${monthName} ${currentYear}</h3>
-              <button 
-                type="button"
-                onclick="window.HabitInsightPageNextMonth()"
-                class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
-              >
-                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-            <span class="text-[9px] font-bold text-slate-400 uppercase">Monthly Check-ins</span>
-          </div>
-          
-          <div class="flex flex-col gap-2">
-            <div class="grid grid-cols-7 gap-1">
-              ${calendarHeaderHtml}
-            </div>
-            <div class="grid grid-cols-7 gap-y-2.5 gap-x-1 pt-1.5">
-              ${calendarGridHtml}
-            </div>
-          </div>
-          
-          <!-- Heatmap Legend -->
-          <div class="flex items-center gap-4 text-[9px] font-bold text-slate-400 uppercase pt-2 border-t border-slate-50">
-            <div class="flex items-center gap-1.5">
-              <div class="w-3.5 h-3.5 rounded-full border border-slate-100 bg-white"></div>
-              <span>Missed</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-3.5 h-3.5 rounded-full border ${softBorderClass}"></div>
-              <span>Quick Tick</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <div class="w-3.5 h-3.5 rounded-full ${pastelBg}"></div>
-              <span>Detailed Log</span>
-            </div>
-            ${habit.type === 'number' ? `
-              <div class="flex items-center gap-1.5">
-                <div class="w-3.5 h-3.5 rounded-full border border-rose-400 bg-white"></div>
-                <span>Failed Target</span>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-
-        <!-- Numeric analysis (Only for value/numeric habits) -->
-        ${numberStatsHtml}
+        ${heatmapHtml}
 
         <!-- Value trend line chart -->
         ${valueChartHtml}
+
+        <!-- Numeric analysis (Only for value/numeric habits) -->
+        ${numberStatsHtml}
 
         <!-- Tags Breakdown chart (Only if tags are used) -->
         ${tagsBreakdownHtml}
@@ -983,11 +984,9 @@ export const HabitInsightPage = {
 
     window.HabitInsightPageToggleEditor = () => {
       HabitInsightPage.isEditing = !HabitInsightPage.isEditing;
-      state.notify();
-    };
-
-    window.HabitInsightPageSetEditorType = (typeVal) => {
-      HabitInsightPage.editorType = typeVal;
+      if (HabitInsightPage.isEditing) {
+        HabitInsightPage.editorType = habit.type;
+      }
       state.notify();
     };
 
@@ -1101,6 +1100,17 @@ export const HabitInsightPage = {
       HabitInsightPage.editorType = null;
       state.notify();
     };
+
+    // Toggle metric fields live in edit panel
+    const editMetricToggle = document.getElementById('edit-enable-metric-toggle');
+    const editMetricFields = document.getElementById('edit-goal-metric-fields');
+    if (editMetricToggle && editMetricFields) {
+      editMetricToggle.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        HabitInsightPage.editorType = isChecked ? 'number' : 'checkbox';
+        editMetricFields.classList.toggle('hidden', !isChecked);
+      });
+    }
 
     // Initialize Chart.js graph if the element exists
     const ctx = document.getElementById('habit-trend-chart');

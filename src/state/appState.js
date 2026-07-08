@@ -23,47 +23,17 @@ class AppState {
   }
 
   init() {
+    if (!localStorage.getItem('coffeering_schema_v2')) {
+      StorageManager.init(true); // force reset database
+      localStorage.setItem('coffeering_schema_v2', 'true');
+    }
+
     StorageManager.init();
     this.user = StorageManager.getUserProfile();
     this.habits = StorageManager.getHabits() || [];
     this.checkIns = StorageManager.getCheckIns() || [];
     
-    // 1. If database is completely empty (no user profile), auto-register a default profile
-    if (this.user === null) {
-      const defaultPresets = ["preset_gym", "preset_steps", "preset_water", "preset_calories"];
-      StorageManager.registerUser(APP_CONFIG.defaultUser?.name || "Test User", defaultPresets, true);
-      this.user = StorageManager.getUserProfile();
-      this.habits = StorageManager.getHabits() || [];
-      this.checkIns = StorageManager.getCheckIns() || [];
-    } else {
-      // 2. If user exists, ensure they have the default demo habits (Gym, Steps, Water, Calories)
-      const defaultPresetIds = ["preset_gym", "preset_steps", "preset_water", "preset_calories"];
-      const currentHabitNames = new Set(this.habits.map(h => h.name.toLowerCase()));
-      const presets = APP_CONFIG.presets || [];
-      
-      const missingHabits = presets
-        .filter(p => defaultPresetIds.includes(p.id) && !currentHabitNames.has(p.name.toLowerCase()))
-        .map((preset, index) => ({
-          id: `habit_preset_${Date.now()}_${index}`,
-          name: preset.name,
-          type: preset.type,
-          category: preset.category,
-          weeklyTarget: preset.weeklyTarget || 7,
-          minGoal: preset.minGoal || null,
-          maxGoal: preset.maxGoal || null,
-          unit: preset.unit,
-          icon: preset.icon,
-          tags: [...preset.tags],
-          createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-        }));
 
-      if (missingHabits.length > 0) {
-        this.habits = [...this.habits, ...missingHabits];
-        StorageManager.saveHabitsList(this.habits);
-        // Force a fresh seeding of history to include these new habits
-        this.checkIns = StorageManager.seedHistoryForCurrentHabits();
-      }
-    }
 
     // 3. Auto-seed history if history is completely empty
     if (this.habits.length > 0 && this.checkIns.length === 0) {

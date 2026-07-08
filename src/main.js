@@ -23,6 +23,7 @@ class AppController {
     window.OnboardingGoToStep = (stepNum) => {
       OnboardingPage.step = stepNum;
       OnboardingPage.saveState();
+      window.scrollTo(0, 0);
       this.render();
     };
 

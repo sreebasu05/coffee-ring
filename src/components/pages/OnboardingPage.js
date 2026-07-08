@@ -5,7 +5,7 @@ import { CreatePage } from './CreatePage.js';
 export const OnboardingPage = {
   step: 1, // 1: Welcome, 2: Name Input, 3: Habits Selector, 4: Prefilled Create Pages
   userName: "",
-  selectedPresets: ['preset_gym', 'preset_steps', 'preset_water'], // pre-selected default seeds
+  selectedPresets: [], // default to empty
   currentPresetIndex: 0, // Tracker index for Step 4 Create queue
   customGoals: [], // Accumulator array for finalized habits
 
@@ -26,9 +26,15 @@ export const OnboardingPage = {
         const parsed = JSON.parse(data);
         this.step = parsed.step || 1;
         this.userName = parsed.userName || "";
-        this.selectedPresets = parsed.selectedPresets || ['preset_gym', 'preset_steps', 'preset_water'];
+        this.selectedPresets = parsed.selectedPresets || [];
         this.currentPresetIndex = parsed.currentPresetIndex || 0;
         this.customGoals = parsed.customGoals || [];
+      } else {
+        this.step = 1;
+        this.userName = "";
+        this.selectedPresets = [];
+        this.currentPresetIndex = 0;
+        this.customGoals = [];
       }
     } catch(e) {}
   },
@@ -160,10 +166,9 @@ export const OnboardingPage = {
 
   renderStep3() {
     const presets = APP_CONFIG.presets || [];
-    const isNextDisabled = this.selectedPresets.length === 0;
-    const nextBtnClass = isNextDisabled 
-      ? "bg-slate-200 text-slate-400 cursor-not-allowed" 
-      : "bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
+    const hasSelection = this.selectedPresets.length > 0;
+    const nextBtnClass = "bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
+    const btnText = hasSelection ? "Configure Goals" : "Finish Setup";
 
     const presetCardsHtml = presets.map(p => {
       const isSelected = this.selectedPresets.includes(p.id);
@@ -206,9 +211,8 @@ export const OnboardingPage = {
             type="button"
             id="onboarding-to-goals-btn"
             class="w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${nextBtnClass}"
-            ${isNextDisabled ? 'disabled' : ''}
           >
-            <span>Configure Goals</span>
+            <span>${btnText}</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
         </div>
@@ -273,9 +277,34 @@ export const OnboardingPage = {
       const toGoalsBtn = document.getElementById('onboarding-to-goals-btn');
       if (toGoalsBtn) {
         toGoalsBtn.addEventListener('click', () => {
-          this.customGoals = [];
-          this.currentPresetIndex = 0;
-          window.OnboardingGoToStep(4);
+          if (this.selectedPresets.length === 0) {
+            // No habits selected! Finish setup directly
+            if (!this.userName || this.userName.trim() === "") return;
+
+            const userProfile = { name: this.userName.trim() };
+            localStorage.setItem('coffeering_user_profile', JSON.stringify(userProfile));
+            localStorage.setItem('coffeering_habits', JSON.stringify([]));
+            localStorage.setItem('coffeering_check_ins', JSON.stringify([]));
+
+            // Save default categories colors
+            const colors = {};
+            APP_CONFIG.categories.forEach(cat => {
+              colors[cat.id] = cat.defaultColor;
+            });
+            localStorage.setItem('coffeering_category_colors', JSON.stringify(colors));
+
+            // Initialize app state
+            state.init();
+            this.clearState();
+            
+            if (onComplete) {
+              onComplete();
+            }
+          } else {
+            this.customGoals = [];
+            this.currentPresetIndex = 0;
+            window.OnboardingGoToStep(4);
+          }
         });
       }
     } else if (this.step === 4) {
