@@ -212,14 +212,14 @@ export const HabitCard = {
           ${habit.type === 'number' ? `
             <div class="mb-4">
               <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-slate-500'} mb-2">Log Value</h4>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2.5 w-full">
                 <input 
                   type="number" 
                   value="${log?.value ?? ""}" 
                   placeholder="${numPlaceholder}"
-                  class="card-numeric-input w-24 border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-slate-900"
+                  class="card-numeric-input flex-grow border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-slate-900"
                 />
-                <span class="text-xs ${isCompleted ? c.subTextActive : 'text-slate-500'} font-semibold">${habit.unit || 'units'}</span>
+                <span class="text-xs ${isCompleted ? c.subTextActive : 'text-slate-500'} font-semibold flex-shrink-0">${habit.unit || 'units'}</span>
               </div>
             </div>
           ` : ''}

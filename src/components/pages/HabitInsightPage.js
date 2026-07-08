@@ -723,18 +723,7 @@ export const HabitInsightPage = {
               />
             </div>
 
-            <!-- Optional Metric Tracking Toggle -->
-            <label class="flex items-center gap-2 cursor-pointer select-none">
-              <input 
-                type="checkbox" 
-                id="edit-enable-metric-toggle" 
-                class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
-                ${this.editorType === 'number' ? 'checked' : ''}
-              />
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
-            </label>
-
-            <!-- Weekly Target -->
+             <!-- Weekly Target -->
             <div class="flex flex-col gap-1.5 text-xs">
               <span class="text-[9px] font-bold text-slate-400 uppercase">Weekly Target</span>
               <select 
@@ -743,42 +732,6 @@ export const HabitInsightPage = {
               >
                 ${[1, 2, 3, 4, 5, 6, 7].map(num => `<option value="${num}" ${habit.weeklyTarget === num ? 'selected' : ''}>${num} days / wk</option>`).join('')}
               </select>
-            </div>
-
-            <!-- Metric specific inputs -->
-            <div id="edit-goal-metric-fields" class="${this.editorType === 'number' ? '' : 'hidden'} flex flex-col gap-3">
-              <div class="grid grid-cols-3 gap-2.5 text-xs pt-2 border-t border-slate-100">
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Unit</span>
-                  <input 
-                    type="text" 
-                    id="edit-goal-unit"
-                    value="${habit.unit || ''}" 
-                    placeholder="e.g. ml, steps"
-                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
-                  />
-                </div>
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Min Target</span>
-                  <input 
-                    type="number" 
-                    id="edit-goal-min"
-                    value="${habit.minGoal ?? ''}" 
-                    placeholder="None"
-                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
-                  />
-                </div>
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Max Target</span>
-                  <input 
-                    type="number" 
-                    id="edit-goal-max"
-                    value="${habit.maxGoal ?? ''}" 
-                    placeholder="None"
-                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
-                  />
-                </div>
-              </div>
             </div>
 
             <!-- Custom Schedule Toggle -->
@@ -819,6 +772,55 @@ export const HabitInsightPage = {
                 <i data-lucide="alert-circle" class="w-3 h-3 inline mr-1"></i>
                 Please select at least <span id="edit-required-days-count">${habit.weeklyTarget}</span> day(s) to match your weekly target.
               </p>
+            </div>
+
+            <!-- Optional Metric Tracking Toggle -->
+            <div class="mt-1 border-t border-slate-100 pt-2">
+              <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                <input 
+                  type="checkbox" 
+                  id="edit-enable-metric-toggle" 
+                  class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                  ${this.editorType === 'number' ? 'checked' : ''}
+                />
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
+              </label>
+            </div>
+
+            <!-- Metric specific inputs -->
+            <div id="edit-goal-metric-fields" class="${this.editorType === 'number' ? '' : 'hidden'} flex flex-col gap-3">
+              <div class="grid grid-cols-3 gap-2.5 text-xs pt-2 border-t border-slate-100">
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Unit</span>
+                  <input 
+                    type="text" 
+                    id="edit-goal-unit"
+                    value="${habit.unit || ''}" 
+                    placeholder="e.g. ml, steps"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Min Target</span>
+                  <input 
+                    type="number" 
+                    id="edit-goal-min"
+                    value="${habit.minGoal ?? ''}" 
+                    placeholder="None"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                  />
+                </div>
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[9px] font-bold text-slate-400 uppercase">Max Target</span>
+                  <input 
+                    type="number" 
+                    id="edit-goal-max"
+                    value="${habit.maxGoal ?? ''}" 
+                    placeholder="None"
+                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                  />
+                </div>
+              </div>
             </div>
 
             <!-- Save Action Button -->

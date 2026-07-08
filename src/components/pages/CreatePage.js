@@ -254,18 +254,7 @@ export const CreatePage = {
             <input type="hidden" id="habit-icon" value="${activeIcon}" />
           </div>
 
-          <!-- Optional Metric Tracking Toggle -->
-          <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input 
-              type="checkbox" 
-              id="enable-metric-toggle" 
-              class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
-              ${activeType === 'number' ? 'checked' : ''}
-            />
-            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
-          </label>
-
-          <!-- Weekly Target -->
+           <!-- Weekly Target -->
           <div>
             <label class="block text-label-muted mb-2">Weekly Target</label>
             <div class="flex items-center gap-3">
@@ -313,6 +302,17 @@ export const CreatePage = {
               Please select at least <span id="required-days-count">${activeWeeklyTarget}</span> day(s) to match your weekly target.
             </p>
           </div>
+
+          <!-- Optional Metric Tracking Toggle -->
+          <label class="flex items-center gap-2 mt-1 cursor-pointer select-none">
+            <input 
+              type="checkbox" 
+              id="enable-metric-toggle" 
+              class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+              ${activeType === 'number' ? 'checked' : ''}
+            />
+            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
+          </label>
 
           <!-- Number-specific fields -->
           <div id="number-fields-wrapper" class="${activeType === 'number' ? '' : 'hidden'} flex flex-col gap-4">
