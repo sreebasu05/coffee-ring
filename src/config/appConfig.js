@@ -299,7 +299,7 @@ export const APP_CONFIG = {
       category: "productivity",
       weeklyTarget: 5,
       unit: "times",
-      icon: "smartphone-off",
+      icon: "smartphone",
       tags: []
     },
     {
@@ -311,7 +311,7 @@ export const APP_CONFIG = {
       minGoal: 4,
       maxGoal: null,
       unit: "hours",
-      icon: "focus",
+      icon: "target",
       tags: []
     },
     {
@@ -321,7 +321,7 @@ export const APP_CONFIG = {
       category: "productivity",
       weeklyTarget: 6,
       unit: "times",
-      icon: "list-checks",
+      icon: "list",
       tags: []
     },
     {
@@ -331,7 +331,7 @@ export const APP_CONFIG = {
       category: "productivity",
       weeklyTarget: 5,
       unit: "times",
-      icon: "tv-off",
+      icon: "tv",
       tags: []
     },
 

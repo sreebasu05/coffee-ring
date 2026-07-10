@@ -377,6 +377,11 @@ export const HabitInsightPage = {
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
       if (validLogs.length >= 1) {
+        const oldestDate = new Date(validLogs[0].date);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        oldestDate.setHours(0,0,0,0);
+
         const pageSize = 30;
         const chartOffset = HabitInsightPage.viewedChartOffset || 0;
 

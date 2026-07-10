@@ -322,7 +322,7 @@ export const CreatePage = {
                 <input 
                   type="number" 
                   id="goal-numeric-min" 
-                  value="${prefilled && prefilled.minGoal !== null ? prefilled.minGoal : ''}"
+                  value="${prefilled && prefilled.minGoal !== null && prefilled.minGoal !== undefined ? prefilled.minGoal : ''}"
                   placeholder="e.g. 1800"
                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:bg-white"
                 />
@@ -332,7 +332,7 @@ export const CreatePage = {
                 <input 
                   type="number" 
                   id="goal-numeric-max" 
-                  value="${prefilled && prefilled.maxGoal !== null ? prefilled.maxGoal : ''}"
+                  value="${prefilled && prefilled.maxGoal !== null && prefilled.maxGoal !== undefined ? prefilled.maxGoal : ''}"
                   placeholder="e.g. 2200"
                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:bg-white"
                 />
