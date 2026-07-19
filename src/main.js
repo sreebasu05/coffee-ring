@@ -4,6 +4,7 @@ import { TodayPage } from './components/pages/TodayPage.js';
 import { CreatePage } from './components/pages/CreatePage.js';
 import { DashboardPage } from './components/pages/DashboardPage.js';
 import { HabitInsightPage } from './components/pages/HabitInsightPage.js';
+import { GlossaryPage } from './components/pages/GlossaryPage.js';
 import { OnboardingPage } from './components/pages/OnboardingPage.js';
 
 class AppController {
@@ -120,6 +121,8 @@ class AppController {
     } else if (this.currentTab === 'habit-insight') {
       root.innerHTML = HabitInsightPage.render(appState);
       HabitInsightPage.bindEvents(appState);
+    } else if (this.currentTab === 'glossary') {
+      root.innerHTML = GlossaryPage.render();
     }
 
     // Call Lucide to compile inline SVG icons dynamically
