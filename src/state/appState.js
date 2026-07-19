@@ -10,6 +10,7 @@ class AppState {
     
     // Default selected date is today (YYYY-MM-DD local format)
     this.selectedDate = this.formatDate(new Date());
+    this.dashboardWeekOffset = 0; // 0 = This Week, 1 = Last Week
     
     // Listeners for reactive UI rendering
     this.listeners = [];
@@ -125,9 +126,12 @@ class AppState {
     this.checkIns = StorageManager.removeCheckIn(habitId, this.selectedDate);
     this.notify();
   }
-
   getLogForHabit(habitId) {
     return this.checkIns.find(log => log.habitId === habitId && log.date === this.selectedDate) || null;
+  }
+
+  getLogForHabitOnDate(habitId, dateStr) {
+    return this.checkIns.find(log => log.habitId === habitId && log.date === dateStr) || null;
   }
 
   getWeeklyCount(habitId) {
@@ -155,8 +159,16 @@ class AppState {
 
   // ── Insights & Stats Calculation Engine ───────────────────
 
-  getWeekStartAndEnd(offset = 0) {
+  getDashboardDate() {
     const d = new Date();
+    if (this.dashboardWeekOffset === 1) {
+      d.setDate(d.getDate() - 7);
+    }
+    return d;
+  }
+
+  getWeekStartAndEnd(offset = 0) {
+    const d = this.getDashboardDate();
     const day = d.getDay();
     const diff = d.getDate() - day + (day === 0 ? -6 : 1) - (offset * 7);
     
@@ -240,6 +252,65 @@ class AppState {
     let streak = 0;
     let offset = 0;
     
+    const currentWeekCount = this.getWeekLogsCount(habitId, 0);
+    const currentWeekMet = currentWeekCount >= 1;
+    
+    if (currentWeekMet) {
+      streak = 1;
+      offset = 1;
+      while (true) {
+        const count = this.getWeekLogsCount(habitId, offset);
+        if (count >= 1) {
+          streak++;
+          offset++;
+        } else {
+          break;
+        }
+      }
+    } else {
+      offset = 1;
+      while (true) {
+        const count = this.getWeekLogsCount(habitId, offset);
+        if (count >= 1) {
+          streak++;
+          offset++;
+        } else {
+          break;
+        }
+      }
+    }
+    return streak;
+  }
+
+  getBestWeeklyStreak(habitId) {
+    const habit = this.habits.find(h => h.id === habitId);
+    if (!habit) return 0;
+    
+    let maxStreak = 0;
+    let currentStreak = 0;
+    
+    for (let offset = 52; offset >= 0; offset--) {
+      const count = this.getWeekLogsCount(habitId, offset);
+      if (count >= 1) {
+        currentStreak++;
+        if (currentStreak > maxStreak) {
+          maxStreak = currentStreak;
+        }
+      } else {
+        currentStreak = 0;
+      }
+    }
+    return maxStreak;
+  }
+
+  // ── Target Streaks ────────────────────────────────────────
+  getTargetStreak(habitId) {
+    const habit = this.habits.find(h => h.id === habitId);
+    if (!habit) return 0;
+    
+    let streak = 0;
+    let offset = 0;
+    
     const { start: currentStart } = this.getWeekStartAndEnd(0);
     const currentTarget = this.getWeeklyTargetForDate(habitId, this.formatDate(currentStart));
     const currentWeekCount = this.getWeekLogsCount(habitId, 0);
@@ -274,29 +345,6 @@ class AppState {
       }
     }
     return streak;
-  }
-
-  getBestWeeklyStreak(habitId) {
-    const habit = this.habits.find(h => h.id === habitId);
-    if (!habit) return 0;
-    
-    let maxStreak = 0;
-    let currentStreak = 0;
-    
-    for (let offset = 52; offset >= 0; offset--) {
-      const { start } = this.getWeekStartAndEnd(offset);
-      const target = this.getWeeklyTargetForDate(habitId, this.formatDate(start));
-      const count = this.getWeekLogsCount(habitId, offset);
-      if (count >= target) {
-        currentStreak++;
-        if (currentStreak > maxStreak) {
-          maxStreak = currentStreak;
-        }
-      } else {
-        currentStreak = 0;
-      }
-    }
-    return maxStreak;
   }
 
   // ── Daily Streaks ─────────────────────────────────────────
@@ -387,7 +435,7 @@ class AppState {
     return maxStreak;
   }
 
-  getCompletionRate(habitId, days = 30) {
+  getRollingConsistency(habitId, days = 28, nowDate = new Date()) {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
 
@@ -399,8 +447,8 @@ class AppState {
     createdMonday.setDate(createdDate.getDate() + diffToMonday);
     createdMonday.setHours(0,0,0,0);
 
-    // Find the Monday of the current week
-    const now = new Date();
+    // Find the Monday of the current week (based on nowDate)
+    const now = new Date(nowDate);
     const nowDay = now.getDay();
     const currentMonday = new Date(now);
     const diffToCurrentMonday = nowDay === 0 ? -6 : 1 - nowDay;
@@ -429,7 +477,7 @@ class AppState {
 
     if (completedWeeksMondays.length === 0) return 0;
 
-    let weeksMet = 0;
+    let totalConsistency = 0;
 
     completedWeeksMondays.forEach(monday => {
       const target = this.getWeeklyTargetForDate(habitId, this.formatDate(monday));
@@ -443,12 +491,11 @@ class AppState {
         return logDate.getTime() >= monday.getTime() && logDate.getTime() <= sunday.getTime();
       }).length;
 
-      if (count >= target) {
-        weeksMet++;
-      }
+      const consistencyForWeek = Math.min(count / target, 1.0);
+      totalConsistency += consistencyForWeek;
     });
 
-    return Math.round((weeksMet / completedWeeksMondays.length) * 100);
+    return Math.round((totalConsistency / completedWeeksMondays.length) * 100);
   }
 
   getLoggingFidelity(habitId) {
@@ -478,12 +525,16 @@ class AppState {
 
   getTodayCompletionRate() {
     if (this.habits.length === 0) return 0;
-    const completedToday = this.habits.filter(h => this.getLogForHabit(h.id) !== null).length;
-    return Math.round((completedToday / this.habits.length) * 100);
+    const todayStr = this.formatDate(this.getDashboardDate());
+    const scheduledHabits = this.habits.filter(h => this.isHabitScheduledForDate(h.id, todayStr) && !this.isDatePaused(h, todayStr));
+    if (scheduledHabits.length === 0) return 100;
+    const completedToday = scheduledHabits.filter(h => this.getLogForHabitOnDate(h.id, todayStr) !== null).length;
+    return Math.round((completedToday / scheduledHabits.length) * 100);
   }
 
   getWeeklyGoalProgress() {
-    const todayStr = this.formatDate(new Date());
+    if (this.habits.length === 0) return 0;
+    const todayStr = this.formatDate(this.getDashboardDate());
     return this.habits.filter(h => {
       const weeklyCount = this.getWeeklyCount(h.id);
       const target = this.getWeeklyTargetForDate(h.id, todayStr);
@@ -497,7 +548,7 @@ class AppState {
     
     let totalTarget = 0;
     let totalCompleted = 0;
-    const todayStr = this.formatDate(new Date());
+    const todayStr = this.formatDate(this.getDashboardDate());
     
     catHabits.forEach(h => {
       totalTarget += this.getWeeklyTargetForDate(h.id, todayStr);
@@ -510,7 +561,7 @@ class AppState {
 
   getWeeklyDayByDayActivity() {
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const current = new Date();
+    const current = this.getDashboardDate();
     const currentDay = current.getDay();
     const mondayDiff = current.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
     
@@ -530,34 +581,94 @@ class AppState {
     });
   }
 
-  getHighlights() {
+  getOverallConsistency() {
+    if (this.habits.length === 0) return 0;
+    let sum = 0;
+    const dashDate = this.getDashboardDate();
+    this.habits.forEach(h => {
+      sum += this.getRollingConsistency(h.id, 28, dashDate);
+    });
+    return Math.round(sum / this.habits.length);
+  }
+
+  getCategoryFocus() {
     if (this.habits.length === 0 || this.checkIns.length < 7) {
-      return { best: null, worst: null, streakChampion: null, isLocked: true };
+      return { mostFocused: null, needsFocus: null, isLocked: true };
     }
 
-    const rateHabits = this.habits.map(h => ({ 
-      habit: h, 
-      rate: this.getCompletionRate(h.id, 30), 
-      streak: this.getWeeklyStreak(h.id) 
-    }));
+    // Dynamic import to avoid circular dependency if APP_CONFIG isn't available here,
+    // but APP_CONFIG is likely globally available or imported.
+    // Let's use the categories list from the habits.
+    const activeCatIds = [...new Set(this.habits.map(h => h.category))];
+    
+    if (activeCatIds.length === 0) return { mostFocused: null, needsFocus: null, isLocked: true };
 
-    const maxRate = Math.max(...rateHabits.map(x => x.rate));
-    const minRate = Math.min(...rateHabits.map(x => x.rate));
-    const maxStreak = Math.max(...rateHabits.map(x => x.streak));
+    const dashDate = this.getDashboardDate();
+    const catRates = activeCatIds.map(catId => {
+      const catHabits = this.habits.filter(h => h.category === catId);
+      let sum = 0;
+      catHabits.forEach(h => sum += this.getRollingConsistency(h.id, 28, dashDate));
+      return { categoryId: catId, rate: Math.round(sum / catHabits.length) };
+    });
 
-    const bestHabits = rateHabits.filter(x => x.rate === maxRate && maxRate > 0);
-    const worstHabits = rateHabits.filter(x => x.rate === minRate && minRate < 100);
-    const streakHabits = rateHabits.filter(x => x.streak === maxStreak && maxStreak > 0);
+    catRates.sort((a, b) => b.rate - a.rate);
+    const mostFocused = catRates[0];
+    const needsFocus = catRates.length > 1 ? catRates[catRates.length - 1] : null;
 
-    const best = bestHabits.length > 0 ? bestHabits[Math.floor(Math.random() * bestHabits.length)] : null;
-    const worst = worstHabits.length > 0 ? worstHabits[Math.floor(Math.random() * worstHabits.length)] : null;
-    const streakChamp = streakHabits.length > 0 ? streakHabits[Math.floor(Math.random() * streakHabits.length)] : null;
+    if (mostFocused) {
+      mostFocused.tieCount = catRates.filter(x => x.rate === mostFocused.rate).length - 1;
+    }
+    if (needsFocus) {
+      needsFocus.tieCount = catRates.filter(x => x.rate === needsFocus.rate).length - 1;
+    }
 
-    return {
-      best: best ? { habit: best.habit, rate: best.rate } : null,
-      worst: worst ? { habit: worst.habit, rate: worst.rate } : null,
-      streakChampion: streakChamp ? { habit: streakChamp.habit, streak: streakChamp.streak } : null
-    };
+    return { mostFocused, needsFocus, isLocked: false };
+  }
+
+  getHabitRankings() {
+    if (this.habits.length === 0) return [];
+    
+    const dashDate = this.getDashboardDate();
+    const oneWeekAgo = new Date(dashDate);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const now = dashDate;
+    const nowDay = now.getDay();
+    const currentMonday = new Date(now);
+    const diffToCurrentMonday = nowDay === 0 ? -6 : 1 - nowDay;
+    currentMonday.setDate(now.getDate() + diffToCurrentMonday);
+    currentMonday.setHours(0,0,0,0);
+
+    const rankings = this.habits.map(h => {
+      const current = this.getRollingConsistency(h.id, 28, dashDate);
+      const previous = this.getRollingConsistency(h.id, 28, oneWeekAgo);
+      
+      const createdDate = new Date(h.createdAt);
+      const createdDay = createdDate.getDay();
+      const createdMonday = new Date(createdDate);
+      const diffToMonday = createdDay === 0 ? -6 : 1 - createdDay;
+      createdMonday.setDate(createdDate.getDate() + diffToMonday);
+      createdMonday.setHours(0,0,0,0);
+
+      const isNew = createdMonday.getTime() >= currentMonday.getTime();
+
+      let trend = 'flat';
+      if (current > previous) trend = 'up';
+      if (current < previous) trend = 'down';
+      if (isNew) trend = 'flat';
+
+      return { habit: h, consistency: current, trend, isNew };
+    });
+
+    const sorted = rankings.sort((a, b) => b.consistency - a.consistency);
+    if (sorted.length > 0) {
+      const topScore = sorted[0].consistency;
+      sorted[0].tieCount = sorted.filter(x => x.consistency === topScore).length - 1;
+      
+      const bottomScore = sorted[sorted.length - 1].consistency;
+      sorted[sorted.length - 1].tieCount = sorted.filter(x => x.consistency === bottomScore).length - 1;
+    }
+    return sorted;
   }
 
   // Get tag frequency list sorted by usage counts
@@ -588,9 +699,9 @@ class AppState {
     const min = Math.min(...values);
     const max = Math.max(...values);
 
-    const now = new Date();
-    const cutoff7 = new Date(); cutoff7.setDate(now.getDate() - 7);
-    const cutoff30 = new Date(); cutoff30.setDate(now.getDate() - 30);
+    const now = this.getDashboardDate();
+    const cutoff7 = new Date(now); cutoff7.setDate(now.getDate() - 7);
+    const cutoff30 = new Date(now); cutoff30.setDate(now.getDate() - 30);
 
     const logs7 = logs.filter(l => new Date(l.date).getTime() >= cutoff7.getTime());
     const logs30 = logs.filter(l => new Date(l.date).getTime() >= cutoff30.getTime());
@@ -612,7 +723,7 @@ class AppState {
     }
     const onTargetRate = Math.round((onTargetCount / logs.length) * 100);
 
-    const cutoff14 = new Date(); cutoff14.setDate(now.getDate() - 14);
+    const cutoff14 = new Date(now); cutoff14.setDate(now.getDate() - 14);
     const prev7Logs = logs.filter(l => {
       const t = new Date(l.date).getTime();
       return t >= cutoff14.getTime() && t < cutoff7.getTime();
@@ -643,177 +754,257 @@ class AppState {
   }
 
   // Calculate behavioral insights from history logs
-  getBehavioralInsights() {
+  getAdvancedBehavioralInsights() {
     if (this.habits.length === 0 || this.checkIns.length === 0) {
-      return null;
+      return { overall: [], habitTags: {}, perHabitStats: [] };
     }
 
-    const habitBounceBacks = [];
-    const habitSlumps = [];
+    const today = this.getDashboardDate();
+    // Monday of the current week (to exclude current week from full week analysis)
+    const currentDay = today.getDay();
+    const currentMonday = new Date(today);
+    const diffToCurrentMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    currentMonday.setDate(today.getDate() + diffToCurrentMonday);
+    currentMonday.setHours(0,0,0,0);
 
-    // ── 1. Bounce-Back Rate (Never Miss Twice) ──
-    let missesCount = 0;
-    let recoveriesCount = 0;
+    const habitStats = this.habits.map(h => ({
+      habit: h,
+      missedWeeks: 0,
+      recoveredWeeks: 0,
+      zeroLogWeeks: 0,
+      savedWeeks: 0,
+      successfulWeeks: 0,
+      momentumWeeks: 0,
+      
+      totalWeekdayLogs: 0,
+      totalWeekendLogs: 0,
+    }));
 
-    // Track day-by-day logs for each habit
-    this.habits.forEach(habit => {
-      const dates = new Set(
-        this.checkIns
-          .filter(log => log.habitId === habit.id)
-          .map(log => log.date)
-      );
+    // Iterate trailing 12 weeks for weekly stats
+    for (let offset = 1; offset <= 12; offset++) {
+      const wDate = new Date(currentMonday.getTime() - (offset * 7 * 86400000));
+      const wNextDate = new Date(currentMonday.getTime() - ((offset - 1) * 7 * 86400000));
+      
+      habitStats.forEach(stat => {
+        const targetW = this.getWeeklyTargetForDate(stat.habit.id, this.formatDate(wDate));
+        const targetNextW = this.getWeeklyTargetForDate(stat.habit.id, this.formatDate(wNextDate));
+        
+        const createdDate = new Date(stat.habit.createdAt);
+        const createdMonday = new Date(createdDate);
+        const createdDay = createdMonday.getDay();
+        const diffToMonday = createdDay === 0 ? -6 : 1 - createdDay;
+        createdMonday.setDate(createdMonday.getDate() + diffToMonday);
+        createdMonday.setHours(0,0,0,0);
 
-      // Analyze days in last 30 days
-      let hMisses = 0;
-      let hRecoveries = 0;
-      const today = new Date();
-      for (let i = 29; i >= 1; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const yesterdayStr = this.formatDate(d);
+        if (wDate.getTime() < createdMonday.getTime()) {
+          return; // Skip weeks before the habit was created
+        }
 
-        // If yesterday was a miss
-        if (!dates.has(yesterdayStr)) {
-          hMisses++;
-          missesCount++;
-          
-          const dNext = new Date(d);
-          dNext.setDate(dNext.getDate() + 1);
-          const todayStr = this.formatDate(dNext);
+        const countW = this.getWeekLogsCount(stat.habit.id, offset);
+        const countNextW = this.getWeekLogsCount(stat.habit.id, offset - 1); // offset-1 is the week *after* offset
 
-          // Did we bounce back today?
-          if (dates.has(todayStr)) {
-            hRecoveries++;
-            recoveriesCount++;
+        // 1. Comeback Rate (Target Recovery)
+        if (countW < targetW) {
+          stat.missedWeeks++;
+          if (countNextW >= targetNextW) {
+            stat.recoveredWeeks++;
           }
         }
-      }
 
-      if (hMisses > 0) {
-        habitBounceBacks.push({
-          name: habit.name,
-          rate: Math.round((hRecoveries / hMisses) * 100)
+        // 2. Slump Prevention
+        if (countW === 0) {
+          stat.zeroLogWeeks++;
+          if (countNextW > 0) {
+            stat.savedWeeks++;
+          }
+        }
+
+        // 3. Momentum Maintenance
+        if (countW >= targetW) {
+          stat.successfulWeeks++;
+          if (countNextW >= targetNextW) {
+            stat.momentumWeeks++;
+          }
+        }
+      });
+    }
+
+    // Weekend vs Weekday Bias (Trailing 4 weeks = 28 days)
+    for (let i = 1; i <= 28; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dayOfWeek = d.getDay();
+      const dateStr = this.formatDate(d);
+      
+      habitStats.forEach(stat => {
+        const hasLog = this.checkIns.some(log => log.habitId === stat.habit.id && log.date === dateStr);
+        if (hasLog) {
+          if (dayOfWeek === 0 || dayOfWeek === 6) stat.totalWeekendLogs++;
+          else stat.totalWeekdayLogs++;
+        }
+      });
+    }
+
+    let globalMissed = 0, globalRecovered = 0;
+    let globalZero = 0, globalSaved = 0;
+    let globalSuccess = 0, globalMomentum = 0;
+    let globalWeekdayLogs = 0, globalWeekendLogs = 0;
+
+    let bestComeback = { habitId: null, rate: -1 };
+    let bestSlump = { habitId: null, rate: -1 };
+    let bestMomentum = { habitId: null, rate: -1 };
+
+    habitStats.forEach(stat => {
+      globalMissed += stat.missedWeeks;
+      globalRecovered += stat.recoveredWeeks;
+      globalZero += stat.zeroLogWeeks;
+      globalSaved += stat.savedWeeks;
+      globalSuccess += stat.successfulWeeks;
+      globalMomentum += stat.momentumWeeks;
+      
+      globalWeekdayLogs += stat.totalWeekdayLogs;
+      globalWeekendLogs += stat.totalWeekendLogs;
+
+      if (stat.missedWeeks >= 2) {
+        const rate = stat.recoveredWeeks / stat.missedWeeks;
+        if (rate > 0 && rate > bestComeback.rate) bestComeback = { habitId: stat.habit.id, rate };
+      }
+      if (stat.zeroLogWeeks >= 1) {
+        const rate = stat.savedWeeks / stat.zeroLogWeeks;
+        if (rate > 0 && rate > bestSlump.rate) bestSlump = { habitId: stat.habit.id, rate };
+      }
+      if (stat.successfulWeeks >= 2) {
+        const rate = stat.momentumWeeks / stat.successfulWeeks;
+        if (rate > 0 && rate > bestMomentum.rate) bestMomentum = { habitId: stat.habit.id, rate };
+      }
+    });
+
+    const habitTags = {};
+    if (bestComeback.habitId) habitTags[bestComeback.habitId] = { label: 'COMEBACK', classes: 'bg-amber-100 text-amber-700' };
+    if (bestSlump.habitId) habitTags[bestSlump.habitId] = { label: 'SLUMP PROOF', classes: 'bg-blue-100 text-blue-700' };
+    if (bestMomentum.habitId) habitTags[bestMomentum.habitId] = { label: 'MOMENTUM', classes: 'bg-emerald-100 text-emerald-700' };
+
+    const overall = [];
+
+    if (globalMissed >= 2) {
+      const rate = Math.round((globalRecovered / globalMissed) * 100);
+      if (rate > 0) {
+        overall.push({
+          id: 'comeback',
+          title: rate >= 50 ? "Strong Comebacks" : "Comeback Opportunity",
+          text: rate >= 50 
+            ? `When you miss a weekly goal, you bounce back and hit it the next week ${rate}% of the time!` 
+            : `You recover your weekly targets ${rate}% of the time. Don't let a bad week keep you down.`,
+          icon: 'refresh-cw',
+          color: 'text-slate-800',
+          bg: 'bg-slate-100 border-slate-200'
         });
       }
+    }
 
-      // ── Calculate Weekend performance for this habit ──
-      let hWeekdayLogs = 0;
-      let hWeekdayTotal = 0;
-      let hWeekendLogs = 0;
-      let hWeekendTotal = 0;
-
-      for (let i = 21; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dayOfWeek = d.getDay(); // 0 is Sunday, 6 is Saturday
-        const dateStr = this.formatDate(d);
-
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-          hWeekendTotal++;
-          if (dates.has(dateStr)) hWeekendLogs++;
-        } else {
-          hWeekdayTotal++;
-          if (dates.has(dateStr)) hWeekdayLogs++;
-        }
+    if (globalZero >= 1) {
+      const rate = Math.round((globalSaved / globalZero) * 100);
+      if (rate > 0) {
+        overall.push({
+          id: 'slump',
+          title: rate >= 50 ? "Slump Resistant" : "Slump Warning",
+          text: rate >= 50 
+            ? `After a week of 0 check-ins, you return to log at least once the next week ${rate}% of the time.` 
+            : `After a week of 0 check-ins, you only return ${rate}% of the time. Focus on doing just 1 rep to keep the habit alive!`,
+          icon: 'shield',
+          color: 'text-slate-800',
+          bg: 'bg-slate-100 border-slate-200'
+        });
       }
+    }
 
-      const hWeekdayRate = hWeekdayTotal > 0 ? Math.round((hWeekdayLogs / hWeekdayTotal) * 100) : 0;
-      const hWeekendRate = hWeekendTotal > 0 ? Math.round((hWeekendLogs / hWeekendTotal) * 100) : 0;
-      
-      habitSlumps.push({
-        name: habit.name,
-        weekdayRate: hWeekdayRate,
-        weekendRate: hWeekendRate,
-        diff: hWeekdayRate - hWeekendRate
-      });
-    });
-
-    const bounceBackRate = missesCount > 0 ? Math.round((recoveriesCount / missesCount) * 100) : 100;
-
-    // ── 2. Weekend Slump Indicator ──
-    let weekdayLogs = 0;
-    let weekdayTotalPossible = 0;
-    let weekendLogs = 0;
-    let weekendTotalPossible = 0;
-
-    this.habits.forEach(habit => {
-      const dates = new Set(
-        this.checkIns.filter(log => log.habitId === habit.id).map(log => log.date)
-      );
-
-      const today = new Date();
-      for (let i = 21; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        const dayOfWeek = d.getDay(); // 0 is Sunday, 6 is Saturday
-        const dateStr = this.formatDate(d);
-
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-          weekendTotalPossible++;
-          if (dates.has(dateStr)) weekendLogs++;
-        } else {
-          weekdayTotalPossible++;
-          if (dates.has(dateStr)) weekdayLogs++;
-        }
+    if (globalSuccess >= 2) {
+      const rate = Math.round((globalMomentum / globalSuccess) * 100);
+      if (rate > 0) {
+        overall.push({
+          id: 'momentum',
+          title: rate >= 60 ? "Momentum Master" : "Building Momentum",
+          text: rate >= 60
+            ? `Once you hit your target, you hit it again the next week ${rate}% of the time.`
+            : `You chain successful weeks together ${rate}% of the time.`,
+          icon: 'zap',
+          color: 'text-slate-800',
+          bg: 'bg-slate-100 border-slate-200'
+        });
       }
-    });
+    }
 
-    const weekdayRate = weekdayTotalPossible > 0 ? Math.round((weekdayLogs / weekdayTotalPossible) * 100) : 0;
-    const weekendRate = weekendTotalPossible > 0 ? Math.round((weekendLogs / weekendTotalPossible) * 100) : 0;
-    const slumpDiff = weekdayRate - weekendRate;
+    // Weekend vs Weekday
+    const totalLogsIn4Weeks = globalWeekdayLogs + globalWeekendLogs;
+    if (totalLogsIn4Weeks >= 5) {
+      const weekdayAvg = globalWeekdayLogs / 20; // 4 weeks * 5 days
+      const weekendAvg = globalWeekendLogs / 8;  // 4 weeks * 2 days
+      if (weekendAvg > weekdayAvg * 1.2) {
+        overall.push({
+          id: 'weekend',
+          title: "Weekend Warrior",
+          text: `You log significantly more often on weekends. Great way to use your free time!`,
+          icon: 'sun',
+          color: 'text-slate-800',
+          bg: 'bg-slate-100 border-slate-200'
+        });
+      } else if (weekdayAvg > weekendAvg * 1.2) {
+        overall.push({
+          id: 'weekday',
+          title: "Weekday Hero",
+          text: `Your consistency thrives during the workweek but drops on weekends.`,
+          icon: 'briefcase',
+          color: 'text-slate-800',
+          bg: 'bg-slate-100 border-slate-200'
+        });
+      }
+    }
 
-    // ── 3. Keystone anchor connection (find all high-prob stacks) ──
-    const keystoneStacks = [];
+    // Anchor Habit (Stacking)
     if (this.habits.length >= 2) {
-      // Find habit completion sets
-      const habitCompletionLogs = this.habits.map(h => {
-        const completedDates = new Set(
-          this.checkIns.filter(log => log.habitId === h.id).map(log => log.date)
-        );
-        return { id: h.id, name: h.name, completedDates };
-      });
+      const habitCompletionLogs = this.habits.map(h => ({
+        id: h.id,
+        name: h.name,
+        dates: new Set(this.checkIns.filter(log => log.habitId === h.id).map(log => log.date))
+      }));
+
+      let bestPair = null;
+      let highestProb = 0;
 
       for (let i = 0; i < habitCompletionLogs.length; i++) {
         for (let j = 0; j < habitCompletionLogs.length; j++) {
           if (i === j) continue;
           const anchor = habitCompletionLogs[i];
           const follower = habitCompletionLogs[j];
-
-          let anchorCompletedDays = 0;
-          let bothCompletedDays = 0;
-
-          anchor.completedDates.forEach(date => {
-            anchorCompletedDays++;
-            if (follower.completedDates.has(date)) {
-              bothCompletedDays++;
-            }
-          });
-
-          if (anchorCompletedDays >= 5) {
-            const prob = bothCompletedDays / anchorCompletedDays;
-            if (prob >= 0.70) {
-              keystoneStacks.push({
-                anchor: anchor.name,
-                follower: follower.name,
-                probability: Math.round(prob * 100)
-              });
+          
+          if (anchor.dates.size >= 5 && follower.dates.size >= 5) {
+            let bothDays = 0;
+            anchor.dates.forEach(d => { if (follower.dates.has(d)) bothDays++; });
+            const prob = bothDays / anchor.dates.size;
+            if (prob >= 0.6 && prob > highestProb) {
+              highestProb = prob;
+              bestPair = { anchor: anchor.name, follower: follower.name, prob: Math.round(prob * 100) };
             }
           }
         }
       }
 
-      // Sort by highest probability and limit to top 4 non-redundant stacks
-      keystoneStacks.sort((a, b) => b.probability - a.probability);
+      if (bestPair) {
+        overall.push({
+          id: 'anchor',
+          title: "Habit Stacking",
+          text: `When you log '${bestPair.anchor}', you also log '${bestPair.follower}' ${bestPair.prob}% of the time!`,
+          icon: 'link',
+          color: 'text-slate-800',
+          bg: 'bg-slate-100 border-slate-200'
+        });
+      }
     }
 
-    return {
-      bounceBackRate,
-      weekendRate,
-      weekdayRate,
-      slumpDiff,
-      keystoneStacks: keystoneStacks.slice(0, 4),
-      habitBounceBacks,
-      habitSlumps
+    return { 
+      overall, 
+      habitTags,
+      perHabitStats: habitStats 
     };
   }
 

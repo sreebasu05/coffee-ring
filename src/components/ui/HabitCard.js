@@ -134,7 +134,7 @@ export const HabitCard = {
     if (remainingNeeded <= 0) {
       cautionText = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Target met!</span>`;
     } else {
-      cautionText = "";
+      cautionText = `<span class="text-slate-500 font-medium">${weeklyCount}/${weeklyTarget} this week</span>`;
     }
 
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
@@ -188,12 +188,6 @@ export const HabitCard = {
             </div>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
-            ${weeklyStreak > 0 ? `
-              <div class="flex items-center gap-0.5 text-xs font-bold text-amber-500 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 shadow-sm dark:bg-amber-950/20 dark:border-amber-900/30" title="Weekly Streak">
-                <i data-lucide="flame" class="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i>
-                <span>${weeklyStreak}w</span>
-              </div>
-            ` : ''}
             <button class="habit-check-btn ${checkboxClass}" style="${checkboxStyle}">
               <i data-lucide="check" class="w-4 h-4"></i>
             </button>

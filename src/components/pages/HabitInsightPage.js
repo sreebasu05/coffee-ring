@@ -114,15 +114,25 @@ export const HabitInsightPage = {
     const createdAt = habit.createdAt ? new Date(habit.createdAt) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const diffMs = new Date().getTime() - createdAt.getTime();
     const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-    const isInsightsLocked = diffDays < 7;
-    const daysRemaining = 7 - diffDays;
+    const loggedDaysCount = new Set(state.checkIns.filter(l => l.habitId === habit.id).map(l => l.date)).size;
+    const progressDays = Math.min(7, Math.max(loggedDaysCount, diffDays));
+    const isInsightsLocked = progressDays < 7;
+    const daysRemaining = 7 - progressDays;
 
-    const dailyStreak = state.getDailyStreak(habit.id);
-    const bestDailyStreak = state.getBestDailyStreak(habit.id);
     const weeklyStreak = state.getWeeklyStreak(habit.id);
     const bestWeeklyStreak = state.getBestWeeklyStreak(habit.id);
     
-    const monthlyRate = state.getCompletionRate(habit.id, 30);
+    let secondaryStreakName = "Target Streak";
+    let secondaryStreak = state.getTargetStreak(habit.id);
+    let bestSecondaryStreakText = "";
+    
+    if (habit.weeklyTarget === 7) {
+      secondaryStreakName = "Daily Streak";
+      secondaryStreak = state.getDailyStreak(habit.id);
+      bestSecondaryStreakText = `Best: ${state.getBestDailyStreak(habit.id)}d`;
+    }
+
+    const monthlyRate = state.getRollingConsistency(habit.id, 28);
     const fidelity = state.getLoggingFidelity(habit.id);
     const tagsFrequency = state.getTagFrequency(habit.id);
     const recentNotes = state.getRecentNotes(habit.id);
@@ -636,54 +646,95 @@ export const HabitInsightPage = {
         </div>
       `;
     } else {
-      const b = state.getBehavioralInsights();
-      if (b) {
-        const hb = b.habitBounceBacks.find(x => x.name === habit.name);
-        const hs = b.habitSlumps.find(x => x.name === habit.name);
-        const hStacks = b.keystoneStacks.filter(s => s.anchor === habit.name || s.follower === habit.name);
+      const b = state.getAdvancedBehavioralInsights();
+      if (b && b.perHabitStats) {
+        const stat = b.perHabitStats.find(s => s.habit.id === habit.id);
 
-        let bounceBackText = "No recovery data logged yet.";
-        if (hb) {
-          bounceBackText = `You recover <strong>${hb.rate}%</strong> of the time on the day immediately following a missed log.`;
+        let insightsList = [];
+        if (stat) {
+          if (stat.missedWeeks >= 2) {
+            const rate = Math.round((stat.recoveredWeeks / stat.missedWeeks) * 100);
+            if (rate > 0) {
+              insightsList.push({
+                title: rate >= 50 ? "Strong Comebacks" : "Comeback Opportunity",
+                text: rate >= 50 
+                  ? `When you miss a weekly goal, you bounce back and hit it the next week ${rate}% of the time!` 
+                  : `You recover your weekly targets ${rate}% of the time. Don't let a bad week keep you down.`,
+                icon: 'refresh-cw'
+              });
+            }
+          }
+          if (stat.zeroLogWeeks >= 1) {
+            const rate = Math.round((stat.savedWeeks / stat.zeroLogWeeks) * 100);
+            if (rate > 0) {
+              insightsList.push({
+                title: rate >= 50 ? "Slump Resistant" : "Slump Warning",
+                text: rate >= 50 
+                  ? `After a week of 0 check-ins, you return to log at least once the next week ${rate}% of the time.` 
+                  : `After a week of 0 check-ins, you only return ${rate}% of the time. Focus on doing just 1 rep to keep the habit alive!`,
+                icon: 'shield'
+              });
+            }
+          }
+          if (stat.successfulWeeks >= 2) {
+            const rate = Math.round((stat.momentumWeeks / stat.successfulWeeks) * 100);
+            if (rate > 0) {
+              insightsList.push({
+                title: rate >= 60 ? "Momentum Master" : "Building Momentum",
+                text: rate >= 60
+                  ? `Once you hit your target, you hit it again the next week ${rate}% of the time.`
+                  : `You chain successful weeks together ${rate}% of the time.`,
+                icon: 'zap'
+              });
+            }
+          }
+          const totalLogs = stat.totalWeekdayLogs + stat.totalWeekendLogs;
+          if (totalLogs >= 5) {
+            const weekdayAvg = stat.totalWeekdayLogs / 20;
+            const weekendAvg = stat.totalWeekendLogs / 8;
+            if (weekendAvg > weekdayAvg * 1.2) {
+              insightsList.push({
+                title: "Weekend Warrior",
+                text: `You log significantly more often on weekends. Great way to use your free time!`,
+                icon: 'sun'
+              });
+            } else if (weekdayAvg > weekendAvg * 1.2) {
+              insightsList.push({
+                title: "Weekday Hero",
+                text: `Your consistency thrives during the workweek but drops on weekends.`,
+                icon: 'briefcase'
+              });
+            }
+          }
+        }
+        
+        if (insightsList.length === 0) {
+          insightsList.push({
+            title: "Data Gathering",
+            text: "Keep logging to unlock personalized insights like Comeback Rate and Slump Prevention.",
+            icon: 'bar-chart'
+          });
         }
 
-        let slumpText = "Weekend tracking is stable.";
-        let slumpIcon = "sparkles";
-        let slumpBg = "bg-emerald-50/50 border-emerald-100 text-emerald-800";
-        if (hs && hs.diff > 0) {
-          slumpText = `Your consistency drops by <strong class="text-amber-700">${hs.diff}%</strong> on weekends compared to weekdays (${hs.weekdayRate}% weekdays vs ${hs.weekendRate}% weekends).`;
-          slumpIcon = "sun";
-          slumpBg = "bg-amber-50/50 border-amber-100 text-amber-800";
-        }
+        const cardsHtml = insightsList.map((insight) => `
+          <div class="flex items-start gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0 mt-4 first:mt-0">
+            <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="${insight.icon}" class="w-4 h-4 text-slate-800"></i>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-slate-800">${insight.title}</span>
+              <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">${insight.text}</p>
+            </div>
+          </div>
+        `).join('');
 
         habitBehavioralHtml = `
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+          <div class="relative bg-white border border-slate-200 rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col gap-4 pt-6">
+            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
             <h3 class="text-label-muted">Behavioral Insights</h3>
-            
-            <!-- Bounce-back -->
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 flex-shrink-0">
-                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-              </div>
-              <div class="flex flex-col gap-0.5 min-w-0">
-                <span class="text-xs font-bold text-slate-800">Bounce-Back Strategy</span>
-                <span class="text-[10px] text-slate-500 leading-normal">${bounceBackText}</span>
-              </div>
+            <div class="flex flex-col">
+              ${cardsHtml}
             </div>
-
-            <hr class="border-slate-200" />
-
-            <!-- Weekend Performance -->
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-500 flex-shrink-0">
-                <i data-lucide="${slumpIcon}" class="w-4 h-4"></i>
-              </div>
-              <div class="flex flex-col gap-0.5 min-w-0">
-                <span class="text-xs font-bold text-slate-800">Weekend Performance Variance</span>
-                <span class="text-[10px] text-slate-500 leading-normal">${slumpText}</span>
-              </div>
-            </div>
-
           </div>
         `;
       }
@@ -873,7 +924,7 @@ export const HabitInsightPage = {
     `;
 
     if (isInsightsLocked) {
-      const progressPct = Math.round((diffDays / 7) * 100);
+      const progressPct = Math.round((progressDays / 7) * 100);
       return `
         <div id="habit-insights-view" class="flex flex-col gap-5 pb-24 animate-fade-in">
           <!-- Header row with Back Button -->
@@ -916,7 +967,7 @@ export const HabitInsightPage = {
             <div class="w-full max-w-[200px] flex flex-col gap-1 mt-1">
               <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase">
                 <span>Progress</span>
-                <span>${diffDays} / 7 Days</span>
+                <span>${progressDays} / 7 Days</span>
               </div>
               <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500" style="background-color: ${themeHex}; width: ${progressPct}%;"></div>
@@ -986,19 +1037,19 @@ export const HabitInsightPage = {
         <div class="grid grid-cols-3 gap-3">
           <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Daily Streak</span>
+            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Week Streak</span>
             <div class="flex flex-col">
-              <span class="text-2xl font-semibold text-slate-800 leading-none">${dailyStreak}d</span>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">Best: ${bestDailyStreak}d</span>
+              <span class="text-2xl font-semibold text-slate-800 leading-none">${weeklyStreak}w</span>
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">Best: ${bestWeeklyStreak}w</span>
             </div>
           </div>
 
           <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Week Streak</span>
+            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">${secondaryStreakName}</span>
             <div class="flex flex-col">
-              <span class="text-2xl font-semibold text-slate-800 leading-none">${weeklyStreak}w</span>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">Best: ${bestWeeklyStreak}w</span>
+              <span class="text-2xl font-semibold text-slate-800 leading-none">${secondaryStreak}${habit.weeklyTarget === 7 ? 'd' : 'w'}</span>
+              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">${bestSecondaryStreakText}</span>
             </div>
           </div>
 
