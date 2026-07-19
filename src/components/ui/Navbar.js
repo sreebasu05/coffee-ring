@@ -4,7 +4,7 @@ export const Navbar = {
     if (!nav) return;
 
     // Apply high-contrast light theme colors: white background with gray border and charcoal/black text
-    nav.className = "fixed bottom-0 left-0 right-0 bg-cardBg/90 backdrop-blur-md border-t border-border-primary py-2.5 px-4 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-lg";
+    nav.className = "fixed bottom-0 left-0 right-0 bg-surface-card/90 backdrop-blur-md border-t border-divider py-2.5 px-4 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-lg";
 
     nav.innerHTML = `
       <button id="nav-today" class="flex flex-col items-center gap-1 transition-all ${

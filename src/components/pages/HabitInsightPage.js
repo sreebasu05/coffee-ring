@@ -33,8 +33,8 @@ export const HabitInsightPage = {
       return `
         <div id="habit-insights-view" class="flex flex-col gap-5 pb-24 animate-fade-in text-center py-10">
           <i data-lucide="line-chart" class="w-12 h-12 text-slate-300 mx-auto"></i>
-          <h1 class="text-lg font-bold text-slate-800 mt-3">No Habits Found</h1>
-          <p class="text-xs text-slate-500 max-w-xs mx-auto mt-1">Please create a habit first on the Add tab to begin tracking detailed insights.</p>
+          <h1 class="text-lg font-bold text-text-primary mt-3">No Habits Found</h1>
+          <p class="text-xs text-text-secondary max-w-xs mx-auto mt-1">Please create a habit first on the Add tab to begin tracking detailed insights.</p>
         </div>
       `;
     }
@@ -73,7 +73,7 @@ export const HabitInsightPage = {
 
         return `
           <div class="flex flex-col gap-3">
-            <h3 class="text-[10px] font-extrabold tracking-widest uppercase text-slate-400">${cat.name}</h3>
+            <h3 class="text-[10px] font-extrabold tracking-widest uppercase text-text-secondary">${cat.name}</h3>
             <div class="grid grid-cols-3 gap-4">
               ${gridItemsHtml}
             </div>
@@ -84,8 +84,8 @@ export const HabitInsightPage = {
       return `
         <div id="habit-insights-selection-view" class="flex flex-col gap-6 pb-24 animate-fade-in">
           <div>
-            <h1 class="text-xl font-bold text-slate-800">Habits</h1>
-            <p class="text-xs text-slate-500 mt-1">Select any habit to inspect streaks, heatmap, and values.</p>
+            <h1 class="text-xl font-bold text-text-primary">Habits</h1>
+            <p class="text-xs text-text-secondary mt-1">Select any habit to inspect streaks, heatmap, and values.</p>
           </div>
           
           <div class="flex flex-col gap-5">
@@ -142,7 +142,7 @@ export const HabitInsightPage = {
 
     // Build badges for header
     const targetBadgeHtml = `
-      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60 flex-shrink-0">
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-sunken text-[9px] font-bold text-text-secondary border border-divider/60 flex-shrink-0">
         <i data-lucide="target" class="w-2.5 h-2.5"></i>
         Goal: ${habit.weeklyTarget}d/wk
       </span>
@@ -150,7 +150,7 @@ export const HabitInsightPage = {
 
     const scheduleDaysStr = habit.days && habit.days.length > 0 ? habit.days.join(', ') : 'Everyday';
     const scheduleBadgeHtml = `
-      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60 flex-shrink-0">
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-sunken text-[9px] font-bold text-text-secondary border border-divider/60 flex-shrink-0">
         <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
         Days: ${scheduleDaysStr}
       </span>
@@ -169,7 +169,7 @@ export const HabitInsightPage = {
       
       if (rangeText) {
         metricBadgeHtml = `
-          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-50 text-[9px] font-bold text-slate-500 border border-slate-200/60 flex-shrink-0">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-sunken text-[9px] font-bold text-text-secondary border border-divider/60 flex-shrink-0">
             <i data-lucide="activity" class="w-2.5 h-2.5"></i>
             Range: ${rangeText} ${habit.unit || ''}
           </span>
@@ -213,9 +213,9 @@ export const HabitInsightPage = {
       pastelPink: 'border-pink-250 bg-pastelPink/20'
     };
 
-    const pastelBg = bgMap[catColor] || 'bg-slate-200';
-    const pastelText = textMap[catColor] || 'text-slate-800';
-    const softBorderClass = borderMap[catColor] || 'border-slate-200';
+    const pastelBg = bgMap[catColor] || 'bg-surface-sunken';
+    const pastelText = textMap[catColor] || 'text-text-primary';
+    const softBorderClass = borderMap[catColor] || 'border-divider';
 
     // Generate Heatmap calendar (switchable by month offset)
     const currentDate = new Date();
@@ -230,7 +230,7 @@ export const HabitInsightPage = {
 
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const calendarHeaderHtml = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-      .map(d => `<span class="text-[10px] font-bold text-slate-400 text-center uppercase">${d}</span>`).join('');
+      .map(d => `<span class="text-[10px] font-bold text-text-secondary text-center uppercase">${d}</span>`).join('');
 
     const dayCells = [];
     for (let i = 0; i < startDayIdx; i++) {
@@ -257,7 +257,7 @@ export const HabitInsightPage = {
           cellClass += `border-transparent ${softBorderClass} ${pastelText}`;
         }
       } else {
-        cellClass += "border-slate-100 bg-white text-slate-400 hover:border-slate-300";
+        cellClass += "border-divider bg-surface-card text-text-secondary hover:border-divider";
       }
 
       dayCells.push(`
@@ -270,14 +270,14 @@ export const HabitInsightPage = {
 
     const heatmapHtml = `
       <!-- Heatmap Calendar Grid -->
-      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+      <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col gap-4">
         <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
         <div class="flex justify-between items-center border-b border-slate-50 pb-2">
           <div class="flex items-center gap-3">
             <button 
               type="button"
               onclick="window.HabitInsightPagePrevMonth()"
-              class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+              class="w-6 h-6 rounded-full border border-divider bg-surface-card text-text-secondary hover:text-text-primary transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
             >
               <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
             </button>
@@ -285,12 +285,12 @@ export const HabitInsightPage = {
             <button 
               type="button"
               onclick="window.HabitInsightPageNextMonth()"
-              class="w-6 h-6 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+              class="w-6 h-6 rounded-full border border-divider bg-surface-card text-text-secondary hover:text-text-primary transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
             >
               <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
             </button>
           </div>
-          <span class="text-[9px] font-bold text-slate-800 uppercase">Monthly Check-ins</span>
+          <span class="text-[9px] font-bold text-text-primary uppercase">Monthly Check-ins</span>
         </div>
         
         <div class="flex flex-col gap-2">
@@ -303,9 +303,9 @@ export const HabitInsightPage = {
         </div>
         
         <!-- Heatmap Legend -->
-        <div class="flex items-center gap-4 text-[9px] font-bold text-slate-400 uppercase pt-2 border-t border-slate-50">
+        <div class="flex items-center gap-4 text-[9px] font-bold text-text-secondary uppercase pt-2 border-t border-slate-50">
           <div class="flex items-center gap-1.5">
-            <div class="w-3.5 h-3.5 rounded-full border border-slate-100 bg-white"></div>
+            <div class="w-3.5 h-3.5 rounded-full border border-divider bg-surface-card"></div>
             <span>Missed</span>
           </div>
           <div class="flex items-center gap-1.5">
@@ -332,37 +332,37 @@ export const HabitInsightPage = {
       else if (hasMax) budgetText = `≤ ${habit.maxGoal}`;
 
       numberStatsHtml = `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+        <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col gap-4">
           <h3 class="text-label-muted">Numeric Target Analysis</h3>
           <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col border-r border-slate-100 pr-2">
-              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Target Budget</span>
-              <span class="text-sm font-extrabold text-slate-800 mt-1">${budgetText || 'No bounds'} ${habit.unit || ''}</span>
+            <div class="flex flex-col border-r border-divider pr-2">
+              <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Target Budget</span>
+              <span class="text-sm font-extrabold text-text-primary mt-1">${budgetText || 'No bounds'} ${habit.unit || ''}</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Daily Average (30d)</span>
-              <span class="text-sm font-extrabold text-slate-800 mt-1">${numStats.avg30} ${habit.unit || ''}</span>
+              <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Daily Average (30d)</span>
+              <span class="text-sm font-extrabold text-text-primary mt-1">${numStats.avg30} ${habit.unit || ''}</span>
             </div>
           </div>
           
           <div class="grid grid-cols-3 gap-3 border-t border-slate-50 pt-4">
             <div class="flex flex-col">
-              <span class="text-[8px] font-bold text-slate-400 uppercase">Min Logged</span>
-              <span class="text-xs font-bold text-slate-700 mt-0.5">${numStats.min}</span>
+              <span class="text-[8px] font-bold text-text-secondary uppercase">Min Logged</span>
+              <span class="text-xs font-bold text-text-primary mt-0.5">${numStats.min}</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-[8px] font-bold text-slate-400 uppercase">Max Logged</span>
-              <span class="text-xs font-bold text-slate-700 mt-0.5">${numStats.max}</span>
+              <span class="text-[8px] font-bold text-text-secondary uppercase">Max Logged</span>
+              <span class="text-xs font-bold text-text-primary mt-0.5">${numStats.max}</span>
             </div>
             <div class="flex flex-col">
-              <span class="text-[8px] font-bold text-slate-400 uppercase">On-Target Rate</span>
-              <span class="text-xs font-bold text-slate-700 mt-0.5">${numStats.onTargetRate}%</span>
+              <span class="text-[8px] font-bold text-text-secondary uppercase">On-Target Rate</span>
+              <span class="text-xs font-bold text-text-primary mt-0.5">${numStats.onTargetRate}%</span>
             </div>
           </div>
 
-          <div class="mt-2 py-2 px-3 rounded-xl border border-slate-100 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs font-semibold">
-            <span class="text-slate-500">Value Trend direction:</span>
-            <span class="flex items-center gap-1 text-slate-800 font-bold">
+          <div class="mt-2 py-2 px-3 rounded-xl border border-divider bg-surface-sunken dark:bg-slate-800/40 flex items-center justify-between text-xs font-semibold">
+            <span class="text-text-secondary">Value Trend direction:</span>
+            <span class="flex items-center gap-1 text-text-primary font-bold">
               <i data-lucide="${numStats.trend === 'Trending Up' ? 'trending-up' : numStats.trend === 'Trending Down' ? 'trending-down' : 'minus'}" class="w-3.5 h-3.5"></i>
               ${numStats.trend}
             </span>
@@ -439,14 +439,14 @@ export const HabitInsightPage = {
           };
 
           valueChartHtml = `
-            <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
+            <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col gap-3">
               <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
               <div class="flex justify-between items-center mb-1">
                 <div class="flex items-center gap-2">
                   <button 
                     type="button"
                     onclick="window.HabitInsightPagePrevChartRange()"
-                    class="w-5 h-5 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+                    class="w-5 h-5 rounded-full border border-divider bg-surface-card text-text-secondary hover:text-text-primary transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
                     ${!hasOlderData ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
                   >
                     <i data-lucide="chevron-left" class="w-3 h-3"></i>
@@ -455,13 +455,13 @@ export const HabitInsightPage = {
                   <button 
                     type="button"
                     onclick="window.HabitInsightPageNextChartRange()"
-                    class="w-5 h-5 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
+                    class="w-5 h-5 rounded-full border border-divider bg-surface-card text-text-secondary hover:text-text-primary transition-colors shadow-sm flex items-center justify-center active:scale-95 cursor-pointer"
                     ${chartOffset >= 0 ? 'disabled style="opacity: 0.3; cursor: not-allowed;"' : ''}
                   >
                     <i data-lucide="chevron-right" class="w-3 h-3"></i>
                   </button>
                 </div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase">${habit.unit || 'units'}</span>
+                <span class="text-[9px] font-bold text-text-secondary uppercase">${habit.unit || 'units'}</span>
               </div>
               <div class="w-full relative h-40">
                 <canvas id="habit-trend-chart"></canvas>
@@ -471,13 +471,13 @@ export const HabitInsightPage = {
         } else {
           // Fallback locked placeholder when validValues length is insufficient
           valueChartHtml = `
-            <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
+            <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
               <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-              <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-2">
+              <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary mb-2">
                 <i data-lucide="lock" class="w-3.5 h-3.5"></i>
               </div>
-              <span class="text-xs font-bold text-slate-800">Value Trend Locked</span>
-              <span class="text-[10px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">
+              <span class="text-xs font-bold text-text-primary">Value Trend Locked</span>
+              <span class="text-[10px] text-text-secondary mt-1 max-w-[220px] leading-relaxed">
                 Log at least 1 check-in with a metric value to see your progress chart.
               </span>
             </div>
@@ -486,13 +486,13 @@ export const HabitInsightPage = {
       } else {
         // Fallback locked placeholder when validLogs length is insufficient
         valueChartHtml = `
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-2">
+            <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary mb-2">
               <i data-lucide="lock" class="w-3.5 h-3.5"></i>
             </div>
-            <span class="text-xs font-bold text-slate-800">Value Trend Locked</span>
-            <span class="text-[10px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">
+            <span class="text-xs font-bold text-text-primary">Value Trend Locked</span>
+            <span class="text-[10px] text-text-secondary mt-1 max-w-[220px] leading-relaxed">
               Log at least 1 check-in with a metric value to see your progress chart.
             </span>
           </div>
@@ -509,21 +509,21 @@ export const HabitInsightPage = {
           const pct = Math.round((tf.count / maxCount) * 100);
           return `
             <div class="flex items-center gap-3.5 w-full text-xs">
-              <span class="text-[11px] font-bold text-slate-700 w-20 truncate flex-shrink-0" title="${tf.name}">${tf.name}</span>
-              <div class="flex-grow bg-slate-50 border border-slate-200/60 h-3 rounded-full overflow-hidden relative">
+              <span class="text-[11px] font-bold text-text-primary w-20 truncate flex-shrink-0" title="${tf.name}">${tf.name}</span>
+              <div class="flex-grow bg-surface-sunken border border-divider/60 h-3 rounded-full overflow-hidden relative">
                 <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
               </div>
-              <span class="text-[10px] font-bold text-slate-500 w-8 text-right flex-shrink-0">${tf.count}x</span>
+              <span class="text-[10px] font-bold text-text-secondary w-8 text-right flex-shrink-0">${tf.count}x</span>
             </div>
           `;
         }).join('');
 
         tagsBreakdownHtml = `
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col gap-3">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
             <div class="flex justify-between items-center mb-1">
               <h3 class="text-label-muted">Tag Frequency Breakdown</h3>
-              <span class="text-[9px] font-bold text-slate-400 uppercase">Tags used</span>
+              <span class="text-[9px] font-bold text-text-secondary uppercase">Tags used</span>
             </div>
             <div class="flex flex-col gap-3 pt-1">
               ${barsHtml}
@@ -533,13 +533,13 @@ export const HabitInsightPage = {
       } else {
         // Fallback locked placeholder when tags are configured but not logged yet
         tagsBreakdownHtml = `
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <div class="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-2">
+            <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary mb-2">
               <i data-lucide="lock" class="w-3.5 h-3.5"></i>
             </div>
-            <span class="text-xs font-bold text-slate-800">Tag Distribution Locked</span>
-            <span class="text-[10px] text-slate-400 mt-1 max-w-[220px] leading-relaxed">
+            <span class="text-xs font-bold text-text-primary">Tag Distribution Locked</span>
+            <span class="text-[10px] text-text-secondary mt-1 max-w-[220px] leading-relaxed">
               Log at least 1 check-in with tags selected to unlock your tag breakdown.
             </span>
           </div>
@@ -553,18 +553,18 @@ export const HabitInsightPage = {
       const feedsHtml = recentNotes.map(n => {
         const formattedDate = new Date(n.date).toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' });
         return `
-          <div class="border-b border-slate-100 last:border-0 pb-3 last:pb-0 flex flex-col gap-1 text-xs">
-            <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase">
+          <div class="border-b border-divider last:border-0 pb-3 last:pb-0 flex flex-col gap-1 text-xs">
+            <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary uppercase">
               <span>${formattedDate}</span>
-              ${n.value !== null && n.value !== undefined ? `<span class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">${n.value} ${habit.unit || ''}</span>` : ''}
+              ${n.value !== null && n.value !== undefined ? `<span class="bg-surface-sunken px-1.5 py-0.5 rounded text-text-secondary">${n.value} ${habit.unit || ''}</span>` : ''}
             </div>
-            <p class="text-slate-700 italic font-medium leading-relaxed mt-0.5">"${n.note}"</p>
+            <p class="text-text-primary italic font-medium leading-relaxed mt-0.5">"${n.note}"</p>
           </div>
         `;
       }).join('');
 
       notesFeedHtml = `
-        <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+        <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col gap-4">
           <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
           <h3 class="text-label-muted">Recent Notes Feed</h3>
           <div class="flex flex-col gap-3">
@@ -583,13 +583,13 @@ export const HabitInsightPage = {
       return `
         <div class="flex flex-col items-center gap-1 flex-1">
           <div class="w-6 h-6 rounded-full border transition-all duration-300" style="${activeDotBg}"></div>
-          <span class="text-[9px] font-bold text-slate-400 uppercase mt-1">${day.dayName}</span>
+          <span class="text-[9px] font-bold text-text-secondary uppercase mt-1">${day.dayName}</span>
         </div>
       `;
     }).join('');
 
     const thisWeekCardHtml = `
-      <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex items-center gap-5">
+      <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex items-center gap-5">
         <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
         <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
           <svg class="absolute w-full h-full transform -rotate-90">
@@ -598,13 +598,13 @@ export const HabitInsightPage = {
               stroke-dasharray="163.362" stroke-dashoffset="${163.362 - (163.362 * weekCompletionPct) / 100}"
               stroke-linecap="round" class="transition-all duration-500" />
           </svg>
-          <span class="text-xs font-bold text-slate-800">${weekCompletionPct}%</span>
+          <span class="text-xs font-bold text-text-primary">${weekCompletionPct}%</span>
         </div>
 
         <div class="flex flex-col gap-2.5 flex-grow">
           <div>
-            <h3 class="text-[9px] font-bold text-slate-800 uppercase">THIS WEEK</h3>
-            <span class="text-[10px] text-slate-400 font-semibold mt-1 inline-block">${completedDaysThisWeek} of 7 days</span>
+            <h3 class="text-[9px] font-bold text-text-primary uppercase">THIS WEEK</h3>
+            <span class="text-[10px] text-text-secondary font-semibold mt-1 inline-block">${completedDaysThisWeek} of 7 days</span>
           </div>
           <div class="flex items-center justify-between w-full gap-1">
             ${weekDaysHtml}
@@ -622,25 +622,25 @@ export const HabitInsightPage = {
       habitBehavioralHtml = `
         <div class="flex flex-col gap-2.5">
           <h3 class="text-label-muted">Behavioral Insights</h3>
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
             
-            <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+            <div class="w-10 h-10 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
               <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
             
             <div class="flex flex-col gap-1">
-              <span class="text-xs font-bold text-slate-800">Insights Locked</span>
-              <span class="text-[10px] text-slate-500 max-w-[200px] leading-relaxed">
+              <span class="text-xs font-bold text-text-primary">Insights Locked</span>
+              <span class="text-[10px] text-text-secondary max-w-[200px] leading-relaxed">
                 Log for ${7 - uniqueDays} more day${7 - uniqueDays > 1 ? 's' : ''} to unlock personalized bounce-back strategies and keystone habit links.
               </span>
             </div>
 
             <div class="w-full mt-2">
-              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div class="w-full bg-surface-sunken rounded-full h-1.5 overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500 ease-out" style="background-color: ${themeHex}; width: ${progressPct}%"></div>
               </div>
-              <span class="text-[9px] font-bold text-slate-400 mt-2 block uppercase tracking-wider">${progressPct}% Data Gathered</span>
+              <span class="text-[9px] font-bold text-text-secondary mt-2 block uppercase tracking-wider">${progressPct}% Data Gathered</span>
             </div>
           </div>
         </div>
@@ -717,19 +717,19 @@ export const HabitInsightPage = {
         }
 
         const cardsHtml = insightsList.map((insight) => `
-          <div class="flex items-start gap-3 border-b border-slate-100 pb-4 last:border-0 last:pb-0 mt-4 first:mt-0">
-            <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
-              <i data-lucide="${insight.icon}" class="w-4 h-4 text-slate-800"></i>
+          <div class="flex items-start gap-3 border-b border-divider pb-4 last:border-0 last:pb-0 mt-4 first:mt-0">
+            <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center flex-shrink-0">
+              <i data-lucide="${insight.icon}" class="w-4 h-4 text-text-primary"></i>
             </div>
             <div class="flex flex-col">
-              <span class="text-xs font-bold text-slate-800">${insight.title}</span>
-              <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">${insight.text}</p>
+              <span class="text-xs font-bold text-text-primary">${insight.title}</span>
+              <p class="text-[10px] text-text-secondary mt-0.5 leading-relaxed">${insight.text}</p>
             </div>
           </div>
         `).join('');
 
         habitBehavioralHtml = `
-          <div class="relative bg-white border border-slate-200 rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col gap-4 pt-6">
+          <div class="relative bg-surface-card border border-divider rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col gap-4 pt-6">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
             <h3 class="text-label-muted">Behavioral Insights</h3>
             <div class="flex flex-col">
@@ -746,64 +746,64 @@ export const HabitInsightPage = {
         <h3 class="text-label-muted">Manage Habit</h3>
       </div>
 
-      <div class="relative bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col mb-8 pt-1">
+      <div class="relative bg-surface-card border border-divider rounded-2xl shadow-sm overflow-hidden flex flex-col mb-8 pt-1">
         <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
         
         <!-- Row 1: Edit Row -->
-        <div class="flex flex-col p-4 border-b border-slate-100">
+        <div class="flex flex-col p-4 border-b border-divider">
           <div class="flex justify-between items-center">
             <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-slate-800">Edit Goals & Parameters</span>
-              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Modify name, type, targets, and parameters.</span>
+              <span class="text-xs font-bold text-text-primary">Edit Goals & Parameters</span>
+              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Modify name, type, targets, and parameters.</span>
             </div>
             <button 
               type="button"
               id="habit-edit-toggle-btn"
               onclick="window.HabitInsightPageToggleEditor()"
-              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm flex-shrink-0"
+              class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-sunken transition-all shadow-sm flex-shrink-0"
             >
               <i data-lucide="settings" class="w-3.5 h-3.5"></i>
             </button>
           </div>
 
           <!-- Inline editor block -->
-          <div id="habit-goal-editor-panel" class="${this.isEditing ? '' : 'hidden'} flex flex-col gap-4 pt-4 mt-2 border-t border-slate-100 animate-fade-in">
+          <div id="habit-goal-editor-panel" class="${this.isEditing ? '' : 'hidden'} flex flex-col gap-4 pt-4 mt-2 border-t border-divider animate-fade-in">
             <!-- Habit Name -->
             <div class="flex flex-col gap-1.5 text-xs">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">Habit Name</span>
+              <span class="text-[9px] font-bold text-text-secondary uppercase">Habit Name</span>
               <input 
                 type="text" 
                 id="edit-goal-name"
                 value="${habit.name}" 
-                class="border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                class="border border-divider rounded-xl px-3 py-2 text-sm font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
               />
             </div>
 
              <!-- Weekly Target -->
             <div class="flex flex-col gap-1.5 text-xs">
-              <span class="text-[9px] font-bold text-slate-400 uppercase">Weekly Target</span>
+              <span class="text-[9px] font-bold text-text-secondary uppercase">Weekly Target</span>
               <select 
                 id="edit-goal-weekly"
-                class="border border-slate-200 rounded-xl px-3 py-2 focus:outline-none bg-white text-slate-800 font-bold"
+                class="border border-divider rounded-xl px-3 py-2 focus:outline-none bg-surface-card text-text-primary font-bold"
               >
                 ${[1, 2, 3, 4, 5, 6, 7].map(num => `<option value="${num}" ${habit.weeklyTarget === num ? 'selected' : ''}>${num} days / wk</option>`).join('')}
               </select>
             </div>
 
             <!-- Custom Schedule Toggle -->
-            <div class="mt-1 border-t border-slate-100 pt-2">
+            <div class="mt-1 border-t border-divider pt-2">
               <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
                 <input 
                   type="checkbox" 
                   id="edit-schedule-toggle" 
-                  class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                  class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
                   ${activeDays.length > 0 ? 'checked' : ''}
                   onchange="window.HabitInsightPageToggleSchedule(this.checked)"
                 />
-                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
+                <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
               </label>
               
-              <div id="edit-schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1 mt-2.5 bg-slate-50 p-2 rounded-xl border border-slate-200/50">
+              <div id="edit-schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1 mt-2.5 bg-surface-sunken p-2 rounded-xl border border-divider/50">
                 ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
                   const isSelected = activeDays.includes(day);
                   return `
@@ -814,7 +814,7 @@ export const HabitInsightPage = {
                       class="edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all ${
                         isSelected 
                           ? 'border-slate-900 bg-slate-900 text-white shadow-sm' 
-                          : 'border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700'
+                          : 'border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary'
                       }"
                     >
                       ${day.slice(0, 1)}
@@ -831,49 +831,49 @@ export const HabitInsightPage = {
             </div>
 
             <!-- Optional Metric Tracking Toggle -->
-            <div class="mt-1 border-t border-slate-100 pt-2">
+            <div class="mt-1 border-t border-divider pt-2">
               <label class="flex items-center gap-2 mt-2 cursor-pointer select-none">
                 <input 
                   type="checkbox" 
                   id="edit-enable-metric-toggle" 
-                  class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                  class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
                   ${this.editorType === 'number' ? 'checked' : ''}
                 />
-                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
+                <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Track Optional Metric</span>
               </label>
             </div>
 
             <!-- Metric specific inputs -->
             <div id="edit-goal-metric-fields" class="${this.editorType === 'number' ? '' : 'hidden'} flex flex-col gap-3">
-              <div class="grid grid-cols-3 gap-2.5 text-xs pt-2 border-t border-slate-100">
+              <div class="grid grid-cols-3 gap-2.5 text-xs pt-2 border-t border-divider">
                 <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Unit</span>
+                  <span class="text-[9px] font-bold text-text-secondary uppercase">Unit</span>
                   <input 
                     type="text" 
                     id="edit-goal-unit"
                     value="${habit.unit || ''}" 
                     placeholder="e.g. ml, steps"
-                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
                   />
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Min Target</span>
+                  <span class="text-[9px] font-bold text-text-secondary uppercase">Min Target</span>
                   <input 
                     type="number" 
                     id="edit-goal-min"
                     value="${habit.minGoal ?? ''}" 
                     placeholder="None"
-                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
                   />
                 </div>
                 <div class="flex flex-col gap-1.5">
-                  <span class="text-[9px] font-bold text-slate-400 uppercase">Max Target</span>
+                  <span class="text-[9px] font-bold text-text-secondary uppercase">Max Target</span>
                   <input 
                     type="number" 
                     id="edit-goal-max"
                     value="${habit.maxGoal ?? ''}" 
                     placeholder="None"
-                    class="border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900"
+                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
                   />
                 </div>
               </div>
@@ -891,15 +891,15 @@ export const HabitInsightPage = {
         </div>
 
         <!-- Row 2: Pause / Resume Habit Row -->
-        <div class="flex justify-between items-center p-4 border-b border-slate-100">
+        <div class="flex justify-between items-center p-4 border-b border-divider">
           <div class="flex flex-col gap-0.5">
-            <span class="text-xs font-bold text-slate-800">${habit.paused ? 'Resume Tracking' : 'Pause Tracking'}</span>
-            <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Temporarily freeze streaks without failing.</span>
+            <span class="text-xs font-bold text-text-primary">${habit.paused ? 'Resume Tracking' : 'Pause Tracking'}</span>
+            <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Temporarily freeze streaks without failing.</span>
           </div>
           <button 
             type="button" 
             onclick="window.HabitInsightPageTogglePause('${habit.id}')"
-            class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all shadow-sm flex-shrink-0"
+            class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-sunken transition-all shadow-sm flex-shrink-0"
           >
             <i data-lucide="${habit.paused ? 'play' : 'pause'}" class="w-3.5 h-3.5"></i>
           </button>
@@ -908,8 +908,8 @@ export const HabitInsightPage = {
         <!-- Row 3: Delete Habit Row -->
         <div class="flex justify-between items-center p-4">
           <div class="flex flex-col gap-0.5">
-            <span class="text-xs font-bold text-slate-800">Delete Habit</span>
-            <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Permanently delete this habit and all history.</span>
+            <span class="text-xs font-bold text-text-primary">Delete Habit</span>
+            <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Permanently delete this habit and all history.</span>
           </div>
           <button 
             type="button" 
@@ -932,13 +932,13 @@ export const HabitInsightPage = {
             <button 
               type="button"
               onclick="window.HabitInsightPageBack()"
-              class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex-shrink-0"
+              class="flex items-center justify-center w-8 h-8 rounded-full border border-divider bg-surface-card text-text-secondary hover:text-text-primary transition-colors shadow-sm flex-shrink-0"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
             </button>
             <div class="flex flex-col min-w-0 gap-1">
-              <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</span>
-              <h1 class="text-base sm:text-lg font-extrabold text-slate-800 break-words leading-tight">${habit.name}</h1>
+              <span class="text-[9px] font-extrabold text-text-secondary uppercase tracking-widest">${categoryLabel} Analysis</span>
+              <h1 class="text-base sm:text-lg font-extrabold text-text-primary break-words leading-tight">${habit.name}</h1>
               <div class="flex flex-wrap gap-1.5 items-center mt-0.5">
                 ${targetBadgeHtml}
                 ${scheduleBadgeHtml}
@@ -951,41 +951,41 @@ export const HabitInsightPage = {
           ${thisWeekCardHtml}
 
           <!-- Lock Card -->
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
             
-            <div class="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+            <div class="w-10 h-10 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
               <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
             
             <div class="flex flex-col gap-1.5 max-w-[240px]">
-              <span class="text-xs font-bold text-slate-800">Insights Gathering...</span>
-              <p class="text-[10px] text-slate-500 leading-normal">We need at least 7 days of age on this habit to generate meaningful trends, heatmaps, and behavioral analysis.</p>
+              <span class="text-xs font-bold text-text-primary">Insights Gathering...</span>
+              <p class="text-[10px] text-text-secondary leading-normal">We need at least 7 days of age on this habit to generate meaningful trends, heatmaps, and behavioral analysis.</p>
             </div>
 
             <!-- Progress Bar -->
             <div class="w-full max-w-[200px] flex flex-col gap-1 mt-1">
-              <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase">
+              <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary uppercase">
                 <span>Progress</span>
                 <span>${progressDays} / 7 Days</span>
               </div>
-              <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="w-full bg-surface-sunken h-2 rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500" style="background-color: ${themeHex}; width: ${progressPct}%;"></div>
               </div>
             </div>
 
             <!-- Preview list -->
-            <div class="border-t border-slate-100 w-full mt-2 pt-3 flex flex-col gap-2 text-left opacity-35 select-none pointer-events-none">
-              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Unlocks:</span>
-              <div class="flex items-center gap-2 text-[10px] text-slate-500">
+            <div class="border-t border-divider w-full mt-2 pt-3 flex flex-col gap-2 text-left opacity-35 select-none pointer-events-none">
+              <span class="text-[8px] font-bold text-text-secondary uppercase tracking-wider">Unlocks:</span>
+              <div class="flex items-center gap-2 text-[10px] text-text-secondary">
                 <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
                 <span>Weekly Consistency Trends</span>
               </div>
-              <div class="flex items-center gap-2 text-[10px] text-slate-500">
+              <div class="flex items-center gap-2 text-[10px] text-text-secondary">
                 <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
                 <span>Activity Heatmap</span>
               </div>
-              <div class="flex items-center gap-2 text-[10px] text-slate-500">
+              <div class="flex items-center gap-2 text-[10px] text-text-secondary">
                 <i data-lucide="brain" class="w-3.5 h-3.5"></i>
                 <span>Behavioral Analysis</span>
               </div>
@@ -1018,13 +1018,13 @@ export const HabitInsightPage = {
           <button 
             type="button"
             onclick="window.HabitInsightPageBack()"
-            class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 transition-colors shadow-sm flex-shrink-0"
+            class="flex items-center justify-center w-8 h-8 rounded-full border border-divider bg-surface-card text-text-secondary hover:text-text-primary transition-colors shadow-sm flex-shrink-0"
           >
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
           </button>
           <div class="flex flex-col min-w-0 gap-1">
-            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">${categoryLabel} Analysis</span>
-            <h1 class="text-base sm:text-lg font-extrabold text-slate-800 break-words leading-tight">${habit.name}</h1>
+            <span class="text-[9px] font-extrabold text-text-secondary uppercase tracking-widest">${categoryLabel} Analysis</span>
+            <h1 class="text-base sm:text-lg font-extrabold text-text-primary break-words leading-tight">${habit.name}</h1>
             <div class="flex flex-wrap gap-1.5 items-center mt-0.5">
               ${targetBadgeHtml}
               ${scheduleBadgeHtml}
@@ -1035,30 +1035,30 @@ export const HabitInsightPage = {
 
         <!-- 3 combined stats cards -->
         <div class="grid grid-cols-3 gap-3">
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Week Streak</span>
+            <span class="text-[9px] font-bold tracking-widest text-text-secondary uppercase">Week Streak</span>
             <div class="flex flex-col">
-              <span class="text-2xl font-semibold text-slate-800 leading-none">${weeklyStreak}w</span>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">Best: ${bestWeeklyStreak}w</span>
+              <span class="text-2xl font-semibold text-text-primary leading-none">${weeklyStreak}w</span>
+              <span class="text-[9px] font-bold text-text-secondary uppercase tracking-wide mt-1.5">Best: ${bestWeeklyStreak}w</span>
             </div>
           </div>
 
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">${secondaryStreakName}</span>
+            <span class="text-[9px] font-bold tracking-widest text-text-secondary uppercase">${secondaryStreakName}</span>
             <div class="flex flex-col">
-              <span class="text-2xl font-semibold text-slate-800 leading-none">${secondaryStreak}${habit.weeklyTarget === 7 ? 'd' : 'w'}</span>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">${bestSecondaryStreakText}</span>
+              <span class="text-2xl font-semibold text-text-primary leading-none">${secondaryStreak}${habit.weeklyTarget === 7 ? 'd' : 'w'}</span>
+              <span class="text-[9px] font-bold text-text-secondary uppercase tracking-wide mt-1.5">${bestSecondaryStreakText}</span>
             </div>
           </div>
 
-          <div class="relative overflow-hidden bg-white border border-slate-200 rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
+          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-4 pt-5 shadow-sm flex flex-col justify-between min-h-[95px]">
             <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <span class="text-[9px] font-bold tracking-widest text-slate-400 uppercase">Consistency</span>
+            <span class="text-[9px] font-bold tracking-widest text-text-secondary uppercase">Consistency</span>
             <div class="flex flex-col">
-              <span class="text-2xl font-semibold text-slate-800 leading-none">${monthlyRate}%</span>
-              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide mt-1.5">Log Fdl: ${fidelity}%</span>
+              <span class="text-2xl font-semibold text-text-primary leading-none">${monthlyRate}%</span>
+              <span class="text-[9px] font-bold text-text-secondary uppercase tracking-wide mt-1.5">Log Fdl: ${fidelity}%</span>
             </div>
           </div>
         </div>
@@ -1143,7 +1143,7 @@ export const HabitInsightPage = {
       if (!checked) {
         HabitInsightPage.editDays = [];
         document.querySelectorAll('.edit-day-chip-btn').forEach(btn => {
-          btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+          btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary";
         });
       }
       if (tip) tip.classList.add('hidden');
@@ -1154,7 +1154,7 @@ export const HabitInsightPage = {
       const btn = document.querySelector(`[data-edit-day="${day}"]`);
       if (HabitInsightPage.editDays.includes(day)) {
         HabitInsightPage.editDays = HabitInsightPage.editDays.filter(d => d !== day);
-        if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+        if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary";
       } else {
         HabitInsightPage.editDays.push(day);
         if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-900 bg-slate-900 text-white shadow-sm";

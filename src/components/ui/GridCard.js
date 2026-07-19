@@ -33,15 +33,15 @@ export const GridCard = {
 
     // Selections styling overrides
     const activeTopBorderBg = showColor ? themeHex : '#e2e8f0';
-    const activeIconClass = showColor ? '' : 'text-slate-400';
+    const activeIconClass = showColor ? '' : 'text-text-secondary';
     const activeIconStyle = showColor ? `style="color: ${themeHex};"` : '';
     
-    const activeLabelClass = showColor ? '' : 'text-slate-400';
+    const activeLabelClass = showColor ? '' : 'text-text-secondary';
     const activeLabelStyle = showColor ? `style="color: ${themeHex};"` : '';
     
     const cardSelectedClasses = isSelected
-      ? 'border-transparent bg-slate-50/50 scale-98 shadow-sm' 
-      : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md shadow-sm';
+      ? 'border-transparent bg-surface-sunken/50 scale-98 shadow-sm' 
+      : 'border-divider bg-surface-card hover:-translate-y-0.5 hover:shadow-md shadow-sm';
       
     const cardSelectedStyle = isSelected
       ? `border-color: ${themeHex}; box-shadow: 0 0 0 1px ${themeHex};`

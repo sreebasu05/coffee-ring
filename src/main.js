@@ -12,8 +12,25 @@ class AppController {
   }
 
   init() {
-    // Force Light Mode Only
-    document.documentElement.classList.remove('dark');
+    // Setup Dark Mode Toggle
+    const toggleBtn = document.getElementById('theme-toggle-btn');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        toggleBtn.innerHTML = isDark 
+          ? '<i data-lucide="sun" class="w-5 h-5"></i>' 
+          : '<i data-lucide="moon" class="w-5 h-5"></i>';
+        if (window.lucide) window.lucide.createIcons();
+      });
+
+      // Load saved theme
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+        toggleBtn.innerHTML = '<i data-lucide="sun" class="w-5 h-5"></i>';
+      }
+    }
 
     // 1. Initialize State & Data
     appState.init();

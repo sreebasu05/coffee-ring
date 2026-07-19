@@ -66,8 +66,8 @@ export const Greeting = {
         <button 
           data-date-select="${dateKey}"
           class="w-full text-left px-4 py-3 text-xs ${
-            isSelected ? 'text-accentViolet font-bold bg-slate-100' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-          } transition-colors border-b border-slate-100 last:border-0"
+            isSelected ? 'text-accentViolet font-bold bg-surface-sunken' : 'text-text-secondary hover:text-text-primary hover:bg-surface-sunken'
+          } transition-colors border-b border-divider last:border-0"
         >
           ${label}
         </button>
@@ -91,7 +91,7 @@ export const Greeting = {
           <div class="relative inline-block">
             <button 
               id="date-dropdown-trigger" 
-              class="flex items-center gap-1.5 text-label-muted hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+              class="flex items-center gap-1.5 text-label-muted hover:text-text-primary dark:hover:text-slate-200 transition-colors"
             >
               <span>${activeDateLabel}</span>
               <i data-lucide="chevron-down" class="w-3 h-3"></i>
@@ -99,7 +99,7 @@ export const Greeting = {
             
             <div 
               id="header-date-dropdown" 
-              class="hidden absolute left-0 mt-2 bg-cardBg border border-slate-200/80 rounded-xl shadow-xl overflow-hidden w-40 z-50"
+              class="hidden absolute left-0 mt-2 bg-surface-card border border-divider/80 rounded-xl shadow-xl overflow-hidden w-40 z-50"
             >
               ${dropdownOptions}
             </div>
@@ -125,7 +125,7 @@ export const Greeting = {
         <!-- Progress Bar Section -->
         ${totalHabits > 0 ? `
           <div class="mt-6">
-            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden p-[1px]">
+            <div class="w-full bg-surface-sunken rounded-full h-2 overflow-hidden p-[1px]">
               <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${progressPercentage}%"></div>
             </div>
             <p class="text-xs text-text-secondary mt-2 font-medium">${progressPercentage}% complete</p>

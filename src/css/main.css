@@ -3,11 +3,12 @@
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-darkBg: var(--darkBg);
-  --color-cardBg: var(--cardBg);
+  --color-surface-base: var(--surface-base);
+  --color-surface-card: var(--surface-card);
+  --color-surface-sunken: var(--surface-sunken);
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
-  --color-border-primary: var(--border-primary);
+  --color-divider: var(--border-subtle);
   
   /* Solid high contrast black fallback */
   --color-accentBlue: var(--accentBlue);
@@ -24,11 +25,12 @@
 }
 
 :root {
-  --darkBg: #f8fafc;
-  --cardBg: #ffffff;
-  --text-primary: #0f172a;
+  --surface-base: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-sunken: #f1f5f9;
+  --text-primary: #1e293b;
   --text-secondary: #64748b;
-  --border-primary: #e2e8f0;
+  --border-subtle: #e2e8f0;
   
   --accentBlue: #0f172a;
 
@@ -41,11 +43,12 @@
 }
 
 html.dark {
-  --darkBg: #090d16;       /* Midnight dark blue/black */
-  --cardBg: #111827;       /* Rich dark card slate */
+  --surface-base: #090d16;
+  --surface-card: #111827;
+  --surface-sunken: #1f2937;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --border-primary: #1f2937; /* Dark slate borders */
+  --border-subtle: #334155;
   
   --accentBlue: #ffffff;    /* Light text for high contrast on dark */
 
@@ -67,6 +70,10 @@ html.dark {
   color: var(--text-secondary);
 }
 
+@utility border-divider {
+  border-color: var(--color-divider);
+}
+
 @utility text-header-bold {
   font-size: 1.875rem;
   font-weight: 600;
@@ -77,26 +84,9 @@ html.dark {
 
 @layer base {
   body {
-    @apply bg-darkBg text-text-primary;
+    @apply bg-surface-base text-text-primary;
     font-family: 'Outfit', sans-serif;
     transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  }
-
-  /* Automatically map tailwind utility defaults to theme CSS variables in dark mode */
-  .bg-white {
-    background-color: var(--cardBg) !important;
-  }
-  .bg-slate-50, .bg-slate-100, .bg-slate-200 {
-    background-color: var(--darkBg) !important;
-  }
-  .border-slate-200, .border-slate-150, .border-slate-100 {
-    border-color: var(--border-primary) !important;
-  }
-  html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700 {
-    color: var(--text-primary) !important;
-  }
-  html.dark .text-slate-600, html.dark .text-slate-500, html.dark .text-slate-400 {
-    color: var(--text-secondary) !important;
   }
 }
 

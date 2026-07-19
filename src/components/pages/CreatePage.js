@@ -97,7 +97,7 @@ export const CreatePage = {
         : '';
       const buttonClass = isSelected
         ? 'icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-sm'
-        : 'icon-grid-btn w-11 h-11 rounded-full border border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700 transition-all flex items-center justify-center';
+        : 'icon-grid-btn w-11 h-11 rounded-full border border-divider bg-surface-card text-text-secondary hover:border-slate-400 hover:text-text-primary transition-all flex items-center justify-center';
 
       return `
         <button 
@@ -126,7 +126,7 @@ export const CreatePage = {
         
       const chipClass = isSelected
         ? 'border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700'
-        : 'border-border-primary bg-cardBg text-text-secondary hover:border-slate-400 dark:hover:border-slate-500';
+        : 'border-divider bg-surface-card text-text-secondary hover:border-slate-400 dark:hover:border-slate-500';
 
       const circleClass = 'w-2.5 h-2.5 rounded-full inline-block';
       const circleStyle = `background-color: ${themeHex};`;
@@ -149,24 +149,24 @@ export const CreatePage = {
       if (catPresets.length === 0) return '';
       return `
         <div class="py-1">
-          <div class="px-4 py-1.5 text-[9px] font-bold tracking-widest uppercase text-slate-400">${cat.name}</div>
+          <div class="px-4 py-1.5 text-[9px] font-bold tracking-widest uppercase text-text-secondary">${cat.name}</div>
           ${catPresets.map(preset => `
             <button 
               type="button"
               data-preset-id="${preset.id}"
               data-preset-name="${preset.name}"
-              class="dropdown-item w-full text-left px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-3 transition-colors"
+              class="dropdown-item w-full text-left px-4 py-2.5 text-xs text-text-secondary hover:bg-surface-sunken hover:text-text-primary flex items-center gap-3 transition-colors"
             >
-              <span class="w-6 h-6 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center">
+              <span class="w-6 h-6 rounded-md bg-surface-sunken text-text-secondary flex items-center justify-center">
                 <i data-lucide="${preset.icon || 'target'}" class="w-3.5 h-3.5"></i>
               </span>
               <span class="font-medium">${preset.name}</span>
-              <span class="ml-auto text-[9px] text-slate-400 font-semibold uppercase">${preset.type}</span>
+              <span class="ml-auto text-[9px] text-text-secondary font-semibold uppercase">${preset.type}</span>
             </button>
           `).join('')}
         </div>
       `;
-    }).join('<div class="border-t border-slate-100"></div>');
+    }).join('<div class="border-t border-divider"></div>');
 
     const pageTitle = (prefilled && totalSteps > 0)
       ? `Configure: ${prefilled.name} (${currentStep} of ${totalSteps})` 
@@ -187,28 +187,28 @@ export const CreatePage = {
             <button 
               type="button" 
               onclick="window.OnboardingGoToStep(3)" 
-              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-800"
+              class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
             </button>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Configure Goals</span>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Configure Goals</span>
           </div>
         ` : `
           <div class="flex items-center gap-3 mb-1">
             <button 
               type="button" 
               id="create-form-back-btn"
-              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-800"
+              class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
             </button>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Back to Templates</span>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Back to Templates</span>
           </div>
         `}
 
         <div>
-          <h1 class="text-xl font-bold text-slate-800">${pageTitle}</h1>
-          <p class="text-xs text-slate-500 mt-1">${pageSub}</p>
+          <h1 class="text-xl font-bold text-text-primary">${pageTitle}</h1>
+          <p class="text-xs text-text-secondary mt-1">${pageSub}</p>
         </div>
 
         <form id="habit-form" class="flex flex-col gap-5 relative">
@@ -223,13 +223,13 @@ export const CreatePage = {
               placeholder="e.g. Gym Workout, Drink Water" 
               required
               autocomplete="off"
-              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:bg-white"
+              class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
             />
             <!-- Hide suggest list in onboarding mode -->
             ${!prefilled ? `
               <div 
                 id="presets-dropdown" 
-                class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden max-h-72 overflow-y-auto"
+                class="hidden absolute left-0 right-0 mt-2 bg-surface-card border border-divider rounded-xl shadow-2xl z-50 overflow-hidden max-h-72 overflow-y-auto"
               >
                 ${groupedPresetsHtml}
               </div>
@@ -264,7 +264,7 @@ export const CreatePage = {
                 min="1" max="7" value="${activeWeeklyTarget}" 
                 class="flex-1 accent-slate-900"
               />
-              <span id="weekly-target-label" class="text-sm font-bold text-slate-800 w-16 text-right">${activeWeeklyTarget}/7 days</span>
+              <span id="weekly-target-label" class="text-sm font-bold text-text-primary w-16 text-right">${activeWeeklyTarget}/7 days</span>
             </div>
 
             <!-- Custom Schedule Checkbox Subtext -->
@@ -272,13 +272,13 @@ export const CreatePage = {
               <input 
                 type="checkbox" 
                 id="schedule-toggle" 
-                class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+                class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
                 ${activeDays.length > 0 ? 'checked' : ''}
               />
-              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
+              <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
             </label>
 
-            <div id="schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1.5 mt-3.5 bg-slate-50 p-2 rounded-xl border border-slate-200/50">
+            <div id="schedule-days-wrapper" class="${activeDays.length > 0 ? '' : 'hidden'} flex justify-between items-center gap-1.5 mt-3.5 bg-surface-sunken p-2 rounded-xl border border-divider/50">
               ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
                 const isSelected = activeDays.includes(day);
                 return `
@@ -288,7 +288,7 @@ export const CreatePage = {
                     class="day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all ${
                       isSelected 
                         ? 'border-slate-900 bg-slate-900 text-white shadow-sm' 
-                        : 'border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700'
+                        : 'border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary'
                     }"
                   >
                     ${day.slice(0, 1)}
@@ -308,10 +308,10 @@ export const CreatePage = {
             <input 
               type="checkbox" 
               id="enable-metric-toggle" 
-              class="w-3.5 h-3.5 border border-slate-350 rounded accent-slate-900 cursor-pointer"
+              class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
               ${activeType === 'number' ? 'checked' : ''}
             />
-            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wide">Track Optional Metric</span>
+            <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Track Optional Metric</span>
           </label>
 
           <!-- Number-specific fields -->
@@ -324,7 +324,7 @@ export const CreatePage = {
                   id="goal-numeric-min" 
                   value="${prefilled && prefilled.minGoal !== null && prefilled.minGoal !== undefined ? prefilled.minGoal : ''}"
                   placeholder="e.g. 1800"
-                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:bg-white"
+                  class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
                 />
               </div>
               <div>
@@ -334,7 +334,7 @@ export const CreatePage = {
                   id="goal-numeric-max" 
                   value="${prefilled && prefilled.maxGoal !== null && prefilled.maxGoal !== undefined ? prefilled.maxGoal : ''}"
                   placeholder="e.g. 2200"
-                  class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:bg-white"
+                  class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
                 />
               </div>
             </div>
@@ -345,7 +345,7 @@ export const CreatePage = {
                 id="goal-numeric-unit" 
                 value="${prefilled ? prefilled.unit || '' : ''}"
                 placeholder="e.g. kcal, glasses, hours"
-                class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:border-slate-900 focus:bg-white"
+                class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
               />
             </div>
           </div>
@@ -359,7 +359,7 @@ export const CreatePage = {
                 type="text" 
                 id="form-new-tag-input" 
                 placeholder="Add tag (e.g. Legs, Cardio)" 
-                class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 focus:outline-none w-full"
+                class="bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-xs text-text-primary focus:outline-none w-full"
               />
               <button type="button" id="form-add-tag-btn" class="bg-slate-880 hover:bg-slate-700 text-white px-4 py-3 text-xs rounded-xl font-semibold">Add</button>
             </div>
@@ -436,9 +436,9 @@ export const CreatePage = {
     // --- Tag rendering ---
     const renderFormTags = () => {
       tagsListDiv.innerHTML = currentTags.map(tag => `
-        <span class="px-2.5 py-1 rounded bg-slate-100 text-xs text-slate-600 font-semibold border border-slate-200 flex items-center gap-1.5 animate-fade-in">
+        <span class="px-2.5 py-1 rounded bg-surface-sunken text-xs text-text-secondary font-semibold border border-divider flex items-center gap-1.5 animate-fade-in">
           ${tag}
-          <button type="button" data-tag-remove="${tag}" class="text-[10px] text-slate-400 hover:text-slate-600">✕</button>
+          <button type="button" data-tag-remove="${tag}" class="text-[10px] text-text-secondary hover:text-text-secondary">✕</button>
         </span>
       `).join('');
       tagsListDiv.querySelectorAll('[data-tag-remove]').forEach(btn => {
@@ -472,7 +472,7 @@ export const CreatePage = {
         
         btn.className = isSelected
           ? "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-sm"
-          : "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700";
+          : "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-slate-400 hover:text-text-primary";
         
         btn.style = isSelected
           ? `border-color: ${themeHex}; color: ${themeHex}; background-color: ${themeHex}1a;`
@@ -491,7 +491,7 @@ export const CreatePage = {
       categoryPicker.querySelectorAll('.category-chip-btn').forEach(btn => {
         btn.className = btn.dataset.categorySelect === catId
           ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700"
-          : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-border-primary bg-cardBg text-text-secondary hover:border-slate-400 dark:hover:border-slate-500";
+          : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-divider bg-surface-card text-text-secondary hover:border-slate-400 dark:hover:border-slate-500";
       });
       // Synchronize the selected icon's border and background color to match the new category color
       selectIcon(currentIcon);
@@ -545,7 +545,7 @@ export const CreatePage = {
       if (!active) {
         currentDays = [];
         dayButtons.forEach(btn => {
-          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary";
         });
       }
       validateScheduleDays();
@@ -556,7 +556,7 @@ export const CreatePage = {
         const day = btn.dataset.daySelect;
         if (currentDays.includes(day)) {
           currentDays = currentDays.filter(d => d !== day);
-          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-200 bg-white text-slate-500 hover:border-slate-350 hover:text-slate-700";
+          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary";
         } else {
           currentDays.push(day);
           btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-900 bg-slate-900 text-white shadow-sm";

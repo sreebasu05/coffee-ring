@@ -21,12 +21,12 @@ export const TodayPage = {
     const focusHabitsHtml = focusHabits.length > 0
       ? focusHabits.map(habit => HabitCard.render(habit, state)).join('')
       : `
-        <div class="flex flex-col items-center justify-center py-10 text-center border border-dashed border-slate-200 rounded-2xl p-6 bg-white shadow-sm animate-fade-in">
-          <span class="w-10 h-10 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 mb-2.5">
+        <div class="flex flex-col items-center justify-center py-10 text-center border border-dashed border-divider rounded-2xl p-6 bg-surface-card shadow-sm animate-fade-in">
+          <span class="w-10 h-10 bg-surface-sunken border border-divider rounded-xl flex items-center justify-center text-text-secondary mb-2.5">
             <i data-lucide="check" class="w-5 h-5"></i>
           </span>
-          <h3 class="font-bold text-slate-700 text-xs">All Caught Up</h3>
-          <p class="text-[10px] text-slate-400 max-w-[200px] mt-0.5">No habits scheduled for today.</p>
+          <h3 class="font-bold text-text-primary text-xs">All Caught Up</h3>
+          <p class="text-[10px] text-text-secondary max-w-[200px] mt-0.5">No habits scheduled for today.</p>
         </div>
       `;
 
@@ -35,7 +35,7 @@ export const TodayPage = {
         <div class="flex flex-col gap-4 mt-4 border-t border-slate-150/40 pt-5 animate-fade-in">
           <div class="flex justify-between items-center mb-1">
             <h2 class="text-label-muted">Extras / Other Days</h2>
-            <span class="text-[10px] text-slate-400 italic">Off-day logs count towards weekly goals</span>
+            <span class="text-[10px] text-text-secondary italic">Off-day logs count towards weekly goals</span>
           </div>
           <div class="flex flex-col gap-3">
             ${extraHabits.map(habit => HabitCard.render(habit, state)).join('')}
@@ -51,7 +51,7 @@ export const TodayPage = {
         <div class="flex flex-col gap-4 flex-grow">
           <div class="flex justify-between items-center mb-1">
             <h2 class="text-label-muted">Today's Focus</h2>
-            <span class="text-[10px] text-slate-400 italic">Tap card to log progress</span>
+            <span class="text-[10px] text-text-secondary italic">Tap card to log progress</span>
           </div>
           <div class="flex flex-col gap-3">
             ${focusHabitsHtml}
@@ -63,7 +63,7 @@ export const TodayPage = {
         <div class="mt-12 mb-6 text-center">
           <button 
             id="reset-db-btn" 
-            class="text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3.5 py-2 rounded-xl"
+            class="text-[10px] font-bold text-text-secondary hover:text-text-secondary transition-colors uppercase tracking-wider bg-surface-sunken hover:bg-surface-sunken border border-divider px-3.5 py-2 rounded-xl"
           >
             Reset coffee ring
           </button>

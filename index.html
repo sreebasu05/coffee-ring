@@ -19,13 +19,18 @@
   <!-- Tailwind CSS Entry -->
   <link rel="stylesheet" href="/src/css/main.css">
 </head>
-<body class="bg-darkBg text-text-primary font-sans min-h-screen flex flex-col overflow-x-hidden antialiased">
+<body class="bg-surface-base text-text-primary font-sans min-h-screen flex flex-col overflow-x-hidden antialiased">
 
   <!-- Main App Viewport -->
   <main id="app-root" class="flex-grow pb-24 max-w-md mx-auto w-full px-4 pt-6"></main>
 
   <!-- Bottom Navigation Bar (Stays constant) -->
-  <nav id="bottom-navbar" class="fixed bottom-0 left-0 right-0 bg-cardBg/80 backdrop-blur-md border-t border-white/5 py-3 px-6 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-xl"></nav>
+  <nav id="bottom-navbar" class="fixed bottom-0 left-0 right-0 bg-surface-card/80 backdrop-blur-md border-t border-divider py-3 px-6 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-xl"></nav>
+
+  <!-- Theme Toggle Button -->
+  <button id="theme-toggle-btn" class="fixed bottom-24 right-4 z-50 w-12 h-12 rounded-full bg-surface-card border border-divider shadow-lg flex items-center justify-center text-text-secondary hover:text-text-primary transition-all active-pulse">
+    <i data-lucide="moon" class="w-5 h-5"></i>
+  </button>
 
   <!-- Module Entrypoint -->
   <script type="module" src="/src/main.js"></script>

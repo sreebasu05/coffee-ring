@@ -896,8 +896,8 @@ class AppState {
             ? `When you miss a weekly goal, you bounce back and hit it the next week ${rate}% of the time!` 
             : `You recover your weekly targets ${rate}% of the time. Don't let a bad week keep you down.`,
           icon: 'refresh-cw',
-          color: 'text-slate-800',
-          bg: 'bg-slate-100 border-slate-200'
+          color: 'text-text-primary',
+          bg: 'bg-surface-sunken border-divider'
         });
       }
     }
@@ -912,8 +912,8 @@ class AppState {
             ? `After a week of 0 check-ins, you return to log at least once the next week ${rate}% of the time.` 
             : `After a week of 0 check-ins, you only return ${rate}% of the time. Focus on doing just 1 rep to keep the habit alive!`,
           icon: 'shield',
-          color: 'text-slate-800',
-          bg: 'bg-slate-100 border-slate-200'
+          color: 'text-text-primary',
+          bg: 'bg-surface-sunken border-divider'
         });
       }
     }
@@ -928,8 +928,8 @@ class AppState {
             ? `Once you hit your target, you hit it again the next week ${rate}% of the time.`
             : `You chain successful weeks together ${rate}% of the time.`,
           icon: 'zap',
-          color: 'text-slate-800',
-          bg: 'bg-slate-100 border-slate-200'
+          color: 'text-text-primary',
+          bg: 'bg-surface-sunken border-divider'
         });
       }
     }
@@ -945,8 +945,8 @@ class AppState {
           title: "Weekend Warrior",
           text: `You log significantly more often on weekends. Great way to use your free time!`,
           icon: 'sun',
-          color: 'text-slate-800',
-          bg: 'bg-slate-100 border-slate-200'
+          color: 'text-text-primary',
+          bg: 'bg-surface-sunken border-divider'
         });
       } else if (weekdayAvg > weekendAvg * 1.2) {
         overall.push({
@@ -954,8 +954,8 @@ class AppState {
           title: "Weekday Hero",
           text: `Your consistency thrives during the workweek but drops on weekends.`,
           icon: 'briefcase',
-          color: 'text-slate-800',
-          bg: 'bg-slate-100 border-slate-200'
+          color: 'text-text-primary',
+          bg: 'bg-surface-sunken border-divider'
         });
       }
     }
@@ -995,8 +995,8 @@ class AppState {
           title: "Habit Stacking",
           text: `When you log '${bestPair.anchor}', you also log '${bestPair.follower}' ${bestPair.prob}% of the time!`,
           icon: 'link',
-          color: 'text-slate-800',
-          bg: 'bg-slate-100 border-slate-200'
+          color: 'text-text-primary',
+          bg: 'bg-surface-sunken border-divider'
         });
       }
     }

@@ -57,45 +57,45 @@ export const OnboardingPage = {
 
   renderStep1() {
     return `
-      <div id="onboarding-page" class="flex flex-col justify-between min-h-[80vh] px-4 py-8 animate-fade-in text-slate-800">
+      <div id="onboarding-page" class="flex flex-col justify-between min-h-[80vh] px-4 py-8 animate-fade-in text-text-primary">
         <div class="flex flex-col items-center text-center mt-8 gap-4">
           <div class="w-16 h-16 rounded-3xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
             <i data-lucide="target" class="w-8 h-8"></i>
           </div>
           <div class="flex flex-col gap-1.5 mt-2">
-            <h1 class="text-2xl font-bold tracking-tight text-slate-900 leading-tight">coffee ring</h1>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">Atomic Habit Builder</p>
+            <h1 class="text-2xl font-bold tracking-tight text-text-primary leading-tight">coffee ring</h1>
+            <p class="text-xs font-semibold text-text-secondary uppercase tracking-widest">Atomic Habit Builder</p>
           </div>
         </div>
 
         <div class="flex flex-col gap-3.5 my-8 max-w-sm mx-auto w-full">
-          <div class="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+          <div class="flex items-start gap-4 p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
             <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
               <i data-lucide="zap" class="w-5 h-5"></i>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-slate-800">Build Identity Routines</span>
-              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Protect streaks, calculate bounce-backs, and build consistency.</span>
+              <span class="text-xs font-bold text-text-primary">Build Identity Routines</span>
+              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Protect streaks, calculate bounce-backs, and build consistency.</span>
             </div>
           </div>
 
-          <div class="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+          <div class="flex items-start gap-4 p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
             <div class="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 flex-shrink-0">
               <i data-lucide="refresh-cw" class="w-5 h-5"></i>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-slate-800">Bounce-Back Strategy</span>
-              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Focus on "Never Miss Twice" psychology to recover routinely.</span>
+              <span class="text-xs font-bold text-text-primary">Bounce-Back Strategy</span>
+              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Focus on "Never Miss Twice" psychology to recover routinely.</span>
             </div>
           </div>
 
-          <div class="flex items-start gap-4 p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
+          <div class="flex items-start gap-4 p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
             <div class="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 flex-shrink-0">
               <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
             </div>
             <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-slate-800">Behavior Analytics</span>
-              <span class="text-[10px] text-slate-500 font-medium leading-relaxed">Unlock detailed metrics, weekend performance slumps, and triggers.</span>
+              <span class="text-xs font-bold text-text-primary">Behavior Analytics</span>
+              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Unlock detailed metrics, weekend performance slumps, and triggers.</span>
             </div>
           </div>
         </div>
@@ -117,33 +117,33 @@ export const OnboardingPage = {
   renderStep2() {
     const isNextDisabled = !this.userName || this.userName.trim() === "";
     const nextBtnClass = isNextDisabled 
-      ? "bg-slate-200 text-slate-400 cursor-not-allowed" 
+      ? "bg-surface-sunken text-text-secondary cursor-not-allowed" 
       : "bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
 
     return `
-      <div id="onboarding-page" class="flex flex-col justify-between min-h-[80vh] px-4 py-8 animate-fade-in text-slate-800">
+      <div id="onboarding-page" class="flex flex-col justify-between min-h-[80vh] px-4 py-8 animate-fade-in text-text-primary">
         <div>
           <div class="flex items-center gap-3 mb-8">
             <button 
               type="button" 
               onclick="window.OnboardingGoToStep(1)" 
-              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-800"
+              class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
             </button>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Step 1 of 3</span>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Step 1 of 3</span>
           </div>
 
           <div class="flex flex-col gap-3 mt-4 max-w-sm mx-auto w-full">
-            <h2 class="text-xl font-bold text-slate-900">What should we call you?</h2>
-            <p class="text-xs text-slate-500 leading-relaxed">Your profile remains completely local, private, and saved only on your device.</p>
+            <h2 class="text-xl font-bold text-text-primary">What should we call you?</h2>
+            <p class="text-xs text-text-secondary leading-relaxed">Your profile remains completely local, private, and saved only on your device.</p>
             
             <input 
               type="text" 
               id="onboarding-name-input"
               value="${this.userName}"
               placeholder="Enter your name..."
-              class="w-full border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-bold bg-white text-slate-800 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 mt-4 transition-all"
+              class="w-full border border-divider rounded-2xl px-4 py-3.5 text-sm font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 mt-4 transition-all"
             />
           </div>
         </div>
@@ -183,17 +183,17 @@ export const OnboardingPage = {
     }).join('');
 
     return `
-      <div id="onboarding-page" class="flex flex-col justify-between min-h-[90vh] px-4 py-8 animate-fade-in text-slate-800">
+      <div id="onboarding-page" class="flex flex-col justify-between min-h-[90vh] px-4 py-8 animate-fade-in text-text-primary">
         <div>
           <div class="flex items-center gap-3 mb-6">
             <button 
               type="button" 
               onclick="window.OnboardingGoToStep(2)" 
-              class="w-8 h-8 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-800"
+              class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
             </button>
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Step 2 of 3</span>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Step 2 of 3</span>
           </div>
 
           <div class="flex flex-col gap-2.5 max-w-sm mx-auto w-full mb-6">
@@ -243,7 +243,7 @@ export const OnboardingPage = {
             const isInvalid = !this.userName || this.userName.trim() === "";
             nextBtn.disabled = isInvalid;
             if (isInvalid) {
-              nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-200 text-slate-400 cursor-not-allowed";
+              nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-surface-sunken text-text-secondary cursor-not-allowed";
             } else {
               nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
             }

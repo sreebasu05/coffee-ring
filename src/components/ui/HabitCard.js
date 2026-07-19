@@ -10,7 +10,7 @@ const COLOR_CLASSES = {
     checkboxActive: 'bg-emerald-900 border-transparent text-white',
     tagBadge: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     borderActive: 'border-emerald-200/50',
-    inputActive: 'bg-white/40 border-emerald-200/50 text-emerald-955 focus:bg-white/70'
+    inputActive: 'bg-surface-card/40 border-emerald-200/50 text-emerald-955 focus:bg-surface-card/70'
   },
   pastelAmber: {
     activeCard: 'bg-pastelAmber border-amber-200 shadow-amber-100',
@@ -20,7 +20,7 @@ const COLOR_CLASSES = {
     checkboxActive: 'bg-amber-900 border-transparent text-white',
     tagBadge: 'bg-amber-100 text-amber-700 border-amber-200',
     borderActive: 'border-amber-200/50',
-    inputActive: 'bg-white/40 border-amber-200/50 text-amber-955 focus:bg-white/70'
+    inputActive: 'bg-surface-card/40 border-amber-200/50 text-amber-955 focus:bg-surface-card/70'
   },
   pastelSky: {
     activeCard: 'bg-pastelSky border-sky-200 shadow-sky-100',
@@ -30,7 +30,7 @@ const COLOR_CLASSES = {
     checkboxActive: 'bg-sky-900 border-transparent text-white',
     tagBadge: 'bg-sky-100 text-sky-700 border-sky-200',
     borderActive: 'border-sky-200/50',
-    inputActive: 'bg-white/40 border-sky-200/50 text-amber-955 focus:bg-white/70'
+    inputActive: 'bg-surface-card/40 border-sky-200/50 text-amber-955 focus:bg-surface-card/70'
   },
   pastelRose: {
     activeCard: 'bg-pastelRose border-rose-200 shadow-rose-100',
@@ -40,7 +40,7 @@ const COLOR_CLASSES = {
     checkboxActive: 'bg-rose-900 border-transparent text-white',
     tagBadge: 'bg-rose-100 text-rose-700 border-rose-200',
     borderActive: 'border-rose-200/50',
-    inputActive: 'bg-white/40 border-rose-200/50 text-rose-955 focus:bg-white/70'
+    inputActive: 'bg-surface-card/40 border-rose-200/50 text-rose-955 focus:bg-surface-card/70'
   },
   pastelLavender: {
     activeCard: 'bg-pastelLavender border-violet-200 shadow-violet-100',
@@ -50,7 +50,7 @@ const COLOR_CLASSES = {
     checkboxActive: 'bg-violet-900 border-transparent text-white',
     tagBadge: 'bg-violet-100 text-violet-700 border-violet-200',
     borderActive: 'border-violet-200/50',
-    inputActive: 'bg-white/40 border-violet-200/50 text-violet-955 focus:bg-white/70'
+    inputActive: 'bg-surface-card/40 border-violet-200/50 text-violet-955 focus:bg-surface-card/70'
   },
   pastelPink: {
     activeCard: 'bg-pastelPink border-pink-200 shadow-pink-100',
@@ -60,7 +60,7 @@ const COLOR_CLASSES = {
     checkboxActive: 'bg-pink-900 border-transparent text-white',
     tagBadge: 'bg-pink-100 text-pink-700 border-pink-200',
     borderActive: 'border-pink-200/50',
-    inputActive: 'bg-white/40 border-pink-200/50 text-pink-955 focus:bg-white/70'
+    inputActive: 'bg-surface-card/40 border-pink-200/50 text-pink-955 focus:bg-surface-card/70'
   }
 };
 
@@ -100,7 +100,7 @@ export const HabitCard = {
     const pastelHex = pastelColorObj ? pastelColorObj.hex : '#cbd5e1';
 
     // Apply color class rules
-    let cardClass = "relative overflow-hidden habit-card border border-border-primary rounded-2xl p-4 pt-5 flex flex-col shadow-sm transition-all duration-300 bg-cardBg text-text-primary hover:shadow-md";
+    let cardClass = "relative overflow-hidden habit-card border border-divider rounded-2xl p-4 pt-5 flex flex-col shadow-sm transition-all duration-300 bg-surface-card text-text-primary hover:shadow-md";
     let iconBoxStyle = "";
     let checkboxStyle = "";
     
@@ -113,12 +113,12 @@ export const HabitCard = {
       iconBoxStyle = `background-color: ${themeHex}1a; border-color: ${themeHex}33; color: ${themeHex};`;
       checkboxStyle = `border-color: ${themeHex}; color: ${themeHex}; background-color: ${themeHex}10;`;
     } else {
-      iconBoxClass += " bg-darkBg border-border-primary text-text-secondary";
-      checkboxClass += " bg-darkBg border-border-primary text-slate-400 hover:border-slate-500 hover:text-slate-600 dark:text-slate-500 dark:hover:border-slate-400 dark:hover:text-slate-300";
+      iconBoxClass += " bg-surface-base border-divider text-text-secondary";
+      checkboxClass += " bg-surface-base border-divider text-text-secondary hover:border-slate-500 hover:text-text-secondary dark:text-text-secondary dark:hover:border-slate-400 dark:hover:text-slate-300";
     }
 
     // Category badge classes
-    const badgeClass = `text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-darkBg text-text-secondary border-border-primary`;
+    const badgeClass = `text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-surface-base text-text-secondary border-divider`;
 
     // Subtitle formatting has been removed as cautions drive the card parameters layout.
 
@@ -134,7 +134,7 @@ export const HabitCard = {
     if (remainingNeeded <= 0) {
       cautionText = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Target met!</span>`;
     } else {
-      cautionText = `<span class="text-slate-500 font-medium">${weeklyCount}/${weeklyTarget} this week</span>`;
+      cautionText = `<span class="text-text-secondary font-medium">${weeklyCount}/${weeklyTarget} this week</span>`;
     }
 
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
@@ -149,7 +149,7 @@ export const HabitCard = {
           class="inline-tag-chip px-2.5 py-1 rounded-full text-xs transition-all border ${
             isChecked 
               ? 'bg-slate-900 text-white border-transparent' 
-              : 'bg-slate-55 border-slate-200 text-slate-500 hover:bg-slate-100'
+              : 'bg-slate-55 border-divider text-text-secondary hover:bg-surface-sunken'
           }"
         >
           ${tag}
@@ -198,22 +198,22 @@ export const HabitCard = {
         <div 
           class="transition-all duration-300 overflow-hidden ${
             isExpanded 
-              ? 'max-h-[350px] mt-4 pt-4 border-t border-slate-100'
+              ? 'max-h-[350px] mt-4 pt-4 border-t border-divider'
               : 'max-h-0'
           }"
         >
           <!-- Numeric Value Logger -->
           ${habit.type === 'number' ? `
             <div class="mb-4">
-              <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-slate-500'} mb-2">Log Value</h4>
+              <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-text-secondary'} mb-2">Log Value</h4>
               <div class="flex items-center gap-2.5 w-full">
                 <input 
                   type="number" 
                   value="${log?.value ?? ""}" 
                   placeholder="${numPlaceholder}"
-                  class="card-numeric-input flex-grow border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-slate-900"
+                  class="card-numeric-input flex-grow border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-surface-sunken border-divider text-text-primary focus:bg-surface-card focus:border-slate-900"
                 />
-                <span class="text-xs ${isCompleted ? c.subTextActive : 'text-slate-500'} font-semibold flex-shrink-0">${habit.unit || 'units'}</span>
+                <span class="text-xs ${isCompleted ? c.subTextActive : 'text-text-secondary'} font-semibold flex-shrink-0">${habit.unit || 'units'}</span>
               </div>
             </div>
           ` : ''}
@@ -221,13 +221,13 @@ export const HabitCard = {
           <!-- Tags Grid (for habits with tags) -->
           ${habit.tags && habit.tags.length > 0 ? `
             <div class="mb-4">
-              <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-slate-500'} mb-2.5">Select Tags</h4>
+              <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-text-secondary'} mb-2.5">Select Tags</h4>
               <div class="flex flex-wrap items-center gap-1.5">
                 ${tagsHTML}
                 
                 <div class="inline-flex items-center">
                   <button 
-                    class="tag-add-trigger-btn w-6 h-6 rounded-full border flex items-center justify-center transition-colors border-slate-350 text-slate-500 hover:bg-slate-100"
+                    class="tag-add-trigger-btn w-6 h-6 rounded-full border flex items-center justify-center transition-colors border-divider text-text-secondary hover:bg-surface-sunken"
                   >
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                   </button>
@@ -236,9 +236,9 @@ export const HabitCard = {
                     <input 
                       type="text" 
                       placeholder="New tag..." 
-                      class="tag-inline-input border border-slate-200 rounded-lg px-2 py-0.5 text-xs focus:outline-none w-20 bg-slate-50 text-slate-800 focus:bg-white"
+                      class="tag-inline-input border border-divider rounded-lg px-2 py-0.5 text-xs focus:outline-none w-20 bg-surface-sunken text-text-primary focus:bg-surface-card"
                     />
-                    <button class="tag-inline-confirm-btn text-slate-600 hover:text-slate-900 p-0.5">
+                    <button class="tag-inline-confirm-btn text-text-secondary hover:text-text-primary p-0.5">
                       <i data-lucide="check" class="w-3.5 h-3.5"></i>
                     </button>
                   </div>
@@ -249,11 +249,11 @@ export const HabitCard = {
 
           <!-- Note Area -->
           <div class="mb-4">
-            <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-slate-500'} mb-2">Optional Note</h4>
+            <h4 class="text-label-muted ${isCompleted ? c.subTextActive : 'text-text-secondary'} mb-2">Optional Note</h4>
             <textarea 
               placeholder="e.g. Squat PR, Read 10 pages..." 
               rows="2" 
-              class="card-note-textarea w-full border border-slate-200 rounded-xl p-3 text-xs resize-none focus:outline-none bg-slate-50 text-slate-800 focus:bg-white focus:border-slate-900"
+              class="card-note-textarea w-full border border-divider rounded-xl p-3 text-xs resize-none focus:outline-none bg-surface-sunken text-text-primary focus:bg-surface-card focus:border-slate-900"
             >${log?.note || ""}</textarea>
           </div>
 
@@ -262,7 +262,7 @@ export const HabitCard = {
             <button 
               type="button"
               data-card-insights-btn="${habit.id}"
-              class="text-[9px] font-extrabold tracking-widest uppercase text-slate-500 hover:text-slate-700 transition-colors flex items-center gap-1.5 py-1 px-2 rounded hover:bg-slate-50"
+              class="text-[9px] font-extrabold tracking-widest uppercase text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1.5 py-1 px-2 rounded hover:bg-surface-sunken"
             >
               <i data-lucide="line-chart" class="w-3.5 h-3.5"></i>
               View Insights
