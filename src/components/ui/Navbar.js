@@ -1,7 +1,19 @@
+import { supabase } from '../../db/supabaseClient.js';
+
 export const Navbar = {
-  render(currentTab, onTabChange) {
+  hide() {
+    const nav = document.getElementById('bottom-navbar');
+    if (nav) {
+      nav.style.display = 'none';
+    }
+  },
+
+  render(state, currentTab, onTabChange) {
     const nav = document.getElementById('bottom-navbar');
     if (!nav) return;
+
+    nav.style.display = 'flex';
+    const isGuest = !state.isCloudSynced;
 
     // Apply high-contrast light theme colors: white background with gray border and charcoal/black text
     nav.className = "fixed bottom-0 left-0 right-0 bg-surface-card/90 backdrop-blur-md border-t border-divider py-2.5 px-4 z-40 max-w-md mx-auto flex justify-around items-center rounded-t-2xl shadow-lg";
@@ -34,6 +46,13 @@ export const Navbar = {
         <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
         <span class="text-[9px] font-semibold tracking-wide">Glossary</span>
       </button>
+
+      <button id="nav-profile" class="flex flex-col items-center gap-1 transition-all ${
+        currentTab === 'profile' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
+      }">
+        <i data-lucide="${isGuest ? 'user' : 'log-out'}" class="w-4.5 h-4.5"></i>
+        <span class="text-[9px] font-semibold tracking-wide">${isGuest ? 'Sign Up' : 'Sign Out'}</span>
+      </button>
     `;
 
     // Event hooks
@@ -41,5 +60,24 @@ export const Navbar = {
     document.getElementById('nav-create').addEventListener('click', () => onTabChange('create'));
     document.getElementById('nav-dashboard').addEventListener('click', () => onTabChange('dashboard'));
     document.getElementById('nav-glossary').addEventListener('click', () => onTabChange('glossary'));
+    
+    document.getElementById('nav-profile').addEventListener('click', async () => {
+      if (isGuest) {
+        onTabChange('auth');
+      } else {
+        if (supabase) {
+          await supabase.auth.signOut();
+        }
+        localStorage.removeItem('coffeering_user_profile');
+        localStorage.removeItem('coffeering_habits');
+        localStorage.removeItem('coffeering_check_ins');
+        localStorage.removeItem('coffeering_onboarding_completed');
+        localStorage.removeItem('coffeering_onboarding_draft');
+        state.user = null;
+        state.habits = [];
+        state.checkIns = [];
+        onTabChange('onboarding');
+      }
+    });
   }
 };

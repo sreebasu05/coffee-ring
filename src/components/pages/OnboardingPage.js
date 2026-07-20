@@ -1,9 +1,11 @@
 import { APP_CONFIG } from '../../config/appConfig.js';
 import { GridCard } from '../ui/GridCard.js';
 import { CreatePage } from './CreatePage.js';
+import { AuthPage } from './AuthPage.js';
+import { supabase } from '../../db/supabaseClient.js';
 
 export const OnboardingPage = {
-  step: 1, // 1: Welcome, 2: Name Input, 3: Habits Selector, 4: Prefilled Create Pages
+  step: 1, // 1: Welcome, 2: Name Input, 3: Habits Selector, 4: Prefilled Create Pages, 5: Save Progress Choice
   userName: "",
   selectedPresets: [], // default to empty
   currentPresetIndex: 0, // Tracker index for Step 4 Create queue
@@ -43,6 +45,36 @@ export const OnboardingPage = {
     localStorage.removeItem('coffeering_onboarding_draft');
   },
 
+  saveOnboardingDataToLocalCache() {
+    if (!this.userName || this.userName.trim() === "") return;
+
+    const userProfile = { name: this.userName.trim() };
+    localStorage.setItem('coffeering_user_profile', JSON.stringify(userProfile));
+
+    const habits = this.customGoals.map((g, index) => ({
+      id: `habit_onboarding_${Date.now()}_${index}`,
+      name: g.name,
+      type: g.type,
+      category: g.category,
+      weeklyTarget: g.weeklyTarget,
+      minGoal: g.minGoal,
+      maxGoal: g.maxGoal,
+      unit: g.unit,
+      icon: g.icon,
+      tags: g.tags || [],
+      createdAt: new Date().toISOString()
+    }));
+
+    localStorage.setItem('coffeering_habits', JSON.stringify(habits));
+    localStorage.setItem('coffeering_check_ins', JSON.stringify([]));
+
+    const colors = {};
+    APP_CONFIG.categories.forEach(cat => {
+      colors[cat.id] = cat.defaultColor;
+    });
+    localStorage.setItem('coffeering_category_colors', JSON.stringify(colors));
+  },
+
   render() {
     if (this.step === 1) {
       return this.renderStep1();
@@ -50,8 +82,10 @@ export const OnboardingPage = {
       return this.renderStep2();
     } else if (this.step === 3) {
       return this.renderStep3();
-    } else {
+    } else if (this.step === 4) {
       return this.renderStep4();
+    } else {
+      return this.renderStep5();
     }
   },
 
@@ -109,6 +143,9 @@ export const OnboardingPage = {
             <span>Get Started</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
+          <div class="text-center mt-2">
+            <button id="onboarding-login-btn" class="text-xs text-text-secondary hover:text-text-primary underline">Already have an account? Sign In</button>
+          </div>
         </div>
       </div>
     `;
@@ -224,15 +261,113 @@ export const OnboardingPage = {
     const activePresetId = this.selectedPresets[this.currentPresetIndex];
     const p = APP_CONFIG.presets.find(x => x.id === activePresetId);
     
-    // Inject prefilled CreatePage template
     return CreatePage.render(p, this.currentPresetIndex + 1, this.selectedPresets.length);
+  },
+
+  renderStep5() {
+    return `
+      <div id="onboarding-page" class="flex flex-col gap-6 px-4 py-6 animate-fade-in text-text-primary max-w-sm mx-auto w-full">
+        <div>
+          <div class="flex items-center gap-3 mb-6">
+            <button 
+              type="button" 
+              onclick="window.OnboardingGoToStep(3)" 
+              class="w-8 h-8 rounded-full border border-divider bg-surface-card flex items-center justify-center text-text-secondary hover:text-text-primary"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </button>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Step 3 of 3</span>
+          </div>
+
+          <div class="flex flex-col gap-2 mb-6">
+            <h2 class="text-2xl font-bold text-text-primary">Where to store your data?</h2>
+            <p class="text-xs text-text-secondary leading-relaxed">Choose how you would like to save your habit progress. Both options are completely free.</p>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <!-- Option 1: Cloud Storage Card -->
+            <button 
+              type="button"
+              id="onboarding-cloud-btn"
+              class="w-full text-left p-5 border border-divider hover:border-slate-800 dark:hover:border-slate-400 bg-surface-card rounded-2xl transition-all shadow-sm group hover:shadow-md active:scale-[0.99] flex flex-col gap-3"
+            >
+              <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                    <i data-lucide="cloud" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-text-primary">Store Data in Cloud</h3>
+                    <span class="text-[10px] font-semibold text-text-secondary">Account required</span>
+                  </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-text-secondary group-hover:translate-x-0.5 transition-transform"></i>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-divider/60">
+                <div class="flex items-center gap-1.5 text-text-primary font-medium">
+                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
+                  <span>Multi-device sync</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-text-primary font-medium">
+                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
+                  <span>Cloud backups</span>
+                </div>
+              </div>
+            </button>
+
+            <!-- Option 2: Local Storage Card -->
+            <button 
+              type="button"
+              id="onboarding-guest-btn"
+              class="w-full text-left p-5 border border-divider hover:border-slate-800 dark:hover:border-slate-400 bg-surface-card rounded-2xl transition-all shadow-sm group hover:shadow-md active:scale-[0.99] flex flex-col gap-3"
+            >
+              <div class="flex items-center justify-between w-full">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100 flex items-center justify-center">
+                    <i data-lucide="hard-drive" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-text-primary">Store Data in Local Storage</h3>
+                    <span class="text-[10px] font-semibold text-text-secondary">Guest Mode</span>
+                  </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-text-secondary group-hover:translate-x-0.5 transition-transform"></i>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-[11px] pt-3 border-t border-divider/60">
+                <div class="flex items-center gap-1.5 text-text-primary font-medium">
+                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
+                  <span>No account needed</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-text-primary font-medium">
+                  <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"></i>
+                  <span>100% private</span>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div class="mt-4 pt-3 text-center border-t border-divider/40">
+            <p class="text-[11px] text-text-secondary leading-relaxed">
+              Starting with local storage? You can easily transfer your data to cloud storage anytime later by signing in.
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
   },
 
   bindEvents(state, onComplete) {
     if (this.step === 1) {
-      // Welcome view binds inline on onclick attribute
+      const loginLink = document.getElementById('onboarding-login-btn');
+      if (loginLink) {
+        loginLink.addEventListener('click', () => {
+          AuthPage.activeTab = 'login';
+          window.appController.navigate('auth');
+        });
+      }
     } else if (this.step === 2) {
-      // Step 2 Name Input
       const nameInput = document.getElementById('onboarding-name-input');
       if (nameInput) {
         nameInput.addEventListener('input', (e) => {
@@ -252,7 +387,6 @@ export const OnboardingPage = {
         nameInput.focus();
       }
     } else if (this.step === 3) {
-      // Step 3 Presets Cards selection
       document.querySelectorAll('.onboarding-preset-card').forEach(card => {
         card.addEventListener('click', () => {
           const id = card.dataset.presetId;
@@ -263,7 +397,6 @@ export const OnboardingPage = {
           }
           this.saveState();
           
-          // Refresh step 3 view
           const root = document.getElementById('app-root');
           if (root) {
             root.innerHTML = this.render();
@@ -273,33 +406,12 @@ export const OnboardingPage = {
         });
       });
 
-      // Step 3 -> Step 4 Transition
       const toGoalsBtn = document.getElementById('onboarding-to-goals-btn');
       if (toGoalsBtn) {
         toGoalsBtn.addEventListener('click', () => {
           if (this.selectedPresets.length === 0) {
-            // No habits selected! Finish setup directly
             if (!this.userName || this.userName.trim() === "") return;
-
-            const userProfile = { name: this.userName.trim() };
-            localStorage.setItem('coffeering_user_profile', JSON.stringify(userProfile));
-            localStorage.setItem('coffeering_habits', JSON.stringify([]));
-            localStorage.setItem('coffeering_check_ins', JSON.stringify([]));
-
-            // Save default categories colors
-            const colors = {};
-            APP_CONFIG.categories.forEach(cat => {
-              colors[cat.id] = cat.defaultColor;
-            });
-            localStorage.setItem('coffeering_category_colors', JSON.stringify(colors));
-
-            // Initialize app state
-            state.init();
-            this.clearState();
-            
-            if (onComplete) {
-              onComplete();
-            }
+            window.OnboardingGoToStep(5);
           } else {
             this.customGoals = [];
             this.currentPresetIndex = 0;
@@ -308,13 +420,10 @@ export const OnboardingPage = {
         });
       }
     } else if (this.step === 4) {
-      // Step 4: Sequentially bind CreatePage form
       CreatePage.bindEvents(state, (configuredHabit) => {
-        // Save the configured details to memory
         this.customGoals.push(configuredHabit);
 
         if (this.currentPresetIndex < this.selectedPresets.length - 1) {
-          // Move to next prefilled card
           this.currentPresetIndex++;
           this.saveState();
           const root = document.getElementById('app-root');
@@ -325,46 +434,38 @@ export const OnboardingPage = {
             window.scrollTo(0, 0);
           }
         } else {
-          // All habits configured! Save name profile and bootstrap coffee ring
-          if (!this.userName || this.userName.trim() === "") return;
+          window.OnboardingGoToStep(5);
+        }
+      });
+    } else if (this.step === 5) {
+      const cloudBtn = document.getElementById('onboarding-cloud-btn');
+      const guestBtn = document.getElementById('onboarding-guest-btn');
 
-          const userProfile = { name: this.userName.trim() };
-          localStorage.setItem('coffeering_user_profile', JSON.stringify(userProfile));
+      if (cloudBtn) {
+        cloudBtn.addEventListener('click', () => {
+          // Pre-save onboarding habits cache in localStorage, then redirect to AuthPage
+          AuthPage.activeTab = 'signup';
+          this.saveOnboardingDataToLocalCache();
+          this.clearState();
+          window.appController.navigate('auth');
+        });
+      }
 
-          // Save all finalized habits to localStorage
-          const habits = this.customGoals.map((g, index) => ({
-            id: `habit_onboarding_${Date.now()}_${index}`,
-            name: g.name,
-            type: g.type,
-            category: g.category,
-            weeklyTarget: g.weeklyTarget,
-            minGoal: g.minGoal,
-            maxGoal: g.maxGoal,
-            unit: g.unit,
-            icon: g.icon,
-            tags: g.tags,
-            createdAt: new Date().toISOString()
-          }));
-
-          localStorage.setItem('coffeering_habits', JSON.stringify(habits));
-          localStorage.setItem('coffeering_check_ins', JSON.stringify([]));
-
-          // Save default categories colors
-          const colors = {};
-          APP_CONFIG.categories.forEach(cat => {
-            colors[cat.id] = cat.defaultColor;
-          });
-          localStorage.setItem('coffeering_category_colors', JSON.stringify(colors));
-
-          // Initialize app state
+      if (guestBtn) {
+        guestBtn.addEventListener('click', async () => {
+          if (supabase) {
+            await supabase.auth.signOut();
+          }
+          // Save and complete locally
+          this.saveOnboardingDataToLocalCache();
+          localStorage.setItem('coffeering_onboarding_completed', 'true');
           state.init();
           this.clearState();
-          
           if (onComplete) {
             onComplete();
           }
-        }
-      });
+        });
+      }
     }
   }
 };

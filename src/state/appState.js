@@ -1,5 +1,6 @@
 import { StorageManager } from '../storage/storageManager.js';
 import { APP_CONFIG } from '../config/appConfig.js';
+import { supabase, isSupabaseConfigured } from '../db/supabaseClient.js';
 
 class AppState {
   constructor() {
@@ -14,6 +15,7 @@ class AppState {
     
     // Listeners for reactive UI rendering
     this.listeners = [];
+    this.isCloudSynced = false;
   }
 
   formatDate(dateObj) {
@@ -30,13 +32,38 @@ class AppState {
     }
 
     StorageManager.init();
+    this.loadStateFromCache();
+
+    // Set up Supabase Auth state listener
+    if (isSupabaseConfigured && supabase) {
+      // Check initial session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        this.isCloudSynced = !!session;
+        this.notify();
+      });
+
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        this.isCloudSynced = !!session;
+        if (session) {
+          // Fetch data from Supabase cloud database
+          const success = await StorageManager.fetchFromSupabase();
+          if (success) {
+            this.loadStateFromCache();
+          }
+        } else {
+          // If logged out, load local guest profile/data
+          this.loadStateFromCache();
+        }
+      });
+    }
+  }
+
+  loadStateFromCache() {
     this.user = StorageManager.getUserProfile();
     this.habits = StorageManager.getHabits() || [];
     this.checkIns = StorageManager.getCheckIns() || [];
-    
 
-
-    // 3. Auto-seed history if history is completely empty
+    // Auto-seed history if history is completely empty for local guests
     if (this.habits.length > 0 && this.checkIns.length === 0) {
       this.checkIns = StorageManager.seedHistoryForCurrentHabits();
     }
@@ -51,12 +78,18 @@ class AppState {
   }
 
   // Force reset data to default seeds
-  resetData() {
+  async resetData() {
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut();
+    }
+    this.isCloudSynced = false;
+    localStorage.removeItem('coffeering_onboarding_completed');
+    localStorage.removeItem('coffeering_onboarding_draft');
     StorageManager.init(true); // force reset database
-    this.user = StorageManager.getUserProfile();
-    this.habits = StorageManager.getHabits();
-    this.checkIns = StorageManager.getCheckIns();
-    this.categoryColors = StorageManager.getCategoryColors();
+    this.user = null;
+    this.habits = [];
+    this.checkIns = [];
+    this.categoryColors = {};
     this.selectedDate = this.formatDate(new Date());
     this.notify();
   }

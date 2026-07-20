@@ -1,4 +1,5 @@
 import { APP_CONFIG } from '../config/appConfig.js';
+import { supabase, isSupabaseConfigured } from '../db/supabaseClient.js';
 
 // LocalStorage Keys
 const KEYS = {
@@ -45,127 +46,23 @@ const getDefaultHabits = () => APP_CONFIG.presets
     };
   });
 
-// Helper to generate 30 days of historical logs
-const generate21DaysHistory = (habits) => {
-  return []; // Return empty array so no mock history is seeded
-};
-
-const old_generate21DaysHistory = (habits) => {
-  const checkIns = [];
-  const today = new Date();
-  
-  // Define 4 weeks of day offsets: Week 1 (30-22), Week 2 (21-15), Week 3 (14-8), Week 4 (7-1)
-  const weeks = [
-    [30, 29, 28, 27, 26, 25, 24, 23, 22],
-    [21, 20, 19, 18, 17, 16, 15],
-    [14, 13, 12, 11, 10, 9, 8],
-    [7, 6, 5, 4, 3, 2, 1]
-  ];
-
-  // For each habit, assign a consistency profile:
-  // - 'perfect': Meets the weekly target 100% of the time.
-  // - 'average': Meets about 70% of the weekly target.
-  // - 'failing': Meets only 30% of the weekly target.
-  const profiles = habits.map((h, idx) => {
-    if (idx % 3 === 0) return 'perfect';
-    if (idx % 3 === 1) return 'average';
-    return 'failing';
-  });
-
-  weeks.forEach((weekOffsets, weekIdx) => {
-    habits.forEach((h, hIdx) => {
-      const profile = profiles[hIdx];
-      const target = h.weeklyTarget || 7;
-      const weekLength = weekOffsets.length;
-      
-      // Scale target depending on the number of days in the week block (e.g. 9 days vs 7 days)
-      const scaledTarget = Math.max(1, Math.round((target / 7) * weekLength));
-      
-      // Determine how many days to log for this habit this week
-      let daysToLog = 0;
-      if (profile === 'perfect') {
-        daysToLog = scaledTarget;
-      } else if (profile === 'average') {
-        daysToLog = Math.max(1, Math.round(scaledTarget * 0.7));
-      } else { // failing
-        daysToLog = Math.max(0, Math.floor(scaledTarget * 0.3));
-      }
-
-      // Randomly select which days of the week to log
-      const shuffledOffsets = [...weekOffsets].sort(() => 0.5 - Math.random());
-      const selectedOffsets = shuffledOffsets.slice(0, daysToLog);
-
-      selectedOffsets.forEach(offset => {
-        const logDate = new Date();
-        logDate.setDate(today.getDate() - offset);
-        
-        const year = logDate.getFullYear();
-        const month = String(logDate.getMonth() + 1).padStart(2, '0');
-        const day = String(logDate.getDate()).padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        
-        let val = 1;
-        let tags = [];
-        let note = "";
-
-        // Determine value if it's a numeric habit
-        if (h.type === 'number') {
-          const hasMin = h.minGoal !== null && h.minGoal !== undefined && h.minGoal !== "";
-          const hasMax = h.maxGoal !== null && h.maxGoal !== undefined && h.maxGoal !== "";
-          
-          if (hasMin && hasMax) {
-            const min = parseFloat(h.minGoal);
-            const max = parseFloat(h.maxGoal);
-            // Some logs might slightly miss the goal if the profile is failing
-            if (profile === 'failing' && Math.random() > 0.5) {
-              val = Math.floor(min - 1 - Math.random() * 5);
-            } else {
-              val = Math.floor(min + Math.random() * (max - min + 1));
-            }
-          } else if (hasMin) {
-            const min = parseFloat(h.minGoal);
-            val = profile === 'failing' && Math.random() > 0.5
-              ? Math.floor(min - 1 - Math.random() * 3)
-              : Math.floor(min + Math.random() * 5);
-          } else if (hasMax) {
-            const max = parseFloat(h.maxGoal);
-            val = profile === 'failing' && Math.random() > 0.5
-              ? Math.floor(max + 1 + Math.random() * 3)
-              : Math.floor(max - Math.random() * 5);
-          } else {
-            val = Math.floor(5 + Math.random() * 10);
-          }
-        }
-
-        // Add some realistic notes and tags if the preset has them
-        if (h.tags && h.tags.length > 0) {
-          // Log 1 or 2 tags
-          const numTags = Math.floor(1 + Math.random() * 2);
-          tags = [...h.tags].sort(() => 0.5 - Math.random()).slice(0, numTags);
-        }
-
-        if (Math.random() > 0.7) {
-          const notes = ["Feeling good", "Productive session", "Completed early", "Routine maintained"];
-          note = notes[Math.floor(Math.random() * notes.length)];
-        }
-
-        checkIns.push({
-          id: `log_seed_${h.id}_${dateStr}`,
-          habitId: h.id,
-          date: dateStr,
-          value: val,
-          tags,
-          note,
-          timestamp: logDate.getTime()
-        });
-      });
-    });
-  });
-
-  return checkIns;
-};
-
 export const StorageManager = {
+  // Helper to check if a user is logged into Supabase
+  async getSupabaseUser() {
+    if (!isSupabaseConfigured || !supabase) return null;
+    
+    // Safety check: If the user is running in Guest Mode, do not sync with cloud
+    try {
+      const profile = JSON.parse(localStorage.getItem(KEYS.USER_PROFILE));
+      if (!profile || profile.name === 'Guest') {
+        return null; // Force offline mode
+      }
+    } catch (e) {}
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    return user;
+  },
+
   init(forceReset = false) {
     if (forceReset) {
       localStorage.removeItem(KEYS.USER_PROFILE);
@@ -184,8 +81,6 @@ export const StorageManager = {
     if (!localStorage.getItem(KEYS.HABITS)) {
       habits = [];
       localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
-    } else {
-      habits = JSON.parse(localStorage.getItem(KEYS.HABITS));
     }
 
     if (!localStorage.getItem(KEYS.CHECK_INS)) {
@@ -197,11 +92,158 @@ export const StorageManager = {
     }
   },
 
-  registerUser(name, chosenPresetIds = [], generateHistory = true) {
+  // Pull all data from Supabase and cache it in LocalStorage
+  async fetchFromSupabase() {
+    const user = await this.getSupabaseUser();
+    if (!user) return false;
+
+    try {
+      // 1. Fetch Profile
+      const { data: profile } = await supabase
+        .from('cr_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name: profile.name }));
+        if (profile.category_colors) {
+          localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
+        }
+      } else {
+        // Create profile if not exists
+        const name = user.email.split('@')[0];
+        await supabase.from('cr_profiles').insert({
+          id: user.id,
+          name,
+          category_colors: getDefaultCategoryColors()
+        });
+        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name }));
+      }
+
+      // 2. Fetch Habits
+      const { data: habits } = await supabase
+        .from('cr_habits')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (habits) {
+        // Map database naming (snake_case) to state naming (camelCase)
+        const mappedHabits = habits.map(h => ({
+          id: h.id,
+          name: h.name,
+          type: h.type,
+          category: h.category,
+          weeklyTarget: h.weekly_target,
+          weeklyTargetHistory: h.weekly_target_history || [],
+          days: h.days || null,
+          minGoal: h.min_goal || null,
+          maxGoal: h.max_goal || null,
+          unit: h.unit,
+          icon: h.icon,
+          tags: h.tags || [],
+          createdAt: h.created_at
+        }));
+        localStorage.setItem(KEYS.HABITS, JSON.stringify(mappedHabits));
+      }
+
+      // 3. Fetch Check-ins
+      const { data: checkIns } = await supabase
+        .from('cr_check_ins')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (checkIns) {
+        const mappedCheckIns = checkIns.map(c => ({
+          id: c.id,
+          habitId: c.habit_id,
+          date: c.date,
+          value: c.value ? parseFloat(c.value) : null,
+          note: c.notes || '',
+          tags: c.tags || [],
+          timestamp: new Date(c.created_at).getTime()
+        }));
+        localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(mappedCheckIns));
+      }
+
+    } catch (err) {
+      console.error('Error fetching data from Supabase:', err);
+      return false;
+    }
+  },
+
+  async migrateLocalDataToCloud(userId, localData = null) {
+    if (!isSupabaseConfigured || !supabase) return false;
+
+    try {
+      // Check if user already has habits in the cloud (returning user)
+      const { data: cloudHabits } = await supabase
+        .from('cr_habits')
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+      if (cloudHabits && cloudHabits.length > 0) {
+        console.log('User already has habits in Supabase. Skipping local migration.');
+        return true; // Return true so AppState proceeds to load their cloud data
+      }
+
+      // Read local cache from argument or fallback to localStorage
+      const profile = localData ? localData.profile : JSON.parse(localStorage.getItem(KEYS.USER_PROFILE));
+      const colors = localData ? localData.colors : (JSON.parse(localStorage.getItem(KEYS.CATEGORY_COLORS)) || {});
+      const habits = localData ? localData.habits : (JSON.parse(localStorage.getItem(KEYS.HABITS)) || []);
+      const checkIns = localData ? localData.checkIns : (JSON.parse(localStorage.getItem(KEYS.CHECK_INS)) || []);
+
+      // 1. Migrate Profile & Category Colors
+      if (profile) {
+        await supabase.from('cr_profiles').upsert({
+          id: userId,
+          name: profile.name,
+          category_colors: colors
+        });
+      }
+
+      // 2. Migrate Habits
+      for (const h of habits) {
+        await supabase.from('cr_habits').upsert({
+          id: h.id,
+          user_id: userId,
+          name: h.name,
+          type: h.type,
+          category: h.category,
+          weekly_target: h.weeklyTarget,
+          weekly_target_history: h.weeklyTargetHistory || [],
+          days: h.days || null,
+          min_goal: h.minGoal || null,
+          max_goal: h.maxGoal || null,
+          unit: h.unit,
+          icon: h.icon,
+          tags: h.tags || []
+        });
+      }
+
+      // 3. Migrate Check-ins
+      for (const c of checkIns) {
+        await supabase.from('cr_check_ins').upsert({
+          user_id: userId,
+          habit_id: c.habitId,
+          date: c.date,
+          value: c.value,
+          notes: c.note || '',
+          tags: c.tags || []
+        });
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error migrating local data to Supabase:', err);
+      return false;
+    }
+  },
+
+  registerUser(name, chosenPresetIds = [], generateHistory = false) {
     const userProfile = { name };
     localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(userProfile));
-
-    // Resolve category colors
     localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(getDefaultCategoryColors()));
 
     // Get preset list
@@ -223,21 +265,11 @@ export const StorageManager = {
       }));
 
     localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
-
-    if (generateHistory && habits.length > 0) {
-      const seededCheckIns = generate21DaysHistory(habits);
-      localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(seededCheckIns));
-    } else {
-      localStorage.setItem(KEYS.CHECK_INS, JSON.stringify([]));
-    }
+    localStorage.setItem(KEYS.CHECK_INS, JSON.stringify([]));
   },
 
   seedHistoryForCurrentHabits() {
-    const habits = this.getHabits() || [];
-    if (habits.length === 0) return [];
-    const seeded = generate21DaysHistory(habits);
-    localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(seeded));
-    return seeded;
+    return [];
   },
 
   getUserProfile() {
@@ -247,6 +279,18 @@ export const StorageManager = {
 
   saveUserProfile(profile) {
     localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
+    
+    // Background cloud update
+    this.getSupabaseUser().then(user => {
+      if (user && supabase) {
+        supabase.from('cr_profiles').upsert({
+          id: user.id,
+          name: profile.name
+        }).then(({ error }) => {
+          if (error) console.error('Supabase profile save error:', error);
+        });
+      }
+    });
   },
 
   getHabits() {
@@ -263,6 +307,30 @@ export const StorageManager = {
       habits.push(habit);
     }
     localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
+
+    // Background cloud update
+    this.getSupabaseUser().then(user => {
+      if (user && supabase) {
+        supabase.from('cr_habits').upsert({
+          id: habit.id,
+          user_id: user.id,
+          name: habit.name,
+          type: habit.type,
+          category: habit.category,
+          weekly_target: habit.weeklyTarget,
+          weekly_target_history: habit.weeklyTargetHistory || [],
+          days: habit.days || null,
+          min_goal: habit.minGoal || null,
+          max_goal: habit.maxGoal || null,
+          unit: habit.unit,
+          icon: habit.icon,
+          tags: habit.tags || []
+        }).then(({ error }) => {
+          if (error) console.error('Supabase habit save error:', error);
+        });
+      }
+    });
+
     return habits;
   },
 
@@ -277,6 +345,17 @@ export const StorageManager = {
     
     const checkIns = this.getCheckIns().filter(c => c.habitId !== id);
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(checkIns));
+
+    // Background cloud update
+    this.getSupabaseUser().then(user => {
+      if (user && supabase) {
+        // Check-ins delete automatically via CASCADE schema rules
+        supabase.from('cr_habits').delete().eq('id', id).eq('user_id', user.id).then(({ error }) => {
+          if (error) console.error('Supabase habit delete error:', error);
+        });
+      }
+    });
+
     return habits;
   },
 
@@ -295,16 +374,46 @@ export const StorageManager = {
       logs.push(checkIn);
     }
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(logs));
+
+    // Background cloud update
+    this.getSupabaseUser().then(user => {
+      if (user && supabase) {
+        supabase.from('cr_check_ins').upsert({
+          user_id: user.id,
+          habit_id: checkIn.habitId,
+          date: checkIn.date,
+          value: checkIn.value,
+          notes: checkIn.note || '',
+          tags: checkIn.tags || []
+        }).then(({ error }) => {
+          if (error) console.error('Supabase checkin save error:', error);
+        });
+      }
+    });
+
     return logs;
   },
 
   removeCheckIn(habitId, date) {
     const logs = this.getCheckIns().filter(log => !(log.habitId === habitId && log.date === date));
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(logs));
+
+    // Background cloud update
+    this.getSupabaseUser().then(user => {
+      if (user && supabase) {
+        supabase.from('cr_check_ins').delete()
+          .eq('user_id', user.id)
+          .eq('habit_id', habitId)
+          .eq('date', date)
+          .then(({ error }) => {
+            if (error) console.error('Supabase checkin delete error:', error);
+          });
+      }
+    });
+
     return logs;
   },
 
-  // ── Category Color Management ─────────────────────────────
   getCategoryColors() {
     this.init();
     return JSON.parse(localStorage.getItem(KEYS.CATEGORY_COLORS));
@@ -312,5 +421,16 @@ export const StorageManager = {
 
   saveCategoryColors(colorMap) {
     localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(colorMap));
+
+    // Background cloud update
+    this.getSupabaseUser().then(user => {
+      if (user && supabase) {
+        supabase.from('cr_profiles').update({
+          category_colors: colorMap
+        }).eq('id', user.id).then(({ error }) => {
+          if (error) console.error('Supabase category colors save error:', error);
+        });
+      }
+    });
   }
 };

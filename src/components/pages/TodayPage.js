@@ -79,9 +79,9 @@ export const TodayPage = {
     // Bind Database reset click trigger
     const resetBtn = document.getElementById('reset-db-btn');
     if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
+      resetBtn.addEventListener('click', async () => {
         if (confirm("Are you sure you want to reset all data? This will permanently erase all habits, history, and profile settings, returning you to the setup screen.")) {
-          state.resetData();
+          await state.resetData();
         }
       });
     }

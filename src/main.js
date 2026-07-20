@@ -6,6 +6,7 @@ import { DashboardPage } from './components/pages/DashboardPage.js';
 import { HabitInsightPage } from './components/pages/HabitInsightPage.js';
 import { GlossaryPage } from './components/pages/GlossaryPage.js';
 import { OnboardingPage } from './components/pages/OnboardingPage.js';
+import { AuthPage } from './components/pages/AuthPage.js';
 
 class AppController {
   constructor() {
@@ -65,8 +66,27 @@ class AppController {
   render() {
     const navRoot = document.getElementById('nav-root');
     
-    // If user is not onboarded, hide navigation and force onboarding view
-    if (appState.user === null) {
+    // If specifically routing to auth or onboarding (e.g. from onboarding or sign out)
+    if (this.currentTab === 'auth') {
+      if (navRoot) {
+        navRoot.innerHTML = '';
+      }
+      this.renderAuth();
+      return;
+    }
+
+    if (this.currentTab === 'onboarding') {
+      if (navRoot) {
+        navRoot.innerHTML = '';
+      }
+      OnboardingPage.step = 1;
+      this.renderOnboarding();
+      return;
+    }
+
+    // If user is not logged in / not onboarded, show OnboardingPage first
+    const isOnboarded = appState.isCloudSynced || localStorage.getItem('coffeering_onboarding_completed') || (appState.user !== null && appState.user.name !== 'Guest');
+    if (!isOnboarded) {
       if (navRoot) {
         navRoot.innerHTML = '';
       }
@@ -75,19 +95,37 @@ class AppController {
     }
 
     // Always render dynamic navbar for onboarded users
-    Navbar.render(this.currentTab, (tab) => this.navigate(tab));
+    Navbar.render(appState, this.currentTab, (tab) => this.navigate(tab));
     
     // Render dynamic page body
     this.renderBody();
   }
 
+  renderAuth() {
+    Navbar.hide();
+    const root = document.getElementById('app-root');
+    if (!root) return;
+
+    root.innerHTML = AuthPage.render();
+    AuthPage.bindEvents(appState, () => {
+      appState.loadStateFromCache();
+      this.navigate('today');
+    });
+
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }
+
   renderOnboarding() {
+    Navbar.hide();
     const root = document.getElementById('app-root');
     if (!root) return;
 
     OnboardingPage.loadState();
     root.innerHTML = OnboardingPage.render();
     OnboardingPage.bindEvents(appState, () => {
+      localStorage.setItem('coffeering_onboarding_completed', 'true');
       // Upon completion, navigate back to homepage today view
       this.navigate('today');
     });
@@ -125,6 +163,12 @@ class AppController {
     } else if (this.currentTab === 'glossary') {
       root.innerHTML = GlossaryPage.render();
       GlossaryPage.bindEvents();
+    } else if (this.currentTab === 'auth') {
+      root.innerHTML = AuthPage.render();
+      AuthPage.bindEvents(appState, () => {
+        appState.loadStateFromCache();
+        this.navigate('today');
+      });
     }
 
     // Call Lucide to compile inline SVG icons dynamically
