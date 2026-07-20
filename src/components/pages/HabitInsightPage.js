@@ -21,7 +21,11 @@ export const HabitInsightPage = {
       HabitInsightPage.isEditing = false;
       HabitInsightPage.editorType = null;
       HabitInsightPage.viewedMonthOffset = 0;
-      state.notify();
+      if (window.appController) {
+        window.appController.navigate('dashboard');
+      } else {
+        state.notify();
+      }
     };
 
     window.HabitInsightPageSetSubTab = (subTab) => {
@@ -39,60 +43,12 @@ export const HabitInsightPage = {
       `;
     }
 
-    // ── CASE A: Landings View (SelectedId is null) ──
+    // Redirect to dashboard if no habit is selected
     if (this.selectedHabitId === null) {
-      const categoriesWithHabits = APP_CONFIG.categories
-        .map(cat => ({
-          ...cat,
-          habits: state.habits.filter(h => h.category === cat.id)
-        }))
-        .filter(cat => cat.habits.length > 0);
-
-      const groupedHtml = categoriesWithHabits.map(cat => {
-        const gridItemsHtml = cat.habits.map(h => {
-          const catColor = state.getCategoryColor(h.category);
-          const dailyStreak = state.getDailyStreak(h.id);
-          
-          let subtitleHtml = '';
-          if (h.paused) {
-            subtitleHtml = `<span class="text-[9px] font-extrabold text-amber-500 uppercase flex items-center gap-0.5 mt-1 tracking-wider"><i data-lucide="pause" class="w-2.5 h-2.5"></i> Paused</span>`;
-          } else {
-            subtitleHtml = `<span class="text-[9px] font-bold text-text-secondary mt-1 uppercase tracking-wider">Track</span>`;
-          }
-
-          return GridCard.render({
-            id: h.id,
-            name: h.name,
-            category: h.category,
-            icon: h.icon,
-            actionAttr: `onclick="window.HabitInsightPageSelect('${h.id}')"`,
-            subtitleHtml: subtitleHtml,
-            alwaysColor: true
-          });
-        }).join('');
-
-        return `
-          <div class="flex flex-col gap-3">
-            <h3 class="text-[10px] font-extrabold tracking-widest uppercase text-text-secondary">${cat.name}</h3>
-            <div class="grid grid-cols-3 gap-4">
-              ${gridItemsHtml}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      return `
-        <div id="habit-insights-selection-view" class="flex flex-col gap-6 pb-24 animate-fade-in">
-          <div>
-            <h1 class="text-xl font-bold text-text-primary">Habits</h1>
-            <p class="text-xs text-text-secondary mt-1">Select any habit to inspect streaks, heatmap, and values.</p>
-          </div>
-          
-          <div class="flex flex-col gap-5">
-            ${groupedHtml}
-          </div>
-        </div>
-      `;
+      if (window.appController) {
+        window.appController.navigate('dashboard');
+      }
+      return '';
     }
 
     // ── CASE B: Detailed Insights View ──
@@ -511,7 +467,7 @@ export const HabitInsightPage = {
             <div class="flex items-center gap-3.5 w-full text-xs">
               <span class="text-[11px] font-bold text-text-primary w-20 truncate flex-shrink-0" title="${tf.name}">${tf.name}</span>
               <div class="flex-grow bg-surface-sunken border border-divider/60 h-3 rounded-full overflow-hidden relative">
-                <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
+                <div class="bg-accentBlue h-full rounded-full transition-all duration-500 ease-out" style="width: ${pct}%;"></div>
               </div>
               <span class="text-[10px] font-bold text-text-secondary w-8 text-right flex-shrink-0">${tf.count}x</span>
             </div>
@@ -796,7 +752,7 @@ export const HabitInsightPage = {
                 <input 
                   type="checkbox" 
                   id="edit-schedule-toggle" 
-                  class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
+                  class="w-3.5 h-3.5 border border-divider rounded accent-accentBlue cursor-pointer"
                   ${activeDays.length > 0 ? 'checked' : ''}
                   onchange="window.HabitInsightPageToggleSchedule(this.checked)"
                 />
@@ -813,7 +769,7 @@ export const HabitInsightPage = {
                       onclick="window.HabitInsightPageToggleEditDay('${day}')"
                       class="edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all ${
                         isSelected 
-                          ? 'border-slate-900 bg-slate-900 text-white shadow-sm' 
+                          ? 'border-accentBlue bg-accentBlue text-white shadow-sm' 
                           : 'border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary'
                       }"
                     >
@@ -836,7 +792,7 @@ export const HabitInsightPage = {
                 <input 
                   type="checkbox" 
                   id="edit-enable-metric-toggle" 
-                  class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
+                  class="w-3.5 h-3.5 border border-divider rounded accent-accentBlue cursor-pointer"
                   ${this.editorType === 'number' ? 'checked' : ''}
                 />
                 <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Track Optional Metric</span>
@@ -1157,7 +1113,7 @@ export const HabitInsightPage = {
         if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary";
       } else {
         HabitInsightPage.editDays.push(day);
-        if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-slate-900 bg-slate-900 text-white shadow-sm";
+        if (btn) btn.className = "edit-day-chip-btn w-8 h-8 rounded-lg border font-bold text-[10px] flex items-center justify-center transition-all border-accentBlue bg-accentBlue text-white shadow-sm";
       }
 
       // Check validation live

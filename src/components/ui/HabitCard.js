@@ -148,7 +148,7 @@ export const HabitCard = {
           data-tag="${tag}" 
           class="inline-tag-chip px-2.5 py-1 rounded-full text-xs transition-all border ${
             isChecked 
-              ? 'bg-slate-900 text-white border-transparent' 
+              ? 'bg-accentBlue text-white border-transparent' 
               : 'bg-slate-55 border-divider text-text-secondary hover:bg-surface-sunken'
           }"
         >

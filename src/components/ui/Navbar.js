@@ -22,17 +22,10 @@ export const Navbar = {
       </button>
 
       <button id="nav-dashboard" class="flex flex-col items-center gap-1 transition-all ${
-        currentTab === 'dashboard' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
+        currentTab === 'dashboard' || currentTab === 'habit-insight' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
       }">
         <i data-lucide="bar-chart" class="w-4.5 h-4.5"></i>
         <span class="text-[9px] font-semibold tracking-wide">Dashboard</span>
-      </button>
-
-      <button id="nav-insights" class="flex flex-col items-center gap-1 transition-all ${
-        currentTab === 'habit-insight' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
-      }">
-        <i data-lucide="line-chart" class="w-4.5 h-4.5"></i>
-        <span class="text-[9px] font-semibold tracking-wide">Insights</span>
       </button>
 
       <button id="nav-glossary" class="flex flex-col items-center gap-1 transition-all ${
@@ -47,7 +40,6 @@ export const Navbar = {
     document.getElementById('nav-today').addEventListener('click', () => onTabChange('today'));
     document.getElementById('nav-create').addEventListener('click', () => onTabChange('create'));
     document.getElementById('nav-dashboard').addEventListener('click', () => onTabChange('dashboard'));
-    document.getElementById('nav-insights').addEventListener('click', () => onTabChange('habit-insight'));
     document.getElementById('nav-glossary').addEventListener('click', () => onTabChange('glossary'));
   }
 };

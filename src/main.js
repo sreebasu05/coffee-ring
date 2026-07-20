@@ -36,6 +36,7 @@ class AppController {
     // 1. Initialize State & Data
     appState.init();
     window.appState = appState;
+    window.appController = this;
 
     // 2. Setup onboarding global handlers
     window.OnboardingGoToStep = (stepNum) => {
@@ -123,6 +124,7 @@ class AppController {
       HabitInsightPage.bindEvents(appState);
     } else if (this.currentTab === 'glossary') {
       root.innerHTML = GlossaryPage.render();
+      GlossaryPage.bindEvents();
     }
 
     // Call Lucide to compile inline SVG icons dynamically

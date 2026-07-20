@@ -135,7 +135,7 @@ class AppState {
   }
 
   getWeeklyCount(habitId) {
-    const current = new Date();
+    const current = new Date(this.getDashboardDate());
     const startOfWeek = new Date(current.setDate(current.getDate() - current.getDay() + (current.getDay() === 0 ? -6 : 1))); // Monday
     startOfWeek.setHours(0,0,0,0);
 
@@ -525,7 +525,7 @@ class AppState {
 
   getTodayCompletionRate() {
     if (this.habits.length === 0) return 0;
-    const todayStr = this.formatDate(this.getDashboardDate());
+    const todayStr = this.formatDate(new Date());
     const scheduledHabits = this.habits.filter(h => this.isHabitScheduledForDate(h.id, todayStr) && !this.isDatePaused(h, todayStr));
     if (scheduledHabits.length === 0) return 100;
     const completedToday = scheduledHabits.filter(h => this.getLogForHabitOnDate(h.id, todayStr) !== null).length;
@@ -534,11 +534,27 @@ class AppState {
 
   getWeeklyGoalProgress() {
     if (this.habits.length === 0) return 0;
-    const todayStr = this.formatDate(this.getDashboardDate());
+    const realToday = new Date();
+    const todayStr = this.formatDate(realToday);
+    const dayOfWeek = realToday.getDay();
+    // Monday is 1, Sunday is 0. Remaining days in the current week (including today):
+    const remainingDays = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+
+    const startOfWeek = new Date(realToday.setDate(realToday.getDate() - realToday.getDay() + (realToday.getDay() === 0 ? -6 : 1)));
+    startOfWeek.setHours(0,0,0,0);
+
     return this.habits.filter(h => {
-      const weeklyCount = this.getWeeklyCount(h.id);
+      // Calculate real current week count
+      const realWeeklyCount = this.checkIns.filter(log => {
+        if (log.habitId !== h.id) return false;
+        const logTime = new Date(log.date).getTime();
+        return logTime >= startOfWeek.getTime();
+      }).length;
+
       const target = this.getWeeklyTargetForDate(h.id, todayStr);
-      return weeklyCount >= target;
+      const remainingNeeded = target - realWeeklyCount;
+      // Habit is "on track" if it has already met the target OR if it's mathematically possible to meet it in the remaining days
+      return remainingNeeded <= 0 || remainingNeeded <= remainingDays;
     }).length;
   }
 

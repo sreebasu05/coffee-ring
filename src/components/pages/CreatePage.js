@@ -125,7 +125,7 @@ export const CreatePage = {
       const themeHex = colorHexMap[cat.defaultColor] || '#64748b';
         
       const chipClass = isSelected
-        ? 'border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700'
+        ? 'border-accentBlue bg-accentBlue text-white shadow-sm'
         : 'border-divider bg-surface-card text-text-secondary hover:border-slate-400 dark:hover:border-slate-500';
 
       const circleClass = 'w-2.5 h-2.5 rounded-full inline-block';
@@ -262,7 +262,7 @@ export const CreatePage = {
                 type="range" 
                 id="weekly-target-slider" 
                 min="1" max="7" value="${activeWeeklyTarget}" 
-                class="flex-1 accent-slate-900"
+                class="flex-1 accent-accentBlue"
               />
               <span id="weekly-target-label" class="text-sm font-bold text-text-primary w-16 text-right">${activeWeeklyTarget}/7 days</span>
             </div>
@@ -272,7 +272,7 @@ export const CreatePage = {
               <input 
                 type="checkbox" 
                 id="schedule-toggle" 
-                class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
+                class="w-3.5 h-3.5 border border-divider rounded accent-accentBlue cursor-pointer"
                 ${activeDays.length > 0 ? 'checked' : ''}
               />
               <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Schedule on specific weekdays</span>
@@ -287,7 +287,7 @@ export const CreatePage = {
                     data-day-select="${day}"
                     class="day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all ${
                       isSelected 
-                        ? 'border-slate-900 bg-slate-900 text-white shadow-sm' 
+                        ? 'border-accentBlue bg-accentBlue text-white shadow-sm' 
                         : 'border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary'
                     }"
                   >
@@ -308,7 +308,7 @@ export const CreatePage = {
             <input 
               type="checkbox" 
               id="enable-metric-toggle" 
-              class="w-3.5 h-3.5 border border-divider rounded accent-slate-900 cursor-pointer"
+              class="w-3.5 h-3.5 border border-divider rounded accent-accentBlue cursor-pointer"
               ${activeType === 'number' ? 'checked' : ''}
             />
             <span class="text-[10px] text-text-secondary font-bold uppercase tracking-wide">Track Optional Metric</span>
@@ -490,7 +490,7 @@ export const CreatePage = {
       categoryInput.value = catId;
       categoryPicker.querySelectorAll('.category-chip-btn').forEach(btn => {
         btn.className = btn.dataset.categorySelect === catId
-          ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-slate-900 bg-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-700"
+          ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-accentBlue bg-accentBlue text-white shadow-sm"
           : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-divider bg-surface-card text-text-secondary hover:border-slate-400 dark:hover:border-slate-500";
       });
       // Synchronize the selected icon's border and background color to match the new category color
@@ -559,7 +559,7 @@ export const CreatePage = {
           btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-divider hover:text-text-primary";
         } else {
           currentDays.push(day);
-          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-slate-900 bg-slate-900 text-white shadow-sm";
+          btn.className = "day-chip-btn w-9 h-9 rounded-xl border font-bold text-xs flex items-center justify-center transition-all border-accentBlue bg-accentBlue text-white shadow-sm";
         }
         validateScheduleDays();
       });

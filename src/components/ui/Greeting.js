@@ -126,7 +126,7 @@ export const Greeting = {
         ${totalHabits > 0 ? `
           <div class="mt-6">
             <div class="w-full bg-surface-sunken rounded-full h-2 overflow-hidden p-[1px]">
-              <div class="bg-slate-900 h-full rounded-full transition-all duration-500 ease-out" style="width: ${progressPercentage}%"></div>
+              <div class="bg-accentBlue h-full rounded-full transition-all duration-500 ease-out" style="width: ${progressPercentage}%"></div>
             </div>
             <p class="text-xs text-text-secondary mt-2 font-medium">${progressPercentage}% complete</p>
           </div>
