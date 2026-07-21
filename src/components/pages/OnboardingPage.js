@@ -298,7 +298,7 @@ export const OnboardingPage = {
                   </div>
                   <div>
                     <h3 class="text-sm font-bold text-text-primary">Store Data in Cloud</h3>
-                    <span class="text-[10px] font-semibold text-text-secondary">Account required</span>
+                    <span class="text-[10px] font-semibold text-text-secondary">Eva Projects account</span>
                   </div>
                 </div>
                 <i data-lucide="chevron-right" class="w-4 h-4 text-text-secondary group-hover:translate-x-0.5 transition-transform"></i>

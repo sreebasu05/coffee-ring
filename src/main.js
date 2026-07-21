@@ -7,6 +7,7 @@ import { HabitInsightPage } from './components/pages/HabitInsightPage.js';
 import { GlossaryPage } from './components/pages/GlossaryPage.js';
 import { OnboardingPage } from './components/pages/OnboardingPage.js';
 import { AuthPage } from './components/pages/AuthPage.js';
+import { ProfilePage } from './components/pages/ProfilePage.js';
 
 class AppController {
   constructor() {
@@ -57,8 +58,13 @@ class AppController {
   }
 
   // Swap pages routing
-  navigate(tabName) {
+  navigate(tabName, options = {}) {
     this.currentTab = tabName;
+    // If navigating to onboarding with a specific step, set it before render
+    if (tabName === 'onboarding' && options.step) {
+      OnboardingPage.step = options.step;
+      OnboardingPage.saveState();
+    }
     window.scrollTo(0, 0);
     this.render();
   }
@@ -79,7 +85,10 @@ class AppController {
       if (navRoot) {
         navRoot.innerHTML = '';
       }
-      OnboardingPage.step = 1;
+      // Only reset to step 1 if no specific step was set via navigate()
+      if (!OnboardingPage.step) {
+        OnboardingPage.step = 1;
+      }
       this.renderOnboarding();
       return;
     }
@@ -163,6 +172,13 @@ class AppController {
     } else if (this.currentTab === 'glossary') {
       root.innerHTML = GlossaryPage.render();
       GlossaryPage.bindEvents();
+    } else if (this.currentTab === 'profile') {
+      root.innerHTML = ProfilePage.render(appState);
+      ProfilePage.bindEvents(
+        appState,
+        () => this.navigate('onboarding'),
+        (tab) => this.navigate(tab)
+      );
     } else if (this.currentTab === 'auth') {
       root.innerHTML = AuthPage.render();
       AuthPage.bindEvents(appState, () => {

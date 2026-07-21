@@ -106,25 +106,26 @@ export const StorageManager = {
     try {
       // 1. Fetch Profile
       const { data: profile } = await supabase
-        .from('cr_profiles')
+        .from('eva_users')
         .select('*')
         .eq('id', user.id)
         .single();
 
       if (profile) {
-        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name: profile.name }));
+        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name: profile.name, email: profile.email || '' }));
         if (profile.category_colors) {
           localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
         }
       } else {
-        // Create profile if not exists
-        const name = user.email.split('@')[0];
-        await supabase.from('cr_profiles').insert({
+        // Create profile if not exists (e.g. first login after Google OAuth)
+        const name = user.email ? user.email.split('@')[0] : 'user';
+        await supabase.from('eva_users').insert({
           id: user.id,
           name,
+          email: user.email || '',
           category_colors: getDefaultCategoryColors()
         });
-        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name }));
+        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name, email: user.email || '' }));
       }
 
       // 2. Fetch Habits
@@ -202,9 +203,10 @@ export const StorageManager = {
 
       // 1. Migrate Profile & Category Colors
       if (profile) {
-        await supabase.from('cr_profiles').upsert({
+        await supabase.from('eva_users').upsert({
           id: userId,
           name: profile.name,
+          email: profile.email || '',
           category_colors: colors
         });
       }
@@ -290,9 +292,10 @@ export const StorageManager = {
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
-        supabase.from('cr_profiles').upsert({
+        supabase.from('eva_users').upsert({
           id: user.id,
-          name: profile.name
+          name: profile.name,
+          email: profile.email || ''
         }).then(({ error }) => {
           if (error) console.error('Supabase profile save error:', error);
         });

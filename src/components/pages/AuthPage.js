@@ -111,6 +111,16 @@ export const AuthPage = {
             <h1 class="text-2xl font-bold tracking-tight text-text-primary leading-tight">${headerTitle}</h1>
             <p class="text-xs text-text-secondary leading-relaxed max-w-[280px]">${headerSubtitle}</p>
           </div>
+
+          <!-- Eva Projects badge -->
+          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-card border border-divider rounded-full shadow-sm mt-1">
+            <div class="w-4 h-4 rounded bg-slate-900 text-white flex items-center justify-center flex-shrink-0">
+              <i data-lucide="layers" class="w-2.5 h-2.5"></i>
+            </div>
+            <span class="text-[10px] font-bold text-text-secondary tracking-wide">Eva Projects</span>
+            <div class="w-px h-3 bg-divider mx-0.5"></div>
+            <span class="text-[10px] text-text-secondary">One account, all Eva apps</span>
+          </div>
         </div>
 
         <!-- Segmented Tab Toggle -->
@@ -137,30 +147,57 @@ export const AuthPage = {
 
           <form id="auth-form" class="flex flex-col gap-4">
             <div class="flex flex-col gap-1.5">
-              <label for="auth-username" class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Username</label>
+              <label for="auth-username" class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                ${isSignup ? 'Username' : 'Username or Email'}
+              </label>
               <input 
                 type="text" 
                 id="auth-username" 
                 value="${prefilledUsername}" 
                 required 
                 class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
-                placeholder="e.g. coffee_master" 
+                placeholder="${isSignup ? 'e.g. coffee_master' : 'username or email@example.com'}" 
               />
               <p class="text-[10px] text-text-secondary leading-normal">
-                ${isSignup ? 'Only letters, numbers, and underscores.' : 'Enter your registered Coffee Ring username.'}
+                ${isSignup ? 'Only letters, numbers, and underscores.' : 'You can sign in with your username or email address.'}
               </p>
             </div>
 
+            ${isSignup ? `
+            <div class="flex flex-col gap-1.5">
+              <label for="auth-email" class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Email Address</label>
+              <input 
+                type="email" 
+                id="auth-email" 
+                required
+                class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
+                placeholder="e.g. you@example.com" 
+              />
+              <p class="text-[10px] text-text-secondary leading-normal">
+                Used for account recovery. A real email lets you reset your password later.
+              </p>
+            </div>` : ''}
+
             <div class="flex flex-col gap-1.5">
               <label for="auth-password" class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Password</label>
-              <input 
-                type="password" 
-                id="auth-password" 
-                required 
-                minlength="6" 
-                class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
-                placeholder="•••••••• (Min 6 characters)" 
-              />
+              <div class="relative w-full flex items-center">
+                <input 
+                  type="password" 
+                  id="auth-password" 
+                  required 
+                  minlength="6" 
+                  class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 pr-10 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
+                  placeholder="•••••••• (Min 6 characters)" 
+                />
+                <button
+                  type="button"
+                  id="toggle-password-visibility"
+                  class="absolute right-3 text-text-secondary hover:text-text-primary transition-colors focus:outline-none"
+                  aria-label="Toggle password visibility"
+                >
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
               <p class="text-[10px] text-text-secondary leading-normal">
                 ${isSignup ? 'At least 6 characters to keep your routines secure.' : 'Enter your password to sign in.'}
               </p>
@@ -227,11 +264,21 @@ export const AuthPage = {
         if (isExistingGuest) {
           window.appController.navigate('today');
         } else {
-          if (window.OnboardingGoToStep) {
-            window.OnboardingGoToStep(3);
-          } else {
-            window.appController.navigate('onboarding');
-          }
+          // Navigate back to onboarding step 5 (storage choice screen)
+          window.appController.navigate('onboarding', { step: 5 });
+        }
+      });
+    }
+
+    const togglePasswordBtn = document.getElementById('toggle-password-visibility');
+    const passwordInput = document.getElementById('auth-password');
+    if (togglePasswordBtn && passwordInput) {
+      togglePasswordBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        togglePasswordBtn.innerHTML = `<i data-lucide="${isPassword ? 'eye-off' : 'eye'}" class="w-4 h-4"></i>`;
+        if (window.lucide) {
+          window.lucide.createIcons();
         }
       });
     }
@@ -280,18 +327,28 @@ export const AuthPage = {
         e.preventDefault();
         if (this.loading) return;
 
-        const username = document.getElementById('auth-username').value;
+        const usernameOrEmail = document.getElementById('auth-username').value.trim();
         const password = document.getElementById('auth-password').value;
+        const emailInput = document.getElementById('auth-email');
+        const signupEmail = emailInput ? emailInput.value.trim() : '';
 
-        // Validation: Username must contain only alphanumeric characters or underscores
-        const cleanUser = username.trim().toLowerCase();
-        const isValid = /^[a-zA-Z0-9_]+$/.test(cleanUser);
-        if (!isValid) {
-          this.error = 'Username can only contain letters, numbers, and underscores.';
-          this.suggestions = [];
-          root.innerHTML = this.render();
-          this.bindEvents(state, onComplete);
-          return;
+        if (this.activeTab === 'signup') {
+          // Validation: Username must be alphanumeric/underscores
+          const cleanUser = usernameOrEmail.toLowerCase();
+          const isValid = /^[a-zA-Z0-9_]+$/.test(cleanUser);
+          if (!isValid) {
+            this.error = 'Username can only contain letters, numbers, and underscores.';
+            this.suggestions = [];
+            root.innerHTML = this.render();
+            this.bindEvents(state, onComplete);
+            return;
+          }
+          if (!signupEmail) {
+            this.error = 'Please enter an email address.';
+            root.innerHTML = this.render();
+            this.bindEvents(state, onComplete);
+            return;
+          }
         }
 
         // Pre-capture guest data to prevent race-condition overwrite by auth state listener
@@ -311,14 +368,36 @@ export const AuthPage = {
         root.innerHTML = this.render();
         this.bindEvents(state, onComplete);
 
-        const email = `${cleanUser}@coffeering.com`;
-
         try {
           if (this.activeTab === 'login') {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            // Sign-in: accept username OR email
+            let loginEmail = usernameOrEmail;
+            if (!usernameOrEmail.includes('@')) {
+              // Treat as username — look up the email from eva_users
+              const { data: found, error: lookupError } = await supabase
+                .from('eva_users')
+                .select('email')
+                .eq('username', usernameOrEmail.toLowerCase())
+                .single();
+              if (lookupError || !found || !found.email) {
+                // Fallback: also try the name field (existing users)
+                const { data: foundByName } = await supabase
+                  .from('eva_users')
+                  .select('email')
+                  .eq('name', usernameOrEmail.toLowerCase())
+                  .single();
+                if (!foundByName || !foundByName.email) {
+                  throw new Error('No account found with that username. Try signing in with your email.');
+                }
+                loginEmail = foundByName.email;
+              } else {
+                loginEmail = found.email;
+              }
+            }
+
+            const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
             if (error) throw error;
 
-            // Migrate local/guest data to the cloud
             if (data.user) {
               const migrated = await StorageManager.migrateLocalDataToCloud(data.user.id, guestData);
               if (!migrated) {
@@ -328,11 +407,14 @@ export const AuthPage = {
               await StorageManager.fetchFromSupabase();
             }
           } else {
-            // Uniqueness check: Query cr_profiles to ensure username isn't taken
+            // Sign-up: username + real email + password
+            const cleanUser = usernameOrEmail.toLowerCase();
+
+            // Uniqueness check on eva_users
             const { data: existingUser } = await supabase
-              .from('cr_profiles')
+              .from('eva_users')
               .select('id')
-              .eq('name', cleanUser)
+              .or(`name.eq.${cleanUser},username.eq.${cleanUser}`)
               .limit(1);
 
             if (existingUser && existingUser.length > 0) {
@@ -346,7 +428,7 @@ export const AuthPage = {
             }
 
             const { data, error } = await supabase.auth.signUp({ 
-              email, 
+              email: signupEmail, 
               password,
               options: {
                 data: { display_name: cleanUser }
@@ -355,7 +437,13 @@ export const AuthPage = {
             if (error) throw error;
 
             if (data.user) {
-              // Migrate any local/guest habits and checkins configured during onboarding
+              // Store username + email in guestData profile so it migrates correctly
+              if (guestData && guestData.profile) {
+                guestData.profile.name = cleanUser;
+                guestData.profile.email = signupEmail;
+              } else {
+                guestData = { ...guestData, profile: { name: cleanUser, email: signupEmail } };
+              }
               const migrated = await StorageManager.migrateLocalDataToCloud(data.user.id, guestData);
               if (!migrated) {
                 await supabase.auth.signOut();
@@ -370,7 +458,18 @@ export const AuthPage = {
           onComplete();
         } catch (err) {
           if (err.message !== 'Username taken') {
-            this.error = err.message || 'Authentication failed';
+            // Map common Supabase errors to friendly messages
+            if (err.status === 500 || err.message?.includes('500')) {
+              this.error = 'Sign up is temporarily unavailable. Please try again in a moment.';
+            } else if (err.message?.toLowerCase().includes('email')) {
+              this.error = 'There was an issue with the email address. Please try a different one.';
+            } else if (err.message?.toLowerCase().includes('password')) {
+              this.error = 'Password must be at least 6 characters.';
+            } else if (err.message?.toLowerCase().includes('already registered')) {
+              this.error = 'An account with this email already exists. Try signing in instead.';
+            } else {
+              this.error = err.message || 'Authentication failed. Please try again.';
+            }
           }
           this.loading = false;
           root.innerHTML = this.render();

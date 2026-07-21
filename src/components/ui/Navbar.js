@@ -50,8 +50,8 @@ export const Navbar = {
       <button id="nav-profile" class="flex flex-col items-center gap-1 transition-all ${
         currentTab === 'profile' ? 'text-text-primary font-bold scale-105' : 'text-text-secondary opacity-70 hover:opacity-100'
       }">
-        <i data-lucide="${isGuest ? 'user' : 'log-out'}" class="w-4.5 h-4.5"></i>
-        <span class="text-[9px] font-semibold tracking-wide">${isGuest ? 'Sign Up' : 'Sign Out'}</span>
+        <i data-lucide="${isGuest ? 'user' : 'user-circle'}" class="w-4.5 h-4.5"></i>
+        <span class="text-[9px] font-semibold tracking-wide">Profile</span>
       </button>
     `;
 
@@ -60,24 +60,6 @@ export const Navbar = {
     document.getElementById('nav-create').addEventListener('click', () => onTabChange('create'));
     document.getElementById('nav-dashboard').addEventListener('click', () => onTabChange('dashboard'));
     document.getElementById('nav-glossary').addEventListener('click', () => onTabChange('glossary'));
-    
-    document.getElementById('nav-profile').addEventListener('click', async () => {
-      if (isGuest) {
-        onTabChange('auth');
-      } else {
-        if (supabase) {
-          await supabase.auth.signOut();
-        }
-        localStorage.removeItem('coffeering_user_profile');
-        localStorage.removeItem('coffeering_habits');
-        localStorage.removeItem('coffeering_check_ins');
-        localStorage.removeItem('coffeering_onboarding_completed');
-        localStorage.removeItem('coffeering_onboarding_draft');
-        state.user = null;
-        state.habits = [];
-        state.checkIns = [];
-        onTabChange('onboarding');
-      }
-    });
+    document.getElementById('nav-profile').addEventListener('click', () => onTabChange('profile'));
   }
 };
