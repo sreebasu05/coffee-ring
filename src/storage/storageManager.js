@@ -47,20 +47,26 @@ const getDefaultHabits = () => APP_CONFIG.presets
   });
 
 export const StorageManager = {
+  // Helper to check if user is currently running in Guest mode
+  isGuestMode() {
+    try {
+      const profile = JSON.parse(localStorage.getItem(KEYS.USER_PROFILE));
+      return !profile || profile.name === 'Guest';
+    } catch (e) {
+      return true;
+    }
+  },
+
   // Helper to check if a user is logged into Supabase
   async getSupabaseUser() {
     if (!isSupabaseConfigured || !supabase) return null;
-    
-    // Safety check: If the user is running in Guest Mode, do not sync with cloud
     try {
-      const profile = JSON.parse(localStorage.getItem(KEYS.USER_PROFILE));
-      if (!profile || profile.name === 'Guest') {
-        return null; // Force offline mode
-      }
-    } catch (e) {}
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    } catch (e) {
+      console.warn('Supabase auth check failed (offline or network error):', e);
+      return null;
+    }
   },
 
   init(forceReset = false) {
@@ -280,6 +286,7 @@ export const StorageManager = {
   saveUserProfile(profile) {
     localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
     
+    if (this.isGuestMode()) return;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -308,6 +315,7 @@ export const StorageManager = {
     }
     localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
 
+    if (this.isGuestMode()) return habits;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -346,6 +354,7 @@ export const StorageManager = {
     const checkIns = this.getCheckIns().filter(c => c.habitId !== id);
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(checkIns));
 
+    if (this.isGuestMode()) return habits;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -375,6 +384,7 @@ export const StorageManager = {
     }
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(logs));
 
+    if (this.isGuestMode()) return logs;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -398,6 +408,7 @@ export const StorageManager = {
     const logs = this.getCheckIns().filter(log => !(log.habitId === habitId && log.date === date));
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(logs));
 
+    if (this.isGuestMode()) return logs;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -422,6 +433,7 @@ export const StorageManager = {
   saveCategoryColors(colorMap) {
     localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(colorMap));
 
+    if (this.isGuestMode()) return;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
