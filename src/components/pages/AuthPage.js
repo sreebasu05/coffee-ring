@@ -371,35 +371,60 @@ export const AuthPage = {
         try {
           if (this.activeTab === 'login') {
             // Sign-in: accept username OR email
-            let loginEmail = usernameOrEmail;
-            if (!usernameOrEmail.includes('@')) {
-              // Treat as username — look up the email from eva_users
-              const { data: found, error: lookupError } = await supabase
-                .from('eva_users')
-                .select('email')
-                .eq('username', usernameOrEmail.toLowerCase())
-                .single();
-              if (lookupError || !found || !found.email) {
-                // Fallback: also try the name field (existing users)
-                const { data: foundByName } = await supabase
+            let candidateEmails = [];
+            const inputVal = usernameOrEmail.trim();
+
+            if (inputVal.includes('@')) {
+              candidateEmails.push(inputVal);
+            } else {
+              const cleanUser = inputVal.toLowerCase();
+
+              // 1. Try DB lookup on eva_users (name column)
+              try {
+                const { data: found } = await supabase
                   .from('eva_users')
                   .select('email')
-                  .eq('name', usernameOrEmail.toLowerCase())
-                  .single();
-                if (!foundByName || !foundByName.email) {
-                  throw new Error('No account found with that username. Try signing in with your email.');
+                  .ilike('name', cleanUser)
+                  .limit(1);
+
+                if (found && found.length > 0 && found[0].email) {
+                  candidateEmails.push(found[0].email);
                 }
-                loginEmail = foundByName.email;
+              } catch (e) {
+                console.warn('eva_users lookup failed:', e);
+              }
+
+              // 2. Add legacy email format as fallback candidate
+              candidateEmails.push(`${cleanUser}@coffeering.com`);
+            }
+
+            // Deduplicate candidate emails
+            candidateEmails = [...new Set(candidateEmails.filter(Boolean))];
+
+            let authData = null;
+            let lastAuthError = null;
+
+            for (const emailToTry of candidateEmails) {
+              const { data, error } = await supabase.auth.signInWithPassword({
+                email: emailToTry,
+                password
+              });
+
+              if (!error && data?.user) {
+                authData = data;
+                lastAuthError = null;
+                break;
               } else {
-                loginEmail = found.email;
+                lastAuthError = error;
               }
             }
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
-            if (error) throw error;
+            if (lastAuthError || !authData) {
+              throw lastAuthError || new Error('Invalid username or password.');
+            }
 
-            if (data.user) {
-              const migrated = await StorageManager.migrateLocalDataToCloud(data.user.id, guestData);
+            if (authData.user) {
+              const migrated = await StorageManager.migrateLocalDataToCloud(authData.user.id, guestData);
               if (!migrated) {
                 await supabase.auth.signOut();
                 throw new Error('Failed to synchronize data with cloud. Please try again.');
@@ -410,11 +435,11 @@ export const AuthPage = {
             // Sign-up: username + real email + password
             const cleanUser = usernameOrEmail.toLowerCase();
 
-            // Uniqueness check on eva_users
+            // Uniqueness check on eva_users (name column)
             const { data: existingUser } = await supabase
               .from('eva_users')
               .select('id')
-              .or(`name.eq.${cleanUser},username.eq.${cleanUser}`)
+              .ilike('name', cleanUser)
               .limit(1);
 
             if (existingUser && existingUser.length > 0) {
