@@ -4,15 +4,9 @@ export const GlossaryPage = {
       <div id="glossary-page" class="flex flex-col gap-6 pb-12 px-1 max-w-sm mx-auto">
         
         <!-- Hero Header -->
-        <div class="flex flex-col gap-3 mt-4 items-center text-center animate-fade-up">
-          <div class="relative">
-            <div class="w-14 h-14 bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600 rounded-2xl flex items-center justify-center rotate-3 shadow-sm dark:from-indigo-500/20 dark:to-violet-500/20 dark:text-indigo-400">
-              <i data-lucide="book-open" class="w-7 h-7"></i>
-            </div>
-            <div class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-surface-base dark:border-surface-base"></div>
-          </div>
-          <h1 class="text-3xl font-black text-text-primary tracking-tight leading-tight mt-1">How It All Works</h1>
-          <p class="text-sm text-text-secondary leading-relaxed max-w-[280px]">
+        <div class="flex flex-col gap-2 mt-4 text-left px-2 animate-fade-up">
+          <h1 class="text-3xl font-normal tracking-tight text-text-primary leading-tight">How It All Works</h1>
+          <p class="text-sm text-text-secondary leading-relaxed">
             Coffee Ring isn't just a checkbox app. Here's the psychology that makes your data actually mean something.
           </p>
         </div>

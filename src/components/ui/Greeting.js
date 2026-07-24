@@ -14,10 +14,10 @@ export const Greeting = {
       greet = "Good evening,";
     }
 
-    // Generate date options for the last 7 days dropdown selection
+    // Generate date options for the last 8 days dropdown selection
     const dates = [];
     const today = new Date();
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 8; i++) {
       const d = new Date();
       d.setDate(today.getDate() - i);
       dates.push(d);
