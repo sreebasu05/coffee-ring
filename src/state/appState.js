@@ -148,6 +148,11 @@ class AppState {
       isCompleted = completed;
     }
 
+    if (!isCompleted && (value === null || value === undefined) && (!tags || tags.length === 0) && (!note || note.trim() === '')) {
+      this.removeCheckIn(habitId);
+      return;
+    }
+
     const checkIn = {
       id: existing ? existing.id : `log_${Date.now()}`,
       habitId,

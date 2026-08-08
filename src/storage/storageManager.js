@@ -373,7 +373,13 @@ export const StorageManager = {
 
   getCheckIns() {
     this.init();
-    return JSON.parse(localStorage.getItem(KEYS.CHECK_INS));
+    const raw = localStorage.getItem(KEYS.CHECK_INS);
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw) || [];
+    } catch (e) {
+      return [];
+    }
   },
 
   saveCheckIn(checkIn) {
