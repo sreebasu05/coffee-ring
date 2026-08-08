@@ -5,25 +5,56 @@ export const DashboardPage = {
     const todayPct = state.getTodayCompletionRate();
     const onTrackCount = state.getWeeklyGoalProgress();
     const totalHabits = state.habits.length;
-    const overallConsistency = state.getOverallConsistency();
-    const catFocus = state.getCategoryFocus();
-    const rankings = state.getHabitRankings();
-    const dayByDay = state.getWeeklyDayByDayActivity();
-    const advancedInsights = state.getAdvancedBehavioralInsights();
 
-    // -- Time Toggle --
-    const toggleHtml = `
-      <div class="flex items-center bg-surface-sunken p-1 rounded-xl w-full border border-divider">
-        <button id="toggle-this-week" class="flex-1 text-xs font-bold py-1.5 rounded-lg transition-colors ${state.dashboardWeekOffset === 0 ? 'bg-surface-card shadow-sm text-text-primary' : 'text-text-secondary hover:text-text-primary'}">Trailing 4 Weeks</button>
-        <button id="toggle-last-week" class="flex-1 text-xs font-bold py-1.5 rounded-lg transition-colors ${state.dashboardWeekOffset === 1 ? 'bg-surface-card shadow-sm text-text-primary' : 'text-text-secondary hover:text-text-primary'}">Last Week</button>
-      </div>
+    // -- Global Gating: calculate data maturity --
+    const uniqueDays = new Set(state.checkIns.map(l => l.date)).size;
+    const oldestHabitAge = state.habits.reduce((max, h) => {
+      const created = h.createdAt ? new Date(h.createdAt) : new Date();
+      const age = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(max, age);
+    }, 0);
+    const dataMaturityDays = Math.max(uniqueDays, oldestHabitAge);
+    const isLastWeekLocked = dataMaturityDays < 7;
+    const isTrailing4Locked = dataMaturityDays < 28;
+    const isCurrentTabLocked = state.dashboardWeekOffset === 1 ? isLastWeekLocked : isTrailing4Locked;
+
+    // Only compute analytics if unlocked
+    const overallConsistency = isCurrentTabLocked ? 0 : state.getOverallConsistency();
+    const catFocus = isCurrentTabLocked ? { isLocked: true } : state.getCategoryFocus();
+    const rankings = isCurrentTabLocked ? [] : state.getHabitRankings();
+    const dayByDay = isCurrentTabLocked ? [] : state.getWeeklyDayByDayActivity();
+    const advancedInsights = isCurrentTabLocked ? { overall: [], habitTags: {} } : state.getAdvancedBehavioralInsights();
+
+    const isLastWeek = state.dashboardWeekOffset === 1;
+    const activePeriodLabel = isLastWeek ? "Last Week" : "Trailing 4 Weeks";
+
+    // -- Dropdown Menu Options --
+    const timeframeDropdownOptions = `
+      <button 
+        id="opt-last-week"
+        class="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between ${
+          isLastWeek ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-surface-sunken' : 'text-text-secondary hover:text-text-primary hover:bg-surface-sunken'
+        } transition-colors border-b border-divider"
+      >
+        <span>Last Week</span>
+        ${isLastWeek ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+      </button>
+      <button 
+        id="opt-this-week"
+        class="w-full text-left px-4 py-2.5 text-xs flex items-center justify-between ${
+          !isLastWeek ? 'text-indigo-600 dark:text-indigo-400 font-bold bg-surface-sunken' : 'text-text-secondary hover:text-text-primary hover:bg-surface-sunken'
+        } transition-colors"
+      >
+        <span>Trailing 4 Weeks</span>
+        ${!isLastWeek ? '<i data-lucide="check" class="w-3.5 h-3.5"></i>' : ''}
+      </button>
     `;
 
     // -- Hero Header --
     const consistencyLabel = overallConsistency >= 90 ? 'Exceptional' : overallConsistency >= 70 ? 'Strong' : overallConsistency >= 50 ? 'Steady' : overallConsistency >= 25 ? 'Building' : 'Getting Started';
 
     const headerHtml = `
-      <div class="flex flex-col gap-3 mt-2">
+      <div class="flex flex-col gap-4 mt-2">
         <div class="flex flex-col gap-1">
           <h1 class="text-3xl font-black text-text-primary tracking-tight leading-tight">Dashboard</h1>
           <p class="text-sm text-text-secondary">Your overall habit analysis.</p>
@@ -41,6 +72,38 @@ export const DashboardPage = {
             <span class="text-[10px] text-text-secondary">can meet goal this week</span>
           </div>
         </div>
+      </div>
+    `;
+
+    // -- Subheading & Timeframe Dropdown Row --
+    const controlsRowHtml = `
+      <div class="flex flex-col gap-1.5 px-1 mt-1">
+        <!-- Subheading with tiny chevron trigger like homepage -->
+        <div class="flex items-center justify-between">
+          <div class="relative inline-block select-none">
+            <button 
+              id="timeframe-dropdown-trigger" 
+              class="flex items-center gap-1.5 text-label-muted hover:text-text-primary dark:hover:text-slate-200 transition-colors uppercase tracking-widest text-[10px] font-extrabold"
+            >
+              <span>${activePeriodLabel.toUpperCase()} ANALYSIS</span>
+              <i data-lucide="chevron-down" class="w-3 h-3 text-text-secondary"></i>
+            </button>
+            
+            <div 
+              id="dashboard-timeframe-dropdown" 
+              class="hidden absolute left-0 mt-2 bg-surface-card border border-divider rounded-2xl shadow-xl overflow-hidden w-44 z-50 animate-fade-in normal-case tracking-normal"
+            >
+              ${timeframeDropdownOptions}
+            </div>
+          </div>
+
+          <!-- Glossary link -->
+          <button id="dashboard-learn-more" class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+            <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+            <span>What do these metrics mean?</span>
+          </button>
+        </div>
+        <p class="text-[10px] text-text-secondary">Overall habit performance over ${activePeriodLabel.toLowerCase()}.</p>
       </div>
     `;
 
@@ -73,8 +136,10 @@ export const DashboardPage = {
     `;
 
     const lockedCard = (message) => `
-      <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-2">
-        <span class="text-xs font-bold text-text-primary">Locked</span>
+      <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+          <i data-lucide="lock" class="w-4 h-4"></i>
+        </div>
         <p class="text-[10px] text-text-secondary max-w-[240px] leading-relaxed">${message}</p>
       </div>
     `;
@@ -261,20 +326,17 @@ export const DashboardPage = {
 
     // -- Behavioral Insights --
     let insightsHtml = '';
-    const uniqueDays = new Set(state.checkIns.map(l => l.date)).size;
     if (uniqueDays < 7) {
       const progressPct = Math.round((uniqueDays / 7) * 100);
       insightsHtml = `
         <div class="flex flex-col gap-2">
-          <div class="flex items-center gap-3 px-1">
-            <div class="flex-1 h-px bg-divider"></div>
-            <span class="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em]">Behavioral Insights</span>
-            <div class="flex-1 h-px bg-divider"></div>
-          </div>
+          ${sectionDivider('Behavioral Insights')}
           <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-3">
-            <span class="text-xs font-bold text-text-primary">Locked</span>
-            <p class="text-[10px] text-text-secondary max-w-[240px] leading-relaxed">Requires at least 7 unique days of logging history to generate behavioral patterns.</p>
-            <div class="w-full max-w-[200px] flex flex-col gap-1.5 mt-1">
+            <div class="w-9 h-9 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+              <i data-lucide="lock" class="w-4 h-4"></i>
+            </div>
+            <p class="text-[10px] text-text-secondary max-w-[240px] leading-relaxed">Log for ${7 - uniqueDays} more day${7 - uniqueDays > 1 ? 's' : ''} to unlock behavioral patterns and personalized insights.</p>
+            <div class="w-full max-w-[200px] flex flex-col gap-1.5">
               <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary">
                 <span>Progress</span>
                 <span>${uniqueDays} / 7 days</span>
@@ -315,36 +377,92 @@ export const DashboardPage = {
       }
     }
 
+    // -- Global Lock Card --
+    const requiredDays = state.dashboardWeekOffset === 1 ? 7 : 28;
+    const currentProgress = Math.min(dataMaturityDays, requiredDays);
+    const globalProgressPct = Math.round((currentProgress / requiredDays) * 100);
+    const tabLabel = state.dashboardWeekOffset === 1 ? 'first week' : '4 weeks';
+    const unlockPreview = state.dashboardWeekOffset === 1
+      ? 'Overall Consistency, Habit Focus, Category Focus, Rankings, Weekly Activity, and Behavioral Insights'
+      : '4-week rolling trends, deep consistency analysis, and long-term behavioral patterns';
+
+    const globalLockHtml = isCurrentTabLocked ? `
+      <div class="bg-surface-card border border-divider rounded-2xl p-6 shadow-sm flex flex-col items-center text-center gap-4">
+        <div class="w-10 h-10 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+          <i data-lucide="lock" class="w-4.5 h-4.5"></i>
+        </div>
+        <div class="flex flex-col gap-1.5 max-w-[260px]">
+          <span class="text-sm font-bold text-text-primary">Complete your ${tabLabel}</span>
+          <p class="text-[10px] text-text-secondary leading-relaxed">Log habits for ${requiredDays} days to unlock analytics for this view.</p>
+        </div>
+        <div class="w-full max-w-[220px] flex flex-col gap-1.5">
+          <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary">
+            <span>Progress</span>
+            <span>${currentProgress} / ${requiredDays} days</span>
+          </div>
+          <div class="w-full bg-surface-sunken h-2 rounded-full overflow-hidden border border-divider">
+            <div class="bg-accentBlue h-full rounded-full transition-all duration-500" style="width: ${globalProgressPct}%;"></div>
+          </div>
+        </div>
+        <div class="border-t border-divider w-full pt-3 mt-1">
+          <p class="text-[9px] text-text-secondary leading-relaxed opacity-50">${unlockPreview}</p>
+        </div>
+      </div>
+    ` : '';
+
+    const analyticsHtml = isCurrentTabLocked ? globalLockHtml : `
+      ${metricsHtml}
+      ${habitFocusHtml}
+      ${catFocusHtml}
+      ${insightsHtml}
+      ${rankingsHtml}
+      ${dayByDaySection}
+    `;
+
     return `
       <div id="dashboard-view" class="flex flex-col gap-6 pb-24 animate-fade-in">
         ${headerHtml}
-        ${toggleHtml}
-        ${metricsHtml}
-        ${habitFocusHtml}
-        ${catFocusHtml}
-        ${insightsHtml}
-        ${rankingsHtml}
-        ${dayByDaySection}
+        ${controlsRowHtml}
+        ${analyticsHtml}
       </div>
     `;
   },
 
-  bindEvents(state, onNavigateToInsights) {
-    const btnThisWeek = document.getElementById('toggle-this-week');
-    if (btnThisWeek) {
-      btnThisWeek.addEventListener('click', () => {
-        if (state.dashboardWeekOffset !== 0) {
-          state.dashboardWeekOffset = 0;
+  bindEvents(state, onNavigateToInsights, onNavigateToGlossary) {
+    if (window.lucide) window.lucide.createIcons();
+
+    // Dropdown toggle logic
+    const trigger = document.getElementById('timeframe-dropdown-trigger');
+    const dropdown = document.getElementById('dashboard-timeframe-dropdown');
+    
+    if (trigger && dropdown) {
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    const btnLastWeek = document.getElementById('opt-last-week');
+    if (btnLastWeek) {
+      btnLastWeek.addEventListener('click', () => {
+        if (state.dashboardWeekOffset !== 1) {
+          state.dashboardWeekOffset = 1;
           state.notify();
         }
       });
     }
 
-    const btnLastWeek = document.getElementById('toggle-last-week');
-    if (btnLastWeek) {
-      btnLastWeek.addEventListener('click', () => {
-        if (state.dashboardWeekOffset !== 1) {
-          state.dashboardWeekOffset = 1;
+    const btnThisWeek = document.getElementById('opt-this-week');
+    if (btnThisWeek) {
+      btnThisWeek.addEventListener('click', () => {
+        if (state.dashboardWeekOffset !== 0) {
+          state.dashboardWeekOffset = 0;
           state.notify();
         }
       });
@@ -359,5 +477,10 @@ export const DashboardPage = {
         }
       });
     });
+
+    const learnMoreBtn = document.getElementById('dashboard-learn-more');
+    if (learnMoreBtn && onNavigateToGlossary) {
+      learnMoreBtn.addEventListener('click', () => onNavigateToGlossary());
+    }
   }
 };

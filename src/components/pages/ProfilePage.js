@@ -101,6 +101,25 @@ export const ProfilePage = {
         <!-- Guest CTA -->
         ${guestCta}
 
+        <!-- Glossary / Know More -->
+        <div class="flex flex-col gap-1.5 px-2 animate-fade-up delay-3">
+          <span class="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em]">Resources</span>
+          <button
+            type="button"
+            id="profile-glossary-btn"
+            class="w-full text-left p-4 border border-divider bg-surface-card rounded-2xl shadow-sm hover:shadow-md transition-all group flex items-center gap-3"
+          >
+            <div class="w-9 h-9 rounded-xl bg-surface-sunken text-text-primary border border-divider flex items-center justify-center flex-shrink-0">
+              <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-bold text-text-primary">How It All Works</p>
+              <p class="text-[11px] text-text-secondary">Read the glossary and tracking concepts.</p>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-text-secondary group-hover:translate-x-0.5 transition-transform"></i>
+          </button>
+        </div>
+
         <!-- Sign Out -->
         <div class="flex flex-col gap-1.5 px-2 mt-2 animate-fade-up delay-4">
           <button
@@ -128,6 +147,13 @@ export const ProfilePage = {
     if (signupBtn) {
       signupBtn.addEventListener('click', () => {
         onNavigate('auth');
+      });
+    }
+
+    const glossaryBtn = document.getElementById('profile-glossary-btn');
+    if (glossaryBtn) {
+      glossaryBtn.addEventListener('click', () => {
+        onNavigate('glossary');
       });
     }
 

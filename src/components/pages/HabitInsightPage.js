@@ -427,30 +427,22 @@ export const HabitInsightPage = {
         } else {
           // Fallback locked placeholder when validValues length is insufficient
           valueChartHtml = `
-            <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
-              <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-              <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary mb-2">
-                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+                <i data-lucide="lock" class="w-4 h-4"></i>
               </div>
-              <span class="text-xs font-bold text-text-primary">Value Trend Locked</span>
-              <span class="text-[10px] text-text-secondary mt-1 max-w-[220px] leading-relaxed">
-                Log at least 1 check-in with a metric value to see your progress chart.
-              </span>
+              <p class="text-[10px] text-text-secondary max-w-[220px] leading-relaxed">Log at least 1 check-in with a metric value to see your progress chart.</p>
             </div>
           `;
         }
       } else {
         // Fallback locked placeholder when validLogs length is insufficient
         valueChartHtml = `
-          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
-            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary mb-2">
-              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+          <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+              <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
-            <span class="text-xs font-bold text-text-primary">Value Trend Locked</span>
-            <span class="text-[10px] text-text-secondary mt-1 max-w-[220px] leading-relaxed">
-              Log at least 1 check-in with a metric value to see your progress chart.
-            </span>
+            <p class="text-[10px] text-text-secondary max-w-[220px] leading-relaxed">Log at least 1 check-in with a metric value to see your progress chart.</p>
           </div>
         `;
       }
@@ -489,15 +481,11 @@ export const HabitInsightPage = {
       } else {
         // Fallback locked placeholder when tags are configured but not logged yet
         tagsBreakdownHtml = `
-          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 text-center flex flex-col items-center justify-center min-h-[140px] shadow-sm">
-            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            <div class="w-8 h-8 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary mb-2">
-              <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+          <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+              <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
-            <span class="text-xs font-bold text-text-primary">Tag Distribution Locked</span>
-            <span class="text-[10px] text-text-secondary mt-1 max-w-[220px] leading-relaxed">
-              Log at least 1 check-in with tags selected to unlock your tag breakdown.
-            </span>
+            <p class="text-[10px] text-text-secondary max-w-[220px] leading-relaxed">Log at least 1 check-in with tags selected to unlock your tag breakdown.</p>
           </div>
         `;
       }
@@ -578,25 +566,19 @@ export const HabitInsightPage = {
       habitBehavioralHtml = `
         <div class="flex flex-col gap-2.5">
           <h3 class="text-label-muted">Behavioral Insights</h3>
-          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
-            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            
-            <div class="w-10 h-10 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
+          <div class="bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col items-center text-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
               <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
-            
-            <div class="flex flex-col gap-1">
-              <span class="text-xs font-bold text-text-primary">Insights Locked</span>
-              <span class="text-[10px] text-text-secondary max-w-[200px] leading-relaxed">
-                Log for ${7 - uniqueDays} more day${7 - uniqueDays > 1 ? 's' : ''} to unlock personalized bounce-back strategies and keystone habit links.
-              </span>
-            </div>
-
-            <div class="w-full mt-2">
-              <div class="w-full bg-surface-sunken rounded-full h-1.5 overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500 ease-out" style="background-color: ${themeHex}; width: ${progressPct}%"></div>
+            <p class="text-[10px] text-text-secondary max-w-[220px] leading-relaxed">Log for ${7 - uniqueDays} more day${7 - uniqueDays > 1 ? 's' : ''} to unlock bounce-back strategies and keystone habit links.</p>
+            <div class="w-full max-w-[200px] flex flex-col gap-1.5">
+              <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary">
+                <span>Progress</span>
+                <span>${uniqueDays} / 7 days</span>
               </div>
-              <span class="text-[9px] font-bold text-text-secondary mt-2 block uppercase tracking-wider">${progressPct}% Data Gathered</span>
+              <div class="w-full bg-surface-sunken h-1.5 rounded-full overflow-hidden border border-divider">
+                <div class="h-full rounded-full transition-all duration-500" style="background-color: ${themeHex}; width: ${progressPct}%;"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -907,44 +889,25 @@ export const HabitInsightPage = {
           ${thisWeekCardHtml}
 
           <!-- Lock Card -->
-          <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 pt-6 shadow-sm flex flex-col items-center text-center gap-4">
-            <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-            
+          <div class="bg-surface-card border border-divider rounded-2xl p-6 shadow-sm flex flex-col items-center text-center gap-4">
             <div class="w-10 h-10 rounded-full bg-surface-sunken border border-divider flex items-center justify-center text-text-secondary">
-              <i data-lucide="lock" class="w-4 h-4"></i>
+              <i data-lucide="lock" class="w-4.5 h-4.5"></i>
             </div>
-            
-            <div class="flex flex-col gap-1.5 max-w-[240px]">
-              <span class="text-xs font-bold text-text-primary">Insights Gathering...</span>
-              <p class="text-[10px] text-text-secondary leading-normal">We need at least 7 days of age on this habit to generate meaningful trends, heatmaps, and behavioral analysis.</p>
+            <div class="flex flex-col gap-1.5 max-w-[260px]">
+              <span class="text-sm font-bold text-text-primary">Complete your first week</span>
+              <p class="text-[10px] text-text-secondary leading-relaxed">Log this habit for 7 days to unlock trends, heatmaps, and behavioral analysis.</p>
             </div>
-
-            <!-- Progress Bar -->
-            <div class="w-full max-w-[200px] flex flex-col gap-1 mt-1">
-              <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary uppercase">
+            <div class="w-full max-w-[220px] flex flex-col gap-1.5">
+              <div class="flex justify-between items-center text-[9px] font-bold text-text-secondary">
                 <span>Progress</span>
-                <span>${progressDays} / 7 Days</span>
+                <span>${progressDays} / 7 days</span>
               </div>
-              <div class="w-full bg-surface-sunken h-2 rounded-full overflow-hidden">
+              <div class="w-full bg-surface-sunken h-2 rounded-full overflow-hidden border border-divider">
                 <div class="h-full rounded-full transition-all duration-500" style="background-color: ${themeHex}; width: ${progressPct}%;"></div>
               </div>
             </div>
-
-            <!-- Preview list -->
-            <div class="border-t border-divider w-full mt-2 pt-3 flex flex-col gap-2 text-left opacity-35 select-none pointer-events-none">
-              <span class="text-[8px] font-bold text-text-secondary uppercase tracking-wider">Unlocks:</span>
-              <div class="flex items-center gap-2 text-[10px] text-text-secondary">
-                <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
-                <span>Weekly Consistency Trends</span>
-              </div>
-              <div class="flex items-center gap-2 text-[10px] text-text-secondary">
-                <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
-                <span>Activity Heatmap</span>
-              </div>
-              <div class="flex items-center gap-2 text-[10px] text-text-secondary">
-                <i data-lucide="brain" class="w-3.5 h-3.5"></i>
-                <span>Behavioral Analysis</span>
-              </div>
+            <div class="border-t border-divider w-full pt-3 mt-1">
+              <p class="text-[9px] text-text-secondary leading-relaxed opacity-50">Weekly Consistency Trends, Activity Heatmap, and Behavioral Analysis</p>
             </div>
           </div>
 
@@ -1043,11 +1006,19 @@ export const HabitInsightPage = {
         <!-- Manage Habit Actions Group Card -->
         ${manageHabitCardHtml}
 
+        <!-- Learn More -->
+        <div class="flex justify-center">
+          <button id="insight-learn-more" class="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary hover:text-text-primary transition-colors px-3 py-2 rounded-xl hover:bg-surface-sunken">
+            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+            <span>Learn more about these insights</span>
+          </button>
+        </div>
+
       </div>
     `;
   },
 
-  bindEvents(state) {
+  bindEvents(state, onNavigateToGlossary) {
     // Window-level handlers for month switching
     window.HabitInsightPagePrevMonth = () => {
       HabitInsightPage.viewedMonthOffset = (HabitInsightPage.viewedMonthOffset || 0) - 1;
@@ -1212,6 +1183,11 @@ export const HabitInsightPage = {
         HabitInsightPage.editorType = isChecked ? 'number' : 'checkbox';
         editMetricFields.classList.toggle('hidden', !isChecked);
       });
+    }
+
+    const learnMoreBtn = document.getElementById('insight-learn-more');
+    if (learnMoreBtn && onNavigateToGlossary) {
+      learnMoreBtn.addEventListener('click', () => onNavigateToGlossary());
     }
 
     // Initialize Chart.js graph if the element exists

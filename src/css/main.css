@@ -50,7 +50,7 @@ html.dark {
   --text-secondary: #94a3b8;
   --border-subtle: #334155;
   
-  --accentBlue: #475569;    /* Light text for high contrast on dark */
+  --accentBlue: #cbd5e1;    /* High contrast fill for dark mode charts */
 
   /* Slightly deeper pastel tones for premium readability on dark backgrounds */
   --pastelMint: #065f46;

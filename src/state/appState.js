@@ -11,7 +11,7 @@ class AppState {
     
     // Default selected date is today (YYYY-MM-DD local format)
     this.selectedDate = this.formatDate(new Date());
-    this.dashboardWeekOffset = 0; // 0 = This Week, 1 = Last Week
+    this.dashboardWeekOffset = 1; // 1 = Last Week (default), 0 = Trailing 4 Weeks
     
     // Listeners for reactive UI rendering
     this.listeners = [];

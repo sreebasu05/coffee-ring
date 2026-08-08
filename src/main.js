@@ -165,10 +165,10 @@ class AppController {
       });
     } else if (this.currentTab === 'dashboard') {
       root.innerHTML = DashboardPage.render(appState);
-      DashboardPage.bindEvents(appState, routeToInsights);
+      DashboardPage.bindEvents(appState, routeToInsights, () => this.navigate('glossary'));
     } else if (this.currentTab === 'habit-insight') {
       root.innerHTML = HabitInsightPage.render(appState);
-      HabitInsightPage.bindEvents(appState);
+      HabitInsightPage.bindEvents(appState, () => this.navigate('glossary'));
     } else if (this.currentTab === 'glossary') {
       root.innerHTML = GlossaryPage.render();
       GlossaryPage.bindEvents();
