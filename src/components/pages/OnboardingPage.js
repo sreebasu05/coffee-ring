@@ -91,60 +91,63 @@ export const OnboardingPage = {
 
   renderStep1() {
     return `
-      <div id="onboarding-page" class="flex flex-col justify-between min-h-[80vh] px-4 py-8 animate-fade-in text-text-primary">
-        <div class="flex flex-col items-center text-center mt-8 gap-4">
-          <div class="w-16 h-16 rounded-3xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
-            <i data-lucide="target" class="w-8 h-8"></i>
+      <div id="onboarding-page" class="flex flex-col justify-between min-h-[85vh] max-w-sm mx-auto px-3 py-6 animate-fade-in text-text-primary">
+        <!-- Hero Header -->
+        <div class="flex flex-col items-center text-center mt-6 gap-3.5">
+          <div class="w-14 h-14 rounded-2xl bg-surface-card border border-divider flex items-center justify-center shadow-sm text-text-primary">
+            <i data-lucide="target" class="w-7 h-7"></i>
           </div>
-          <div class="flex flex-col gap-1.5 mt-2">
+          <div class="flex flex-col gap-1">
             <h1 class="text-2xl font-bold tracking-tight text-text-primary leading-tight">coffee ring</h1>
-            <p class="text-xs font-semibold text-text-secondary uppercase tracking-widest">Atomic Habit Builder</p>
+            <p class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Atomic Habit Builder</p>
           </div>
         </div>
 
-        <div class="flex flex-col gap-3.5 my-8 max-w-sm mx-auto w-full">
-          <div class="flex items-start gap-4 p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
-              <i data-lucide="zap" class="w-5 h-5"></i>
+        <!-- Feature Cards -->
+        <div class="flex flex-col gap-3 my-6 w-full">
+          <div class="flex items-start gap-3.5 p-4 bg-surface-card border border-divider rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="zap" class="w-4.5 h-4.5"></i>
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-xs font-bold text-text-primary">Build Identity Routines</span>
-              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Protect streaks, calculate bounce-backs, and build consistency.</span>
+              <span class="text-[11px] text-text-secondary font-medium leading-relaxed">Protect streaks, calculate bounce-backs, and build lasting consistency.</span>
             </div>
           </div>
 
-          <div class="flex items-start gap-4 p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 flex-shrink-0">
-              <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+          <div class="flex items-start gap-3.5 p-4 bg-surface-card border border-divider rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="refresh-cw" class="w-4.5 h-4.5"></i>
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-xs font-bold text-text-primary">Bounce-Back Strategy</span>
-              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Focus on "Never Miss Twice" psychology to recover routinely.</span>
+              <span class="text-[11px] text-text-secondary font-medium leading-relaxed">Focus on "Never Miss Twice" psychology to recover seamlessly.</span>
             </div>
           </div>
 
-          <div class="flex items-start gap-4 p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 flex-shrink-0">
-              <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+          <div class="flex items-start gap-3.5 p-4 bg-surface-card border border-divider rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
+              <i data-lucide="bar-chart-2" class="w-4.5 h-4.5"></i>
             </div>
             <div class="flex flex-col gap-0.5">
               <span class="text-xs font-bold text-text-primary">Behavior Analytics</span>
-              <span class="text-[10px] text-text-secondary font-medium leading-relaxed">Unlock detailed metrics, weekend performance slumps, and triggers.</span>
+              <span class="text-[11px] text-text-secondary font-medium leading-relaxed">Unlock metric trends, weekend performance slumps, and key triggers.</span>
             </div>
           </div>
         </div>
 
-        <div class="flex flex-col gap-3 max-w-sm mx-auto w-full">
+        <!-- Action Buttons -->
+        <div class="flex flex-col gap-3 w-full">
           <button 
             type="button"
             onclick="window.OnboardingGoToStep(2)"
-            class="w-full py-4 bg-slate-900 hover:bg-slate-850 active:scale-98 text-white rounded-2xl font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2"
+            class="w-full py-3.5 bg-text-primary text-surface-card hover:opacity-90 active:scale-98 rounded-xl font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2"
           >
             <span>Get Started</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
-          <div class="text-center mt-2">
-            <button id="onboarding-login-btn" class="text-xs text-text-secondary hover:text-text-primary underline">Already have an account? Sign In</button>
+          <div class="text-center">
+            <button id="onboarding-login-btn" class="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors underline">Already have an account? Sign In</button>
           </div>
         </div>
       </div>
