@@ -71,7 +71,7 @@ export const HabitCard = {
     const log = state.getLogForHabit(habit.id);
     
     // Completion Logic
-    let isCompleted = log !== null;
+    let isCompleted = log !== null && log.completed !== false;
 
     const isExpanded = this.expandedHabitId === habit.id;
     
@@ -136,11 +136,12 @@ export const HabitCard = {
       const isChecked = selectedTags.includes(tag);
       return `
         <button 
+          type="button"
           data-tag="${tag}" 
           class="inline-tag-chip px-2.5 py-1 rounded-full text-xs transition-all border ${
             isChecked 
-              ? 'bg-accentBlue text-white border-transparent' 
-              : 'bg-slate-55 border-divider text-text-secondary hover:bg-surface-sunken'
+              ? 'bg-accentBlue text-white border-transparent font-bold shadow-xs' 
+              : 'bg-surface-sunken border-divider text-text-secondary hover:bg-surface-card hover:text-text-primary'
           }"
         >
           ${tag}
@@ -276,6 +277,22 @@ export const HabitCard = {
       const inlineInput = card.querySelector('.tag-inline-input');
       const inlineConfirmBtn = card.querySelector('.tag-inline-confirm-btn');
 
+      const getExistingValue = () => {
+        const numInput = card.querySelector('.card-numeric-input');
+        if (numInput && numInput.value.trim() !== '') {
+          const parsed = parseFloat(numInput.value.trim());
+          if (!isNaN(parsed)) return parsed;
+        }
+        const log = state.getLogForHabit(habitId);
+        if (log && log.value !== null && log.value !== undefined) {
+          return log.value;
+        }
+        if (habit.type === 'number') {
+          return (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : 1;
+        }
+        return 1;
+      };
+
       // Tapping card header toggles expansion
       cardHeader.addEventListener('click', (e) => {
         if (e.target.closest('.habit-check-btn')) return;
@@ -286,20 +303,27 @@ export const HabitCard = {
       // Tapping checkbox toggles state
       checkBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const log = state.getLogForHabit(habitId);
+        const currentLog = state.getLogForHabit(habitId);
+        const currentlyCompleted = currentLog !== null && currentLog.completed !== false;
 
         checkBtn.classList.add('active-pulse');
         setTimeout(() => checkBtn.classList.remove('active-pulse'), 150);
 
-        if (log) {
-          state.removeCheckIn(habitId);
+        if (currentlyCompleted) {
+          // Unticking: mark completed = false, keep metric/note if present
+          if (currentLog) {
+            const hasOtherData = (currentLog.value !== null && currentLog.value !== undefined) || (currentLog.tags && currentLog.tags.length > 0) || (currentLog.note && currentLog.note.trim() !== "");
+            if (!hasOtherData) {
+              state.removeCheckIn(habitId);
+            } else {
+              state.logCheckIn(habitId, currentLog.value, currentLog.tags || [], currentLog.note || "", false);
+            }
+          }
           if (this.expandedHabitId === habitId) this.expandedHabitId = null;
         } else {
-          if (habit.type === 'number') {
-            state.logCheckIn(habitId, null, [], "");
-          } else {
-            state.logCheckIn(habitId, 1, [], "");
-          }
+          // Ticking: mark completed = true
+          const val = getExistingValue();
+          state.logCheckIn(habitId, val, currentLog?.tags || [], currentLog?.note || "", true);
           this.expandedHabitId = habitId;
         }
         state.notify();
@@ -309,12 +333,15 @@ export const HabitCard = {
       card.querySelectorAll('.inline-tag-chip').forEach(chip => {
         chip.addEventListener('click', (e) => {
           e.stopPropagation();
+          this.expandedHabitId = habitId;
           const tag = chip.dataset.tag;
-          const log = state.getLogForHabit(habitId) || { tags: [], note: "" };
-          let updatedTags = [...(log.tags || [])];
+          const log = state.getLogForHabit(habitId);
+          let updatedTags = log && log.tags ? [...log.tags] : [];
           if (updatedTags.includes(tag)) updatedTags = updatedTags.filter(t => t !== tag);
           else updatedTags.push(tag);
-          state.logCheckIn(habitId, log.value || 1, updatedTags, log.note || "");
+          const val = getExistingValue();
+          const isComp = log ? (log.completed !== false) : false;
+          state.logCheckIn(habitId, val, updatedTags, log?.note || "", isComp);
         });
       });
 
@@ -335,10 +362,13 @@ export const HabitCard = {
             habit.tags.push(text);
             state.saveHabit(habit);
           }
-          const log = state.getLogForHabit(habitId) || { tags: [], note: "" };
-          const updatedTags = [...(log.tags || [])];
+          const log = state.getLogForHabit(habitId);
+          const updatedTags = log && log.tags ? [...log.tags] : [];
           if (!updatedTags.includes(text)) updatedTags.push(text);
-          state.logCheckIn(habitId, log.value || 1, updatedTags, log.note || "");
+          const val = getExistingValue();
+          this.expandedHabitId = habitId;
+          const isComp = log ? (log.completed !== false) : false;
+          state.logCheckIn(habitId, val, updatedTags, log?.note || "", isComp);
         }
         inlineInput.value = "";
         tagInputBar.classList.add('hidden');
@@ -354,19 +384,39 @@ export const HabitCard = {
         });
       }
 
-      // Auto-saving numeric values on blur
+      // Auto-saving numeric values immediately without affecting tick status
       const numInput = card.querySelector('.card-numeric-input');
       if (numInput) {
-        numInput.addEventListener('blur', () => {
-          const val = parseFloat(numInput.value);
-          const log = state.getLogForHabit(habitId) || { tags: [], note: "" };
-          if (!isNaN(val)) {
-            state.logCheckIn(habitId, val, log.tags || [], log.note || "");
+        const saveNumValue = () => {
+          const raw = numInput.value.trim();
+          const log = state.getLogForHabit(habitId);
+          const isComp = log ? (log.completed !== false) : false; // Typing a number DOES NOT tick the habit!
+          
+          if (raw !== '') {
+            const val = parseFloat(raw);
+            if (!isNaN(val)) {
+              state.logCheckIn(habitId, val, log?.tags || [], log?.note || "", isComp);
+            }
           } else {
-            state.logCheckIn(habitId, null, log.tags || [], log.note || "");
+            // Clearing the input: set value = null, preserve current tick/completed status!
+            if (!isComp && (!log?.tags || log.tags.length === 0) && (!log?.note || log.note.trim() === '')) {
+              state.removeCheckIn(habitId);
+            } else {
+              state.logCheckIn(habitId, null, log?.tags || [], log?.note || "", isComp);
+            }
           }
+        };
+
+        numInput.addEventListener('input', saveNumValue);
+        numInput.addEventListener('change', saveNumValue);
+        numInput.addEventListener('blur', saveNumValue);
+        numInput.addEventListener('keydown', (e) => { 
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            saveNumValue();
+            numInput.blur();
+          } 
         });
-        numInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') numInput.blur(); });
       }
 
       // Auto-saving notes on blur
@@ -374,8 +424,10 @@ export const HabitCard = {
       if (textarea) {
         textarea.addEventListener('blur', () => {
           const text = textarea.value.trim();
-          const log = state.getLogForHabit(habitId) || { tags: [], value: 1 };
-          state.logCheckIn(habitId, log.value || 1, log.tags || [], text);
+          const log = state.getLogForHabit(habitId);
+          const val = getExistingValue();
+          const isComp = log ? (log.completed !== false) : false;
+          state.logCheckIn(habitId, val, log?.tags || [], text, isComp);
         });
       }
 

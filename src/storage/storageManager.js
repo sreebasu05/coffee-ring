@@ -381,7 +381,13 @@ export const StorageManager = {
     const index = logs.findIndex(log => log.habitId === checkIn.habitId && log.date === checkIn.date);
     
     if (index >= 0) {
-      logs[index] = { ...logs[index], ...checkIn };
+      const existing = logs[index];
+      const val = checkIn.value !== undefined ? checkIn.value : existing.value;
+      logs[index] = { 
+        ...existing, 
+        ...checkIn,
+        value: val
+      };
     } else {
       logs.push(checkIn);
     }

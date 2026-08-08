@@ -141,14 +141,21 @@ class AppState {
     });
   }
 
-  logCheckIn(habitId, value, tags = [], note = "") {
+  logCheckIn(habitId, value, tags = [], note = "", completed = null) {
+    const existing = this.getLogForHabit(habitId);
+    let isCompleted = existing ? (existing.completed !== false) : true;
+    if (typeof completed === 'boolean') {
+      isCompleted = completed;
+    }
+
     const checkIn = {
-      id: `log_${Date.now()}`,
+      id: existing ? existing.id : `log_${Date.now()}`,
       habitId,
       date: this.selectedDate,
       value,
       tags,
       note,
+      completed: isCompleted,
       timestamp: Date.now()
     };
     this.checkIns = StorageManager.saveCheckIn(checkIn);
@@ -167,6 +174,11 @@ class AppState {
     return this.checkIns.find(log => log.habitId === habitId && log.date === dateStr) || null;
   }
 
+  isHabitCompleted(habitId, dateStr = this.selectedDate) {
+    const log = this.getLogForHabitOnDate(habitId, dateStr);
+    return log !== null && log.completed !== false;
+  }
+
   getWeeklyCount(habitId) {
     const current = new Date(this.getDashboardDate());
     const startOfWeek = new Date(current.setDate(current.getDate() - current.getDay() + (current.getDay() === 0 ? -6 : 1))); // Monday
@@ -174,6 +186,7 @@ class AppState {
 
     return this.checkIns.filter(log => {
       if (log.habitId !== habitId) return false;
+      if (log.completed === false) return false;
       const logTime = new Date(log.date).getTime();
       return logTime >= startOfWeek.getTime();
     }).length;
@@ -561,7 +574,7 @@ class AppState {
     const todayStr = this.formatDate(new Date());
     const scheduledHabits = this.habits.filter(h => this.isHabitScheduledForDate(h.id, todayStr) && !this.isDatePaused(h, todayStr));
     if (scheduledHabits.length === 0) return 100;
-    const completedToday = scheduledHabits.filter(h => this.getLogForHabitOnDate(h.id, todayStr) !== null).length;
+    const completedToday = scheduledHabits.filter(h => this.isHabitCompleted(h.id, todayStr)).length;
     return Math.round((completedToday / scheduledHabits.length) * 100);
   }
 
@@ -749,14 +762,28 @@ class AppState {
     const max = Math.max(...values);
 
     const now = this.getDashboardDate();
-    const cutoff7 = new Date(now); cutoff7.setDate(now.getDate() - 7);
-    const cutoff30 = new Date(now); cutoff30.setDate(now.getDate() - 30);
+    const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const msPerDay = 86400000;
 
-    const logs7 = logs.filter(l => new Date(l.date).getTime() >= cutoff7.getTime());
-    const logs30 = logs.filter(l => new Date(l.date).getTime() >= cutoff30.getTime());
+    const parseDateStr = (dateStr) => {
+      if (!dateStr) return 0;
+      const parts = dateStr.split('-').map(Number);
+      return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+    };
+
+    const logsWithAge = logs.map(l => {
+      const logTime = parseDateStr(l.date);
+      const diffDays = Math.floor((todayMidnight - logTime) / msPerDay);
+      return { ...l, diffDays };
+    });
+
+    const logs7 = logsWithAge.filter(l => l.diffDays >= 0 && l.diffDays < 7);
+    const logs30 = logsWithAge.filter(l => l.diffDays >= 0 && l.diffDays < 30);
+    const prev7Logs = logsWithAge.filter(l => l.diffDays >= 7 && l.diffDays < 14);
 
     const avg7 = logs7.length ? Math.round(logs7.reduce((sum, l) => sum + l.value, 0) / logs7.length) : 0;
     const avg30 = logs30.length ? Math.round(logs30.reduce((sum, l) => sum + l.value, 0) / logs30.length) : 0;
+    const prev7Avg = prev7Logs.length ? Math.round(prev7Logs.reduce((sum, l) => sum + l.value, 0) / prev7Logs.length) : 0;
 
     const habit = this.habits.find(h => h.id === habitId);
     let onTargetCount = 0;
@@ -772,18 +799,13 @@ class AppState {
     }
     const onTargetRate = Math.round((onTargetCount / logs.length) * 100);
 
-    const cutoff14 = new Date(now); cutoff14.setDate(now.getDate() - 14);
-    const prev7Logs = logs.filter(l => {
-      const t = new Date(l.date).getTime();
-      return t >= cutoff14.getTime() && t < cutoff7.getTime();
-    });
-    const prev7Avg = prev7Logs.length ? Math.round(prev7Logs.reduce((sum, l) => sum + l.value, 0) / prev7Logs.length) : 0;
-
     let trend = 'Stable';
     if (prev7Avg > 0) {
       const diffPct = ((avg7 - prev7Avg) / prev7Avg) * 100;
       if (diffPct > 5) trend = 'Trending Up';
       else if (diffPct < -5) trend = 'Trending Down';
+    } else if (avg7 > 0 && prev7Logs.length === 0) {
+      trend = 'Trending Up';
     }
 
     return { avg7, avg30, min, max, onTargetRate, trend };

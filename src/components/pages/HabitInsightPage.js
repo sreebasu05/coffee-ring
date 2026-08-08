@@ -372,7 +372,8 @@ export const HabitInsightPage = {
         if (validValues.length >= 1) {
           // Prepare labels and clean data arrays
           const labels = dataPoints.map(p => {
-            return new Date(p.date).toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            const [y, m, d] = p.date.split('-').map(Number);
+            return new Date(y, m - 1, d).toLocaleDateString('default', { month: 'short', day: 'numeric' });
           });
           const values = dataPoints.map(p => p.value);
 
@@ -1197,15 +1198,15 @@ export const HabitInsightPage = {
         label: `Logged (${cfg.unit})`,
         data: cfg.values,
         borderColor: cfg.themeHex,
-        borderWidth: 2,
-        tension: 0.45,
+        borderWidth: 2.5,
+        tension: 0.35,
         fill: true,
         backgroundColor: gradient,
-        pointRadius: 0,
-        pointHoverRadius: 5,
+        pointRadius: 4,
+        pointHoverRadius: 6,
         pointBackgroundColor: cfg.themeHex,
         pointBorderColor: '#ffffff',
-        pointBorderWidth: 1.5,
+        pointBorderWidth: 2,
         spanGaps: true
       }];
 

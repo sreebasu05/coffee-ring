@@ -75,10 +75,7 @@ export const Greeting = {
     }).join('');
 
     const totalHabits = state.habits.length;
-    const completedToday = state.habits.filter(h => {
-      const log = state.getLogForHabit(h.id);
-      return log !== null;
-    }).length;
+    const completedToday = state.habits.filter(h => state.isHabitCompleted(h.id)).length;
 
     const progressPercentage = totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0;
 
