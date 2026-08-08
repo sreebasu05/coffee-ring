@@ -11,38 +11,19 @@ export const GridCard = {
     const categoryMeta = APP_CONFIG.categories.find(cat => cat.id === category);
     const colorKey = categoryMeta ? categoryMeta.defaultColor : null;
     
-    const colorHexMap = {
-      pastelMint: '#10b981',
-      pastelAmber: '#f59e0b',
-      pastelSky: '#0ea5e9',
-      pastelRose: '#f43f5e',
-      pastelLavender: '#8b5cf6',
-      pastelPink: '#ec4899'
-    };
-    
-    // Custom blank card category defaults to dark slate theme
-    const themeHex = category === 'blank'
-      ? '#0f172a'
-      : (colorHexMap[colorKey] || '#64748b');
-      
+    const isCustom = category === 'blank' || id === 'custom';
+    const themeHex = isCustom ? '#64748b' : APP_CONFIG.getHexColor(colorKey, '#64748b');
+
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
     const iconName = (!icon || isEmoji(icon)) ? 'target' : icon;
 
-    // Determine if we should show the color theme (alwaysColor or selected state)
     const showColor = isSelected || alwaysColor;
-
-    // Selections styling overrides
     const activeTopBorderBg = showColor ? themeHex : '#e2e8f0';
-    const activeIconClass = showColor ? '' : 'text-text-secondary';
-    const activeIconStyle = showColor ? `style="color: ${themeHex};"` : '';
-    
-    const activeLabelClass = showColor ? '' : 'text-text-secondary';
-    const activeLabelStyle = showColor ? `style="color: ${themeHex};"` : '';
-    
+
     const cardSelectedClasses = isSelected
-      ? 'border-transparent bg-surface-sunken/50 scale-98 shadow-sm' 
+      ? 'border-transparent bg-surface-sunken/50 scale-98 shadow-sm'
       : 'border-divider bg-surface-card hover:-translate-y-0.5 hover:shadow-md shadow-sm';
-      
+
     const cardSelectedStyle = isSelected
       ? `border-color: ${themeHex}; box-shadow: 0 0 0 1px ${themeHex};`
       : '';
@@ -51,14 +32,14 @@ export const GridCard = {
       <button 
         type="button"
         ${actionAttr}
-        class="group onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-6 pb-4 px-3 rounded-2xl border transition-all duration-300 ${cardSelectedClasses} min-h-[105px] justify-between"
+        class="group onboarding-preset-card relative overflow-hidden flex flex-col items-center pt-6 pb-4 px-3 rounded-xl border transition-all duration-300 ${cardSelectedClasses} min-h-[105px] justify-between"
         style="${cardSelectedStyle}"
       >
-        <!-- Full-Width Top Accent Color Line -->
+        <!-- Top Horizontal Accent Line -->
         <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${activeTopBorderBg};"></div>
         
-        <i data-lucide="${iconName}" class="w-5 h-5 mb-1.5 transition-transform duration-300 group-hover:scale-110 ${activeIconClass}" ${activeIconStyle}></i>
-        <span class="text-[8px] font-extrabold tracking-widest uppercase ${activeLabelClass}" ${activeLabelStyle}>${category === 'blank' ? 'Custom' : category}</span>
+        <i data-lucide="${iconName}" class="w-5 h-5 mb-1.5 transition-transform duration-300 group-hover:scale-110" style="color: ${themeHex};"></i>
+        <span class="text-[8px] font-extrabold tracking-widest uppercase text-text-secondary" style="color: ${themeHex};">${isCustom ? 'Custom' : category}</span>
         <span class="text-xs font-bold text-text-primary line-clamp-2 text-center leading-tight w-full mt-1">${name}</span>
         ${subtitleHtml ? subtitleHtml : `<span class="text-[10px] text-text-secondary mt-0.5 uppercase tracking-wider opacity-0 h-0 overflow-hidden">${category}</span>`}
       </button>

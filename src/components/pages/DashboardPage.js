@@ -61,15 +61,15 @@ export const DashboardPage = {
         </div>
 
         <div class="flex gap-3">
-          <div class="flex-1 bg-surface-card border border-divider rounded-2xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <div class="flex-1 bg-surface-card border border-divider/80 rounded-2xl p-4 flex flex-col gap-1 shadow-sm relative overflow-hidden">
             <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest">Today</span>
-            <span class="text-2xl font-black text-indigo-500 dark:text-indigo-400">${todayPct}<span class="text-base font-bold">%</span></span>
-            <span class="text-[10px] text-text-secondary">real-time</span>
+            <span class="text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">${todayPct}<span class="text-lg font-bold text-text-secondary">%</span></span>
+            <span class="text-[10px] text-text-secondary">real-time completion</span>
           </div>
-          <div class="flex-1 bg-surface-card border border-divider rounded-2xl p-3.5 flex flex-col gap-1 shadow-sm">
+          <div class="flex-1 bg-surface-card border border-divider/80 rounded-2xl p-4 flex flex-col gap-1 shadow-sm relative overflow-hidden">
             <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest">On Track</span>
-            <span class="text-2xl font-black text-amber-500 dark:text-amber-400">${onTrackCount}<span class="text-base font-bold text-text-secondary">/${totalHabits}</span></span>
-            <span class="text-[10px] text-text-secondary">can meet goal this week</span>
+            <span class="text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">${onTrackCount}<span class="text-lg font-bold text-text-secondary">/${totalHabits}</span></span>
+            <span class="text-[10px] text-text-secondary">meeting weekly targets</span>
           </div>
         </div>
       </div>
@@ -77,52 +77,50 @@ export const DashboardPage = {
 
     // -- Subheading & Timeframe Dropdown Row --
     const controlsRowHtml = `
-      <div class="flex flex-col gap-1.5 px-1 mt-1">
+      <div class="flex flex-col gap-1 px-1 mt-1">
         <!-- Subheading with tiny chevron trigger like homepage -->
-        <div class="flex items-center justify-between">
-          <div class="relative inline-block select-none">
-            <button 
-              id="timeframe-dropdown-trigger" 
-              class="flex items-center gap-1.5 text-label-muted hover:text-text-primary dark:hover:text-slate-200 transition-colors uppercase tracking-widest text-[10px] font-extrabold"
-            >
-              <span>${activePeriodLabel.toUpperCase()} ANALYSIS</span>
-              <i data-lucide="chevron-down" class="w-3 h-3 text-text-secondary"></i>
-            </button>
-            
-            <div 
-              id="dashboard-timeframe-dropdown" 
-              class="hidden absolute left-0 mt-2 bg-surface-card border border-divider rounded-2xl shadow-xl overflow-hidden w-44 z-50 animate-fade-in normal-case tracking-normal"
-            >
-              ${timeframeDropdownOptions}
-            </div>
+        <div class="relative inline-block select-none w-fit">
+          <button 
+            id="timeframe-dropdown-trigger" 
+            class="flex items-center gap-1.5 text-text-primary hover:opacity-80 transition-colors uppercase tracking-widest text-[11px] font-extrabold"
+          >
+            <span>${activePeriodLabel.toUpperCase()} ANALYSIS</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-text-secondary"></i>
+          </button>
+          
+          <div 
+            id="dashboard-timeframe-dropdown" 
+            class="hidden absolute left-0 mt-2 bg-surface-card border border-divider/80 rounded-2xl shadow-xl overflow-hidden w-48 z-50 animate-fade-in normal-case tracking-normal"
+          >
+            ${timeframeDropdownOptions}
           </div>
+        </div>
 
-          <!-- Glossary link -->
-          <button id="dashboard-learn-more" class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
-            <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+        <!-- Metric links as subtext -->
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <button id="dashboard-learn-more" class="inline-flex items-center gap-1 text-[10px] text-text-secondary hover:text-text-primary transition-colors underline decoration-divider underline-offset-2">
+            <i data-lucide="info" class="w-3 h-3"></i>
             <span>What do these metrics mean?</span>
           </button>
         </div>
-        <p class="text-[10px] text-text-secondary">Overall habit performance over ${activePeriodLabel.toLowerCase()}.</p>
       </div>
     `;
 
     const metricsHtml = `
       <div class="flex flex-col gap-3">
-        <div class="bg-surface-card border border-divider rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+        <div class="bg-surface-card border border-divider/80 rounded-2xl p-4.5 shadow-sm flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <div class="flex flex-col gap-0.5">
               <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest">Overall Consistency</span>
-              <span class="text-[10px] text-violet-500 dark:text-violet-400 font-bold">${consistencyLabel}</span>
+              <span class="text-[11px] text-text-primary font-bold">${consistencyLabel}</span>
             </div>
             <span class="text-3xl font-black text-text-primary tabular-nums">${overallConsistency}<span class="text-lg font-bold text-text-secondary">%</span></span>
           </div>
-          <div class="w-full bg-surface-sunken h-2 rounded-full overflow-hidden border border-divider">
-            <div class="h-full rounded-full transition-all duration-500 bg-violet-500 dark:bg-violet-400" style="width: ${overallConsistency}%;"></div>
+          <div class="w-full bg-surface-sunken h-2.5 rounded-full overflow-hidden border border-divider/60 p-[1px]">
+            <div class="h-full rounded-full transition-all duration-500 bg-slate-800 dark:bg-slate-200" style="width: ${overallConsistency}%;"></div>
           </div>
-          <span class="text-[9px] text-text-secondary leading-relaxed">Average weekly target hit rate across all your habits over the trailing period.</span>
+          <span class="text-[9.5px] text-text-secondary leading-relaxed">Average weekly target hit rate across all habits during this period.</span>
         </div>
-
       </div>
     `;
 

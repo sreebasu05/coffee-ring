@@ -86,16 +86,7 @@ export const HabitCard = {
     const weeklyCount = state.getWeeklyCount(habit.id);
     const weeklyTarget = habit.weeklyTarget || 7;
 
-    // Map colorKey to hex values for precise style bindings
-    const colorHexMap = {
-      pastelMint: '#10b981',
-      pastelAmber: '#f59e0b',
-      pastelSky: '#0ea5e9',
-      pastelRose: '#f43f5e',
-      pastelLavender: '#8b5cf6',
-      pastelPink: '#ec4899'
-    };
-    const themeHex = colorHexMap[colorKey] || '#0f172a';
+    const themeHex = APP_CONFIG.getHexColor(colorKey, '#0f172a');
     const pastelColorObj = APP_CONFIG.pastelColors.find(x => x.key === colorKey);
     const pastelHex = pastelColorObj ? pastelColorObj.hex : '#cbd5e1';
 

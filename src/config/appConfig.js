@@ -21,14 +21,28 @@ export const APP_CONFIG = {
     { id: "finance",      name: "Finance",      icon: "wallet",       defaultColor: "pastelRose" }
   ],
 
+  // ── Color Hex Mapping (Single Source of Truth) ────────────
+  colorHexMap: {
+    pastelMint: '#059669',
+    pastelAmber: '#d97706',
+    pastelSky: '#0284c7',
+    pastelRose: '#e11d48',
+    pastelLavender: '#7e22ce',
+    pastelPink: '#db2777'
+  },
+
+  getHexColor(colorKey, fallback = '#64748b') {
+    return this.colorHexMap[colorKey] || fallback;
+  },
+
   // ── Pastel Color Palette (for color picker) ──────────────
   pastelColors: [
-    { key: "pastelMint",     hex: "#a7f3d0", label: "Mint" },
-    { key: "pastelAmber",    hex: "#fde68a", label: "Amber" },
-    { key: "pastelLavender", hex: "#ddd6fe", label: "Lavender" },
-    { key: "pastelSky",      hex: "#bae6fd", label: "Sky" },
-    { key: "pastelPink",     hex: "#fbcfe8", label: "Pink" },
-    { key: "pastelRose",     hex: "#fecdd3", label: "Rose" }
+    { key: "pastelMint",     hex: "#059669", label: "Mint" },
+    { key: "pastelAmber",    hex: "#d97706", label: "Amber" },
+    { key: "pastelLavender", hex: "#7e22ce", label: "Purple" },
+    { key: "pastelSky",      hex: "#0284c7", label: "Sky" },
+    { key: "pastelPink",     hex: "#db2777", label: "Pink" },
+    { key: "pastelRose",     hex: "#e11d48", label: "Rose" }
   ],
 
   // ── Habit Presets (Exhaustive) ────────────────────────────

@@ -134,15 +134,7 @@ export const HabitInsightPage = {
     }
 
     const catColor = state.getCategoryColor(habit.category);
-    const colorHexMap = {
-      pastelMint: '#10b981',
-      pastelAmber: '#f59e0b',
-      pastelSky: '#0ea5e9',
-      pastelRose: '#f43f5e',
-      pastelLavender: '#8b5cf6',
-      pastelPink: '#ec4899'
-    };
-    const themeHex = colorHexMap[catColor] || '#0f172a';
+    const themeHex = APP_CONFIG.getHexColor(catColor, '#0f172a');
 
     const bgMap = {
       pastelMint: 'bg-pastelMint',

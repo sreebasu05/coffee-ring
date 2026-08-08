@@ -32,15 +32,25 @@ export const CreatePage = {
   renderSelectionView() {
     const presets = APP_CONFIG.presets || [];
     
-    const customHabitHtml = GridCard.render({
-      id: 'custom',
-      name: 'Create custom...',
-      category: 'blank',
-      icon: 'plus',
-      actionAttr: 'id="drawer-custom-habit"',
-      subtitleHtml: `<span class="text-[9px] text-text-secondary uppercase mt-1 font-bold tracking-wider">Blank</span>`,
-      alwaysColor: true
-    });
+    // Dedicated Hero Card for Create Custom Habit
+    const customHabitHeroHtml = `
+      <button 
+        type="button"
+        id="drawer-custom-habit"
+        class="group relative overflow-hidden w-full p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-surface-card hover:border-slate-900 dark:hover:border-slate-100 hover:shadow-md transition-all duration-300 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
+            <i data-lucide="plus" class="w-5 h-5"></i>
+          </div>
+          <div class="flex flex-col text-left">
+            <span class="text-sm font-bold text-text-primary group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Create Custom Habit</span>
+            <span class="text-[11px] text-text-secondary">Build a habit from scratch with custom goals & schedule</span>
+          </div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-text-secondary group-hover:translate-x-0.5 transition-transform"></i>
+      </button>
+    `;
 
     const presetCardsHtml = presets.map(p => {
       return GridCard.render({
@@ -54,14 +64,24 @@ export const CreatePage = {
     }).join('');
 
     return `
-      <div id="create-page-selection-view" class="flex flex-col gap-6 animate-fade-in pb-8">
-        <div>
-          <h1 class="text-xl font-bold text-text-primary">Choose an option</h1>
-          <p class="text-xs text-text-secondary mt-1">Start from scratch or pick a template.</p>
+      <div id="create-page-selection-view" class="flex flex-col gap-6 animate-fade-in pb-12">
+        <div class="flex flex-col gap-1">
+          <h1 class="text-2xl font-black text-text-primary tracking-tight">Add a Habit</h1>
+          <p class="text-xs text-text-secondary">Start from scratch or choose a proven template.</p>
         </div>
-        <div class="grid grid-cols-3 gap-4">
-          ${customHabitHtml}
-          ${presetCardsHtml}
+
+        <!-- Featured Hero CTA: Create Custom Habit -->
+        ${customHabitHeroHtml}
+
+        <!-- Templates Grid Section -->
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center justify-between px-0.5">
+            <span class="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em]">Popular Templates</span>
+            <span class="text-[10px] text-text-secondary font-medium">${presets.length} templates</span>
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            ${presetCardsHtml}
+          </div>
         </div>
       </div>
     `;
@@ -80,15 +100,7 @@ export const CreatePage = {
 
     const activeCategoryMeta = APP_CONFIG.categories.find(c => c.id === activeCategory);
     const activeColorKey = activeCategoryMeta ? activeCategoryMeta.defaultColor : 'pastelMint';
-    const colorHexMap = {
-      pastelMint: '#10b981',
-      pastelAmber: '#f59e0b',
-      pastelSky: '#0ea5e9',
-      pastelRose: '#f43f5e',
-      pastelLavender: '#8b5cf6',
-      pastelPink: '#ec4899'
-    };
-    const activeThemeHex = colorHexMap[activeColorKey] || '#64748b';
+    const activeThemeHex = APP_CONFIG.getHexColor(activeColorKey, '#64748b');
 
     const iconGridHtml = this.iconList.map(icon => {
       const isSelected = icon === activeIcon;
@@ -114,15 +126,7 @@ export const CreatePage = {
     const categoryChipsHtml = APP_CONFIG.categories.map(cat => {
       const isSelected = cat.id === activeCategory;
       
-      const colorHexMap = {
-        pastelMint: '#10b981',
-        pastelAmber: '#f59e0b',
-        pastelSky: '#0ea5e9',
-        pastelRose: '#f43f5e',
-        pastelLavender: '#8b5cf6',
-        pastelPink: '#ec4899'
-      };
-      const themeHex = colorHexMap[cat.defaultColor] || '#64748b';
+      const themeHex = APP_CONFIG.getHexColor(cat.defaultColor, '#64748b');
         
       const chipClass = isSelected
         ? 'border-accentBlue bg-accentBlue text-white shadow-sm'
@@ -457,15 +461,7 @@ export const CreatePage = {
 
       const activeCategoryMeta = APP_CONFIG.categories.find(c => c.id === currentCategory);
       const activeColorKey = activeCategoryMeta ? activeCategoryMeta.defaultColor : 'pastelMint';
-      const colorHexMap = {
-        pastelMint: '#10b981',
-        pastelAmber: '#f59e0b',
-        pastelSky: '#0ea5e9',
-        pastelRose: '#f43f5e',
-        pastelLavender: '#8b5cf6',
-        pastelPink: '#ec4899'
-      };
-      const themeHex = colorHexMap[activeColorKey] || '#64748b';
+      const themeHex = APP_CONFIG.getHexColor(activeColorKey, '#64748b');
 
       iconGrid.querySelectorAll('.icon-grid-btn').forEach(btn => {
         const isSelected = btn.dataset.iconSelect === iconName;
