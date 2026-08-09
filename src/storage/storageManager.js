@@ -128,51 +128,118 @@ export const StorageManager = {
         localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name, email: user.email || '' }));
       }
 
-      // 2. Fetch Habits
-      const { data: habits } = await supabase
+      // 2. Fetch Remote Habits & Bidirectionally Merge
+      const { data: remoteHabitsRaw } = await supabase
         .from('cr_habits')
         .select('*')
         .eq('user_id', user.id);
 
-      if (habits) {
-        // Map database naming (snake_case) to state naming (camelCase)
-        const mappedHabits = habits.map(h => ({
-          id: h.id,
-          name: h.name,
-          type: h.type,
-          category: h.category,
-          weeklyTarget: h.weekly_target,
-          weeklyTargetHistory: h.weekly_target_history || [],
-          days: h.days || null,
-          minGoal: h.min_goal || null,
-          maxGoal: h.max_goal || null,
-          unit: h.unit,
-          icon: h.icon,
-          tags: h.tags || [],
-          createdAt: h.created_at
-        }));
-        localStorage.setItem(KEYS.HABITS, JSON.stringify(mappedHabits));
-      }
+      const localHabits = JSON.parse(localStorage.getItem(KEYS.HABITS)) || [];
 
-      // 3. Fetch Check-ins
-      const { data: checkIns } = await supabase
+      const remoteHabits = (remoteHabitsRaw || []).map(h => ({
+        id: h.id,
+        name: h.name,
+        type: h.type,
+        category: h.category,
+        weeklyTarget: h.weekly_target,
+        weeklyTargetHistory: h.weekly_target_history || [],
+        days: h.days || null,
+        minGoal: h.min_goal || null,
+        maxGoal: h.max_goal || null,
+        unit: h.unit,
+        icon: h.icon,
+        tags: h.tags || [],
+        createdAt: h.created_at
+      }));
+
+      const habitMap = new Map();
+      remoteHabits.forEach(h => habitMap.set(h.id, h));
+      localHabits.forEach(h => {
+        if (!habitMap.has(h.id)) {
+          habitMap.set(h.id, h);
+          supabase.from('cr_habits').upsert({
+            id: h.id,
+            user_id: user.id,
+            name: h.name,
+            type: h.type,
+            category: h.category,
+            weekly_target: h.weeklyTarget,
+            weekly_target_history: h.weeklyTargetHistory || [],
+            days: h.days || null,
+            min_goal: h.minGoal || null,
+            max_goal: h.maxGoal || null,
+            unit: h.unit,
+            icon: h.icon,
+            tags: h.tags || []
+          }).then(({ error }) => {
+            if (error) console.error('Error syncing local habit to cloud:', error);
+          });
+        }
+      });
+
+      const mergedHabits = Array.from(habitMap.values());
+      localStorage.setItem(KEYS.HABITS, JSON.stringify(mergedHabits));
+
+      // 3. Fetch Remote Check-ins & Bidirectionally Merge
+      const { data: remoteCheckInsRaw } = await supabase
         .from('cr_check_ins')
         .select('*')
         .eq('user_id', user.id);
 
-      if (checkIns) {
-        const mappedCheckIns = checkIns.map(c => ({
-          id: c.id,
-          habitId: c.habit_id,
-          date: c.date,
-          value: c.value ? parseFloat(c.value) : null,
-          note: c.notes || '',
-          tags: c.tags || [],
-          completed: c.completed !== false,
-          timestamp: new Date(c.created_at).getTime()
-        }));
-        localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(mappedCheckIns));
-      }
+      const localCheckIns = JSON.parse(localStorage.getItem(KEYS.CHECK_INS)) || [];
+
+      const remoteCheckIns = (remoteCheckInsRaw || []).map(c => ({
+        id: c.id,
+        habitId: c.habit_id,
+        date: c.date,
+        value: c.value ? parseFloat(c.value) : null,
+        note: c.notes || '',
+        tags: c.tags || [],
+        completed: c.completed !== false,
+        timestamp: new Date(c.created_at).getTime()
+      }));
+
+      const checkInMap = new Map();
+      remoteCheckIns.forEach(c => checkInMap.set(`${c.habitId}_${c.date}`, c));
+
+      localCheckIns.forEach(c => {
+        const key = `${c.habitId}_${c.date}`;
+        const existing = checkInMap.get(key);
+
+        if (!existing) {
+          checkInMap.set(key, c);
+          supabase.from('cr_check_ins').upsert({
+            user_id: user.id,
+            habit_id: c.habitId,
+            date: c.date,
+            value: c.value,
+            notes: c.note || '',
+            tags: c.tags || [],
+            completed: c.completed !== false
+          }).then(({ error }) => {
+            if (error) console.error('Error syncing local check-in to cloud:', error);
+          });
+        } else {
+          if (c.completed === true && existing.completed !== true) {
+            checkInMap.set(key, c);
+            supabase.from('cr_check_ins').upsert({
+              user_id: user.id,
+              habit_id: c.habitId,
+              date: c.date,
+              value: c.value !== undefined ? c.value : existing.value,
+              notes: c.note || existing.note || '',
+              tags: c.tags || existing.tags || [],
+              completed: true
+            }).then(({ error }) => {
+              if (error) console.error('Error syncing updated check-in to cloud:', error);
+            });
+          }
+        }
+      });
+
+      const mergedCheckIns = Array.from(checkInMap.values());
+      localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(mergedCheckIns));
+      return true;
 
     } catch (err) {
       console.error('Error fetching data from Supabase:', err);
