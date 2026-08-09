@@ -187,9 +187,16 @@ export const ProfilePage = {
 
         const isCurrentlySubscribed = await NotificationService.isSubscribed();
         if (isCurrentlySubscribed) {
-          if (remindersError) {
-            remindersError.textContent = 'To disable reminders, please use your browser settings.';
-            remindersError.classList.remove('hidden');
+          const result = await NotificationService.unsubscribeUser();
+          if (result && result.success) {
+            remindersToggle.classList.replace('bg-emerald-500', 'bg-neutral-300');
+            remindersToggle.classList.add('dark:bg-neutral-700'); // ensure dark mode fallback is restored
+            remindersKnob.classList.replace('translate-x-6', 'translate-x-1');
+          } else {
+            if (remindersError) {
+              remindersError.textContent = result?.error || 'Failed to disable reminders.';
+              remindersError.classList.remove('hidden');
+            }
           }
           return;
         }
@@ -197,7 +204,7 @@ export const ProfilePage = {
         const result = await NotificationService.saveSubscription(state.user.id);
         if (result && result.success) {
           remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
-          remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500');
+          remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500'); // remove dark bg fallback when active
           remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
         } else {
           if (remindersError) {

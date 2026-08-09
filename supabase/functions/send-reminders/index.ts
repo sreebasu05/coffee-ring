@@ -62,44 +62,106 @@ serve(async (req) => {
       })
     }
 
-    // 5. Check if they have already checked in all their habits today
-    // For simplicity in this reminder, we'll notify anyone who hasn't logged 
-    // at least 1 check-in today. (A more robust version would check if ALL active habits are done).
-    
-    // Get today's date string for each user (roughly, assuming UTC date for DB query is close enough for simple check)
-    // To be perfectly accurate, we should check check-ins matching today's date string in their local timezone.
+    // 5. Fetch habits and check-ins for users to notify
     const todayLocalStrings = {}
     validSubscriptions.forEach(sub => {
       todayLocalStrings[sub.user_id] = new Date().toLocaleDateString('en-CA', { timeZone: sub.timezone }) // YYYY-MM-DD
     })
 
+    // Fetch all habits for target users
+    const { data: habits, error: habitsError } = await supabase
+      .from('cr_habits')
+      .select('id, user_id, days')
+      .in('user_id', Array.from(usersToNotify))
+
+    if (habitsError) throw habitsError
+
+    // Fetch completed check-ins for target users on their specific local dates
+    const todayDates = Array.from(new Set(Object.values(todayLocalStrings)))
     const { data: todayCheckIns, error: checkInError } = await supabase
       .from('cr_check_ins')
-      .select('user_id, date, completed')
+      .select('user_id, habit_id, date, completed')
       .in('user_id', Array.from(usersToNotify))
+      .in('date', todayDates)
       .eq('completed', true)
 
     if (checkInError) throw checkInError
 
-    // Map of users who HAVE completed at least something today
-    const usersWithCheckInsToday = new Set()
-    todayCheckIns.forEach(c => {
-      if (c.date === todayLocalStrings[c.user_id]) {
-        usersWithCheckInsToday.add(c.user_id)
-      }
-    })
+    // Determine remaining habits per user
+    const remainingCountByUser = {}
+    const completedCountByUser = {}
+    
+    for (const userId of Array.from(usersToNotify)) {
+      const userSub = validSubscriptions.find(s => s.user_id === userId)
+      const userTimezone = userSub ? userSub.timezone : 'UTC'
+      const userLocalDate = new Date(new Date().toLocaleString("en-US", { timeZone: userTimezone }))
+      const userDayOfWeek = userLocalDate.getDay() // 0 = Sunday, 1 = Monday, etc.
+      const userLocalDateStr = todayLocalStrings[userId]
+
+      // Get habits for this user active today
+      const userHabits = (habits || []).filter(h => {
+        if (h.user_id !== userId) return false
+        if (!h.days || h.days.length === 0) return true // Default to active daily if no specific days
+        return h.days.includes(userDayOfWeek)
+      })
+
+      // Get completed check-ins specifically for today's local date
+      const completedToday = (todayCheckIns || []).filter(c => c.user_id === userId && c.date === userLocalDateStr)
+      const completedHabitIds = new Set(completedToday.map(c => c.habit_id))
+
+      // Filter active habits not completed
+      const incompleteActive = userHabits.filter(h => !completedHabitIds.has(h.id))
+      remainingCountByUser[userId] = incompleteActive.length
+      completedCountByUser[userId] = completedToday.length
+    }
 
     // 6. Send notifications
     const sendPromises = validSubscriptions.map(async (sub) => {
-      // Skip if they already checked in something today
-      if (usersWithCheckInsToday.has(sub.user_id)) {
+      const remaining = remainingCountByUser[sub.user_id] || 0
+      const completedCount = completedCountByUser[sub.user_id] || 0
+      
+      // Skip if they have no incomplete active habits for today
+      if (remaining <= 0) {
         return { status: 'skipped', userId: sub.user_id }
       }
 
+      // Fun wording generators
+      const zeroHabitsTemplates = [
+        `Haven't started today yet? You have ${remaining} habits waiting for you!`,
+        `Time to build that routine. ${remaining} habits are waiting for your check-in.`,
+        `No habits logged yet today! Let's get started on your ${remaining} goals.`,
+        `Start your check-ins! ${remaining} habits are ready to go.`
+      ]
+
+      const singleHabitTemplates = [
+        "Only 1 habit left to complete your day! You got this.",
+        "Almost there! 1 last habit to close your rings tonight.",
+        "Finish strong! Just 1 habit remains.",
+        "One final tick stands between you and a perfect day!"
+      ]
+
+      const multiHabitsTemplates = [
+        `Don't break the chain! You have ${remaining} habits left to complete.`,
+        `Future you is watching. Finish your ${remaining} remaining habits!`,
+        `Ring check! Fill up your remaining ${remaining} habits.`,
+        `Keep the streak alive! ${remaining} habits left to log today.`
+      ]
+
+      const randomTemplate = (templates: string[]) => {
+        return templates[Math.floor(Math.random() * templates.length)]
+      }
+
+      // Check if they completed nothing today, exactly 1 remaining, or multiple remaining
+      const bodyText = completedCount === 0
+        ? randomTemplate(zeroHabitsTemplates)
+        : (remaining === 1 
+          ? randomTemplate(singleHabitTemplates)
+          : randomTemplate(multiHabitsTemplates))
+
       const pushSub = sub.subscription_json
       const payload = JSON.stringify({
-        title: 'Coffee Ring Reminder',
-        body: 'Time to log your habits for today! Keep that streak going.'
+        title: 'Daily Check-in',
+        body: bodyText
       })
 
       try {
@@ -107,7 +169,6 @@ serve(async (req) => {
         return { status: 'success', userId: sub.user_id }
       } catch (err) {
         if (err.statusCode === 404 || err.statusCode === 410) {
-          // Subscription expired or was unsubscribed. Delete it from DB.
           await supabase.from('cr_push_subscriptions').delete().eq('id', sub.id)
           return { status: 'deleted', userId: sub.user_id }
         }

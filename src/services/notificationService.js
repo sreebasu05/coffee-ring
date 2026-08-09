@@ -137,5 +137,33 @@ export const NotificationService = {
       console.error('Error saving push subscription:', error);
       return { success: false, error: `Database save error: ${error.message || error}` };
     }
+  },
+
+  async unsubscribeUser() {
+    if (!this.isSupported()) {
+      return { success: false, error: 'Push notifications are not supported by this browser.' };
+    }
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return { success: true };
+      
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        // Delete from Supabase based on subscription endpoint URL
+        const { error } = await supabase
+          .from('cr_push_subscriptions')
+          .delete()
+          .filter('subscription_json->>endpoint', 'eq', subscription.endpoint);
+
+        if (error) throw error;
+
+        // Unsubscribe locally from browser push manager
+        await subscription.unsubscribe();
+      }
+      return { success: true };
+    } catch (e) {
+      console.error('Unsubscribe error:', e);
+      return { success: false, error: `Unsubscribe failed: ${e.message}` };
+    }
   }
 };

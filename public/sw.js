@@ -4,11 +4,11 @@ self.addEventListener('push', function(event) {
     try {
       data = event.data.json();
     } catch (e) {
-      data = { title: 'Coffee Ring', body: event.data.text() };
+      data = { title: 'Daily Check-in', body: event.data.text() };
     }
   } else {
     data = {
-      title: 'Coffee Ring Reminder',
+      title: 'Daily Check-in',
       body: 'Time to complete your habits for today!'
     };
   }
