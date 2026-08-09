@@ -168,6 +168,7 @@ export const StorageManager = {
           value: c.value ? parseFloat(c.value) : null,
           note: c.notes || '',
           tags: c.tags || [],
+          completed: c.completed !== false,
           timestamp: new Date(c.created_at).getTime()
         }));
         localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(mappedCheckIns));
@@ -409,7 +410,8 @@ export const StorageManager = {
           date: checkIn.date,
           value: checkIn.value,
           notes: checkIn.note || '',
-          tags: checkIn.tags || []
+          tags: checkIn.tags || [],
+          completed: checkIn.completed !== false
         }).then(({ error }) => {
           if (error) console.error('Supabase checkin save error:', error);
         });

@@ -11,7 +11,7 @@ class AppState {
     
     // Default selected date is today (YYYY-MM-DD local format)
     this.selectedDate = this.formatDate(new Date());
-    this.dashboardWeekOffset = 1; // 1 = Last Week (default), 0 = Trailing 4 Weeks
+    this.dashboardWeekOffset = 0; // 0 = Current Week (default)
     
     // Listeners for reactive UI rendering
     this.listeners = [];
@@ -181,19 +181,40 @@ class AppState {
 
   isHabitCompleted(habitId, dateStr = this.selectedDate) {
     const log = this.getLogForHabitOnDate(habitId, dateStr);
-    return log !== null && log.completed !== false;
+    return log !== null && log.completed === true;
+  }
+
+  getCurrentWeekMondayAndSunday(refDateObj = this.getDashboardDate(), offset = 0) {
+    const d = new Date(refDateObj.getTime());
+    if (offset !== 0) {
+      d.setDate(d.getDate() - (offset * 7));
+    }
+    const day = d.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+    const diffToMonday = day === 0 ? -6 : 1 - day;
+
+    const monday = new Date(d.getTime());
+    monday.setDate(d.getDate() + diffToMonday);
+    monday.setHours(0, 0, 0, 0);
+
+    const sunday = new Date(monday.getTime());
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    return {
+      mondayStr: this.formatDate(monday),
+      sundayStr: this.formatDate(sunday),
+      start: monday,
+      end: sunday
+    };
   }
 
   getWeeklyCount(habitId) {
-    const current = new Date(this.getDashboardDate());
-    const startOfWeek = new Date(current.setDate(current.getDate() - current.getDay() + (current.getDay() === 0 ? -6 : 1))); // Monday
-    startOfWeek.setHours(0,0,0,0);
-
+    const refDate = this.selectedDate ? new Date(this.selectedDate + "T00:00:00") : new Date();
+    const { mondayStr, sundayStr } = this.getCurrentWeekMondayAndSunday(refDate, 0);
     return this.checkIns.filter(log => {
       if (log.habitId !== habitId) return false;
       if (log.completed === false) return false;
-      const logTime = new Date(log.date).getTime();
-      return logTime >= startOfWeek.getTime();
+      return log.date >= mondayStr && log.date <= sundayStr;
     }).length;
   }
 
@@ -219,20 +240,13 @@ class AppState {
   }
 
   getWeekStartAndEnd(offset = 0) {
-    const d = this.getDashboardDate();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1) - (offset * 7);
-    
-    const start = new Date(d.setDate(diff));
-    start.setHours(0, 0, 0, 0);
-    
-    const end = new Date(start.getTime());
-    end.setDate(start.getDate() + 6);
+    const { start, end } = this.getCurrentWeekMondayAndSunday(this.getDashboardDate(), offset);
     return { start, end };
   }
 
   getCurrentWeekStatus(habitId) {
-    const { start } = this.getWeekStartAndEnd(0);
+    const refDate = this.selectedDate ? new Date(this.selectedDate + "T00:00:00") : new Date();
+    const { start } = this.getCurrentWeekMondayAndSunday(refDate, 0);
     const days = [];
     
     for (let i = 0; i < 7; i++) {
@@ -241,7 +255,7 @@ class AppState {
       const dateStr = this.formatDate(d);
       
       const log = this.checkIns.find(l => l.habitId === habitId && l.date === dateStr);
-      let isCompleted = log !== null && log !== undefined;
+      let isCompleted = log !== null && log !== undefined && log.completed !== false;
       
       days.push({
         dateStr,
@@ -253,11 +267,11 @@ class AppState {
   }
 
   getWeekLogsCount(habitId, offset = 0) {
-    const { start, end } = this.getWeekStartAndEnd(offset);
+    const { mondayStr, sundayStr } = this.getCurrentWeekMondayAndSunday(this.getDashboardDate(), offset);
     return this.checkIns.filter(log => {
       if (log.habitId !== habitId) return false;
-      const logTime = new Date(log.date).getTime();
-      return logTime >= start.getTime() && logTime <= end.getTime();
+      if (log.completed === false) return false;
+      return log.date >= mondayStr && log.date <= sundayStr;
     }).length;
   }
 
@@ -403,7 +417,7 @@ class AppState {
     const habit = this.habits.find(h => h.id === habitId);
     if (!habit) return 0;
 
-    const habitLogs = this.checkIns.filter(log => log.habitId === habitId);
+    const habitLogs = this.checkIns.filter(log => log.habitId === habitId && log.completed !== false);
 
     const loggedDates = new Set(habitLogs.map(l => l.date));
     
@@ -585,23 +599,14 @@ class AppState {
 
   getWeeklyGoalProgress() {
     if (this.habits.length === 0) return 0;
-    const realToday = new Date();
-    const todayStr = this.formatDate(realToday);
-    const dayOfWeek = realToday.getDay();
+    const current = new Date(this.getDashboardDate());
+    const dayOfWeek = current.getDay();
     // Monday is 1, Sunday is 0. Remaining days in the current week (including today):
     const remainingDays = dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
-
-    const startOfWeek = new Date(realToday.setDate(realToday.getDate() - realToday.getDay() + (realToday.getDay() === 0 ? -6 : 1)));
-    startOfWeek.setHours(0,0,0,0);
+    const todayStr = this.formatDate(current);
 
     return this.habits.filter(h => {
-      // Calculate real current week count
-      const realWeeklyCount = this.checkIns.filter(log => {
-        if (log.habitId !== h.id) return false;
-        const logTime = new Date(log.date).getTime();
-        return logTime >= startOfWeek.getTime();
-      }).length;
-
+      const realWeeklyCount = this.getWeeklyCount(h.id);
       const target = this.getWeeklyTargetForDate(h.id, todayStr);
       const remainingNeeded = target - realWeeklyCount;
       // Habit is "on track" if it has already met the target OR if it's mathematically possible to meet it in the remaining days

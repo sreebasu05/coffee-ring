@@ -71,7 +71,7 @@ export const HabitCard = {
     const log = state.getLogForHabit(habit.id);
     
     // Completion Logic
-    let isCompleted = log !== null && log.completed !== false;
+    let isCompleted = log !== null && log.completed === true;
 
     const isExpanded = this.expandedHabitId === habit.id;
     
@@ -121,6 +121,10 @@ export const HabitCard = {
     const weeklyStreak = state.getWeeklyStreak(habit.id);
     const dailyStreak = state.getDailyStreak(habit.id);
 
+    const isWeeklyHabit = weeklyTarget < 7;
+    const streakCount = isWeeklyHabit ? weeklyStreak : dailyStreak;
+    const streakUnit = isWeeklyHabit ? 'w' : 'd';
+
     let cautionText = "";
     if (remainingNeeded <= 0) {
       cautionText = `<span class="text-emerald-600 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Target met!</span>`;
@@ -131,7 +135,7 @@ export const HabitCard = {
     const isEmoji = (str) => /\p{Emoji}/u.test(str) && !/^[a-zA-Z0-9_-]+$/.test(str);
     const iconName = (!habit.icon || isEmoji(habit.icon)) ? 'target' : habit.icon;
 
-    const selectedTags = log?.tags || [];
+    const selectedTags = (log?.tags || []).filter(t => t !== '__uncompleted__');
     const tagsHTML = habit.tags.map(tag => {
       const isChecked = selectedTags.includes(tag);
       return `
@@ -174,8 +178,15 @@ export const HabitCard = {
                 <span class="${titleClass}">${habit.name}</span>
                 <span class="${badgeClass}">${categoryLabel}</span>
               </div>
-              <div class="text-[10px] mt-0.5 flex items-center gap-1">
+              <div class="text-[10px] mt-0.5 flex items-center gap-1.5 text-text-secondary">
                 ${cautionText}
+                ${streakCount > 0 ? `
+                  <span class="text-text-secondary/40">•</span>
+                  <span class="inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-500 font-bold">
+                    <i data-lucide="flame" class="w-3 h-3 fill-current"></i>
+                    <span>${streakCount}${streakUnit} streak</span>
+                  </span>
+                ` : ''}
               </div>
             </div>
           </div>
@@ -303,7 +314,7 @@ export const HabitCard = {
       checkBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const currentLog = state.getLogForHabit(habitId);
-        const currentlyCompleted = currentLog !== null && currentLog.completed !== false;
+        const currentlyCompleted = currentLog !== null && currentLog.completed === true;
 
         checkBtn.classList.add('active-pulse');
         setTimeout(() => checkBtn.classList.remove('active-pulse'), 150);

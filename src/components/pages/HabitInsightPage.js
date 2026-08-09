@@ -189,7 +189,7 @@ export const HabitInsightPage = {
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const log = state.checkIns.find(l => l.habitId === habit.id && l.date === dateStr);
       
-      let isCompleted = log !== null && log !== undefined;
+      let isCompleted = log !== null && log !== undefined && log.completed !== false;
 
       const hasDetails = log && (
         (log.value !== null && log.value !== undefined) || 
@@ -198,7 +198,7 @@ export const HabitInsightPage = {
       );
 
       let cellClass = "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all border ";
-      if (log) {
+      if (log && isCompleted) {
         if (hasDetails) {
           cellClass += `border-transparent ${pastelBg} ${pastelText} shadow-sm`;
         } else {
