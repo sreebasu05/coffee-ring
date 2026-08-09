@@ -155,18 +155,22 @@ export const StorageManager = {
 
         if (profile) {
           localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ id: user.id, name: profile.name, email: profile.email || '' }));
-          if (profile.category_colors) {
+          if (profile.category_colors && Object.keys(profile.category_colors).length > 0) {
             localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
+          } else {
+            localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(getDefaultCategoryColors()));
           }
         } else {
           const name = user.email ? user.email.split('@')[0] : 'user';
+          const defaultColors = getDefaultCategoryColors();
           await supabase.from('eva_users').upsert({
             id: user.id,
             name,
             email: user.email || '',
-            category_colors: getDefaultCategoryColors()
+            category_colors: defaultColors
           });
           localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ id: user.id, name, email: user.email || '' }));
+          localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(defaultColors));
         }
       } catch (profileErr) {
         console.warn('[Sync] Profile fetch failed (non-fatal):', profileErr);

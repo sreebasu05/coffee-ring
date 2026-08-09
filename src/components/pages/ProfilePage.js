@@ -3,8 +3,8 @@ import { NotificationService } from '../../services/notificationService.js';
 
 export const ProfilePage = {
   render(state) {
-    const isGuest = !state.isCloudSynced;
     const profile = state.user;
+    const isGuest = !profile || !profile.id;
     const rawUsername = profile?.name || 'Guest';
     const username = rawUsername.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     const email = profile?.email || '';
@@ -256,7 +256,7 @@ export const ProfilePage = {
     const signoutBtn = document.getElementById('profile-signout-btn');
     if (signoutBtn) {
       signoutBtn.addEventListener('click', async () => {
-        const isGuest = !state.isCloudSynced;
+        const isGuest = !state.user || !state.user.id;
 
         if (!isGuest) {
           if (supabase) await supabase.auth.signOut();
