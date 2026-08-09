@@ -149,10 +149,18 @@ class AppController {
     this.showPushPromptIfNeeded();
   }
 
-  showPushPromptIfNeeded() {
+  async showPushPromptIfNeeded() {
     if (this.currentTab !== 'today') return;
     if (!appState.user || appState.user.name === 'Guest') return;
     if (localStorage.getItem('coffeering_push_prompt_seen')) return;
+
+    // Check support first to prevent prompting in unsupported browsers (like Safari on iOS)
+    const { NotificationService } = await import('./services/notificationService.js');
+    if (!NotificationService.isSupported()) return;
+
+    // Don't show if already subscribed
+    const isSubscribed = await NotificationService.isSubscribed();
+    if (isSubscribed) return;
 
     // Wait a couple of seconds so it's not too aggressive
     setTimeout(() => {
@@ -197,8 +205,6 @@ class AppController {
         acceptBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
         if (window.lucide) window.lucide.createIcons();
         
-        // Dynamically import NotificationService
-        const { NotificationService } = await import('./services/notificationService.js');
         const result = await NotificationService.saveSubscription(appState.user.id);
         
         closeAndRemember();
