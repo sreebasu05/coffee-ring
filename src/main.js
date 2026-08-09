@@ -1,4 +1,5 @@
 import { appState } from './state/appState.js';
+import './utils/syncDiagnostic.js';
 import { Navbar } from './components/ui/Navbar.js';
 import { TodayPage } from './components/pages/TodayPage.js';
 import { CreatePage } from './components/pages/CreatePage.js';

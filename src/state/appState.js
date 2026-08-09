@@ -44,10 +44,14 @@ class AppState {
     if (isSupabaseConfigured && supabase) {
       this.setupAutoSync();
 
-      // Check initial session
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      // Check initial session and immediately sync
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
         this.isCloudSynced = !!session;
         if (session) {
+          const success = await StorageManager.fetchFromSupabase();
+          if (success) {
+            this.loadStateFromCache();
+          }
           this.setupRealtimeSubscription(session.user.id);
         }
         this.notify();

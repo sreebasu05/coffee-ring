@@ -69,6 +69,41 @@ export const StorageManager = {
     }
   },
 
+  // Cache for whether cr_check_ins has a 'completed' column
+  _hasCompletedColumn: null,
+
+  async checkCompletedColumnExists() {
+    if (this._hasCompletedColumn !== null) return this._hasCompletedColumn;
+    if (!isSupabaseConfigured || !supabase) return false;
+    try {
+      // Try a no-op select with the completed column
+      const { error } = await supabase
+        .from('cr_check_ins')
+        .select('completed')
+        .limit(0);
+      this._hasCompletedColumn = !error;
+    } catch (e) {
+      this._hasCompletedColumn = false;
+    }
+    return this._hasCompletedColumn;
+  },
+
+  buildCheckInPayload(userId, checkIn) {
+    const payload = {
+      user_id: userId,
+      habit_id: checkIn.habitId || checkIn.habit_id,
+      date: checkIn.date,
+      value: checkIn.value,
+      notes: checkIn.note || checkIn.notes || '',
+      tags: checkIn.tags || []
+    };
+    // Only include completed if column exists
+    if (this._hasCompletedColumn) {
+      payload.completed = checkIn.completed !== false;
+    }
+    return payload;
+  },
+
   init(forceReset = false) {
     if (forceReset) {
       localStorage.removeItem(KEYS.USER_PROFILE);
@@ -101,10 +136,16 @@ export const StorageManager = {
   // Pull all data from Supabase and cache it in LocalStorage
   async fetchFromSupabase() {
     const user = await this.getSupabaseUser();
-    if (!user) return false;
+    if (!user) {
+      console.warn('[Sync] No authenticated user, skipping fetch');
+      return false;
+    }
+
+    // Detect schema once
+    await this.checkCompletedColumnExists();
 
     try {
-      // 1. Fetch Profile (non-fatal - use maybeSingle to avoid throwing on missing row)
+      // 1. Fetch Profile (non-fatal)
       try {
         const { data: profile } = await supabase
           .from('eva_users')
@@ -118,7 +159,6 @@ export const StorageManager = {
             localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
           }
         } else {
-          // Create profile if not exists (e.g. first login after Google OAuth)
           const name = user.email ? user.email.split('@')[0] : 'user';
           await supabase.from('eva_users').upsert({
             id: user.id,
@@ -129,17 +169,20 @@ export const StorageManager = {
           localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name, email: user.email || '' }));
         }
       } catch (profileErr) {
-        console.warn('Profile fetch failed (non-fatal, continuing sync):', profileErr);
+        console.warn('[Sync] Profile fetch failed (non-fatal):', profileErr);
       }
 
-      // 2. Fetch Remote Habits & Merge (remote wins, local-only pushed to cloud)
-      const { data: remoteHabitsRaw } = await supabase
+      // 2. Fetch Remote Habits
+      const { data: remoteHabitsRaw, error: habitsErr } = await supabase
         .from('cr_habits')
         .select('*')
         .eq('user_id', user.id);
 
-      const localHabits = JSON.parse(localStorage.getItem(KEYS.HABITS)) || [];
+      if (habitsErr) {
+        console.error('[Sync] cr_habits SELECT failed:', habitsErr);
+      }
 
+      const localHabits = JSON.parse(localStorage.getItem(KEYS.HABITS)) || [];
       const remoteHabits = (remoteHabitsRaw || []).map(h => ({
         id: h.id,
         name: h.name,
@@ -156,12 +199,12 @@ export const StorageManager = {
         createdAt: h.created_at
       }));
 
+      // Merge: remote habits win, local-only habits get pushed to cloud
       const habitMap = new Map();
       remoteHabits.forEach(h => habitMap.set(h.id, h));
       localHabits.forEach(h => {
         if (!habitMap.has(h.id)) {
           habitMap.set(h.id, h);
-          // Push local-only habit to cloud
           supabase.from('cr_habits').upsert({
             id: h.id,
             user_id: user.id,
@@ -177,22 +220,24 @@ export const StorageManager = {
             icon: h.icon,
             tags: h.tags || []
           }).then(({ error }) => {
-            if (error) console.error('Error syncing local habit to cloud:', error);
+            if (error) console.error('[Sync] Push local habit to cloud failed:', error);
           });
         }
       });
 
-      const mergedHabits = Array.from(habitMap.values());
-      localStorage.setItem(KEYS.HABITS, JSON.stringify(mergedHabits));
+      localStorage.setItem(KEYS.HABITS, JSON.stringify(Array.from(habitMap.values())));
 
-      // 3. Fetch Remote Check-ins & Merge
-      const { data: remoteCheckInsRaw } = await supabase
+      // 3. Fetch Remote Check-ins
+      const { data: remoteCheckInsRaw, error: checkInsErr } = await supabase
         .from('cr_check_ins')
         .select('*')
         .eq('user_id', user.id);
 
-      const localCheckIns = JSON.parse(localStorage.getItem(KEYS.CHECK_INS)) || [];
+      if (checkInsErr) {
+        console.error('[Sync] cr_check_ins SELECT failed:', checkInsErr);
+      }
 
+      const localCheckIns = JSON.parse(localStorage.getItem(KEYS.CHECK_INS)) || [];
       const remoteCheckIns = (remoteCheckInsRaw || []).map(c => ({
         id: c.id,
         habitId: c.habit_id,
@@ -204,6 +249,7 @@ export const StorageManager = {
         timestamp: new Date(c.created_at).getTime()
       }));
 
+      // Merge: remote check-ins win, local-only get pushed
       const checkInMap = new Map();
       remoteCheckIns.forEach(c => checkInMap.set(`${c.habitId}_${c.date}`, c));
 
@@ -211,27 +257,21 @@ export const StorageManager = {
         const key = `${c.habitId}_${c.date}`;
         if (!checkInMap.has(key)) {
           checkInMap.set(key, c);
-          // Push local-only check-in to cloud
-          supabase.from('cr_check_ins').upsert({
-            user_id: user.id,
-            habit_id: c.habitId,
-            date: c.date,
-            value: c.value,
-            notes: c.note || '',
-            tags: c.tags || [],
-            completed: c.completed !== false
-          }, { onConflict: 'user_id,habit_id,date' }).then(({ error }) => {
-            if (error) console.error('Error syncing local check-in to cloud:', error);
+          const payload = this.buildCheckInPayload(user.id, c);
+          supabase.from('cr_check_ins').upsert(
+            payload,
+            { onConflict: 'user_id,habit_id,date' }
+          ).then(({ error }) => {
+            if (error) console.error('[Sync] Push local check-in to cloud failed:', error);
           });
         }
       });
 
-      const mergedCheckIns = Array.from(checkInMap.values());
-      localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(mergedCheckIns));
+      localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(Array.from(checkInMap.values())));
       return true;
 
     } catch (err) {
-      console.error('Error fetching data from Supabase:', err);
+      console.error('[Sync] fetchFromSupabase failed:', err);
       return false;
     }
   },
@@ -288,16 +328,13 @@ export const StorageManager = {
       }
 
       // 3. Migrate Check-ins
+      await this.checkCompletedColumnExists();
       for (const c of checkIns) {
-        await supabase.from('cr_check_ins').upsert({
-          user_id: userId,
-          habit_id: c.habitId,
-          date: c.date,
-          value: c.value,
-          notes: c.note || '',
-          tags: c.tags || [],
-          completed: c.completed !== false
-        }, { onConflict: 'user_id,habit_id,date' });
+        const payload = this.buildCheckInPayload(userId, c);
+        await supabase.from('cr_check_ins').upsert(
+          payload,
+          { onConflict: 'user_id,habit_id,date' }
+        );
       }
 
       return true;
@@ -457,16 +494,12 @@ export const StorageManager = {
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
-        supabase.from('cr_check_ins').upsert({
-          user_id: user.id,
-          habit_id: checkIn.habitId,
-          date: checkIn.date,
-          value: checkIn.value,
-          notes: checkIn.note || '',
-          tags: checkIn.tags || [],
-          completed: checkIn.completed !== false
-        }, { onConflict: 'user_id,habit_id,date' }).then(({ error }) => {
-          if (error) console.error('Supabase checkin save error:', error);
+        const payload = this.buildCheckInPayload(user.id, checkIn);
+        supabase.from('cr_check_ins').upsert(
+          payload,
+          { onConflict: 'user_id,habit_id,date' }
+        ).then(({ error }) => {
+          if (error) console.error('[Sync] Supabase checkin save error:', error);
         });
       }
     });
