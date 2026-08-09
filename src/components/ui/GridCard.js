@@ -18,7 +18,9 @@ export const GridCard = {
     const iconName = (!icon || isEmoji(icon)) ? 'target' : icon;
 
     const showColor = isSelected || alwaysColor;
-    const activeTopBorderBg = showColor ? themeHex : '#e2e8f0';
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    const unselectedTopLine = isDark ? '#3a3a3a' : '#e2e8f0';
+    const activeTopBorderBg = showColor ? themeHex : unselectedTopLine;
 
     const cardSelectedClasses = isSelected
       ? 'border-transparent bg-surface-sunken/50 scale-98 shadow-sm'

@@ -99,7 +99,7 @@ export const OnboardingPage = {
             <h1 class="text-[42px] sm:text-5xl font-light tracking-tight text-text-primary leading-[1.08]">
               coffee<br/><span class="font-normal">ring</span>
             </h1>
-            <div class="w-20 h-20 rounded-[26px] bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center shadow-md flex-shrink-0">
+            <div class="w-20 h-20 rounded-[26px] bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 flex items-center justify-center shadow-md flex-shrink-0">
               <i data-lucide="target" class="w-9.5 h-9.5 stroke-[1.75]"></i>
             </div>
           </div>
@@ -146,7 +146,7 @@ export const OnboardingPage = {
           <button 
             type="button"
             onclick="window.OnboardingGoToStep(2)"
-            class="w-full py-4 bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white active:scale-[0.98] rounded-2xl font-medium text-base shadow-sm transition-all text-center"
+            class="w-full py-4 bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white active:scale-[0.98] rounded-2xl font-medium text-base shadow-sm transition-all text-center"
           >
             Get started
           </button>
@@ -171,7 +171,7 @@ export const OnboardingPage = {
     const btnLabel = trimmedName ? `Nice to meet you, ${trimmedName}` : "Continue";
     const nextBtnClass = isNextDisabled 
       ? "bg-surface-sunken text-text-secondary cursor-not-allowed" 
-      : "bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
+      : "bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-50 shadow-md";
 
     return `
       <div id="onboarding-page" class="flex flex-col justify-between min-h-[80vh] px-4 py-8 animate-fade-in text-text-primary">
@@ -196,7 +196,7 @@ export const OnboardingPage = {
               id="onboarding-name-input"
               value="${this.userName}"
               placeholder="Enter your name..."
-              class="w-full border border-divider rounded-2xl px-4 py-3.5 text-sm font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 mt-4 transition-all"
+              class="w-full border border-divider rounded-2xl px-4 py-3.5 text-sm font-bold bg-surface-card text-text-primary focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900 mt-4 transition-all"
             />
           </div>
         </div>
@@ -220,7 +220,7 @@ export const OnboardingPage = {
   renderStep3() {
     const presets = APP_CONFIG.presets || [];
     const hasSelection = this.selectedPresets.length > 0;
-    const nextBtnClass = "bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
+    const nextBtnClass = "bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-50 shadow-md";
     const btnText = hasSelection ? "Configure Goals" : "Finish Setup";
 
     const presetCardsHtml = presets.map(p => {
@@ -305,11 +305,11 @@ export const OnboardingPage = {
             <button 
               type="button"
               id="onboarding-cloud-btn"
-              class="w-full text-left p-5 border border-divider hover:border-slate-800 dark:hover:border-slate-400 bg-surface-card rounded-2xl transition-all shadow-sm group hover:shadow-md active:scale-[0.99] flex flex-col gap-3"
+              class="w-full text-left p-5 border border-divider hover:border-neutral-700 dark:hover:border-neutral-400 bg-surface-card rounded-2xl transition-all shadow-sm group hover:shadow-md active:scale-[0.99] flex flex-col gap-3"
             >
               <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-xl bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 flex items-center justify-center">
                     <i data-lucide="cloud" class="w-5 h-5"></i>
                   </div>
                   <div>
@@ -336,11 +336,11 @@ export const OnboardingPage = {
             <button 
               type="button"
               id="onboarding-guest-btn"
-              class="w-full text-left p-5 border border-divider hover:border-slate-800 dark:hover:border-slate-400 bg-surface-card rounded-2xl transition-all shadow-sm group hover:shadow-md active:scale-[0.99] flex flex-col gap-3"
+              class="w-full text-left p-5 border border-divider hover:border-neutral-700 dark:hover:border-neutral-400 bg-surface-card rounded-2xl transition-all shadow-sm group hover:shadow-md active:scale-[0.99] flex flex-col gap-3"
             >
               <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 flex items-center justify-center">
                     <i data-lucide="hard-drive" class="w-5 h-5"></i>
                   </div>
                   <div>
@@ -399,7 +399,7 @@ export const OnboardingPage = {
             if (isInvalid) {
               nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-surface-sunken text-text-secondary cursor-not-allowed";
             } else {
-              nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
+              nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 active:scale-98 text-white dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-50 shadow-md";
             }
           }
 

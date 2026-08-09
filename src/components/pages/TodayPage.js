@@ -32,7 +32,7 @@ export const TodayPage = {
 
     const extrasHtml = extraHabits.length > 0
       ? `
-        <div class="flex flex-col gap-4 mt-4 border-t border-slate-150/40 pt-5 animate-fade-in">
+        <div class="flex flex-col gap-4 mt-4 border-t border-neutral-200/40 pt-5 animate-fade-in">
           <div class="flex justify-between items-center mb-1">
             <h2 class="text-label-muted">Extras / Other Days</h2>
             <span class="text-[10px] text-text-secondary italic">Off-day logs count towards weekly goals</span>

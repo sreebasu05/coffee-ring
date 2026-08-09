@@ -105,7 +105,7 @@ export const HabitCard = {
       checkboxStyle = `border-color: ${themeHex}; color: ${themeHex}; background-color: ${themeHex}10;`;
     } else {
       iconBoxClass += " bg-surface-base border-divider text-text-secondary";
-      checkboxClass += " bg-surface-base border-divider text-text-secondary hover:border-slate-500 hover:text-text-secondary dark:text-text-secondary dark:hover:border-slate-400 dark:hover:text-slate-300";
+      checkboxClass += " bg-surface-base border-divider text-text-secondary hover:border-neutral-500 hover:text-text-secondary dark:text-text-secondary dark:hover:border-neutral-400 dark:hover:text-neutral-300";
     }
 
     // Category badge classes
@@ -203,7 +203,7 @@ export const HabitCard = {
                   type="number" 
                   value="${log?.value ?? ""}" 
                   placeholder="${numPlaceholder}"
-                  class="card-numeric-input flex-grow border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-surface-sunken border-divider text-text-primary focus:bg-surface-card focus:border-slate-900"
+                  class="card-numeric-input flex-grow border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-surface-sunken border-divider text-text-primary focus:bg-surface-card focus:border-neutral-900"
                 />
                 <span class="text-xs ${isCompleted ? c.subTextActive : 'text-text-secondary'} font-semibold flex-shrink-0">${habit.unit || 'units'}</span>
               </div>
@@ -245,12 +245,12 @@ export const HabitCard = {
             <textarea 
               placeholder="e.g. Squat PR, Read 10 pages..." 
               rows="2" 
-              class="card-note-textarea w-full border border-divider rounded-xl p-3 text-xs resize-none focus:outline-none bg-surface-sunken text-text-primary focus:bg-surface-card focus:border-slate-900"
+              class="card-note-textarea w-full border border-divider rounded-xl p-3 text-xs resize-none focus:outline-none bg-surface-sunken text-text-primary focus:bg-surface-card focus:border-neutral-900"
             >${log?.note || ""}</textarea>
           </div>
 
           <!-- Bottom Action Row -->
-          <div class="pt-3 border-t border-dashed border-slate-150 flex justify-end items-center">
+          <div class="pt-3 border-t border-dashed border-neutral-200 flex justify-end items-center">
             <button 
               type="button"
               data-card-insights-btn="${habit.id}"

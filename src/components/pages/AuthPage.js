@@ -104,7 +104,7 @@ export const AuthPage = {
 
         <!-- Hero Header -->
         <div class="flex flex-col items-center text-center gap-2.5">
-          <div class="w-13 h-13 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-md">
+          <div class="w-13 h-13 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shadow-md">
             <i data-lucide="${isSignup ? 'user-plus' : 'log-in'}" class="w-6 h-6"></i>
           </div>
           <div class="flex flex-col gap-1">
@@ -114,7 +114,7 @@ export const AuthPage = {
 
           <!-- Eva Projects badge -->
           <div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-card border border-divider rounded-full shadow-sm mt-1">
-            <div class="w-4 h-4 rounded bg-slate-900 text-white flex items-center justify-center flex-shrink-0">
+            <div class="w-4 h-4 rounded bg-neutral-900 text-white flex items-center justify-center flex-shrink-0">
               <i data-lucide="layers" class="w-2.5 h-2.5"></i>
             </div>
             <span class="text-[10px] font-bold text-text-secondary tracking-wide">Eva Projects</span>
@@ -155,7 +155,7 @@ export const AuthPage = {
                 id="auth-username" 
                 value="${prefilledUsername}" 
                 required 
-                class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
+                class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-400 transition-all placeholder:text-text-secondary/50" 
                 placeholder="${isSignup ? 'e.g. coffee_master' : 'username or email@example.com'}" 
               />
               <p class="text-[10px] text-text-secondary leading-normal">
@@ -170,7 +170,7 @@ export const AuthPage = {
                 type="email" 
                 id="auth-email" 
                 required
-                class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
+                class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 text-sm font-medium text-text-primary focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-400 transition-all placeholder:text-text-secondary/50" 
                 placeholder="e.g. you@example.com" 
               />
               <p class="text-[10px] text-text-secondary leading-normal">
@@ -186,7 +186,7 @@ export const AuthPage = {
                   id="auth-password" 
                   required 
                   minlength="6" 
-                  class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 pr-10 text-sm font-medium text-text-primary focus:outline-none focus:border-slate-900 dark:focus:border-slate-400 transition-all placeholder:text-text-secondary/50" 
+                  class="w-full bg-surface-base border border-divider rounded-xl px-3.5 py-3 pr-10 text-sm font-medium text-text-primary focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-400 transition-all placeholder:text-text-secondary/50" 
                   placeholder="•••••••• (Min 6 characters)" 
                 />
                 <button
@@ -206,7 +206,7 @@ export const AuthPage = {
             <button 
               type="submit" 
               ${this.loading ? 'disabled' : ''} 
-              class="w-full mt-1 bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+              class="w-full mt-1 bg-neutral-900 hover:bg-neutral-700 active:scale-98 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span>${btnText}</span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>

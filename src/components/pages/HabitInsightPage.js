@@ -36,7 +36,7 @@ export const HabitInsightPage = {
     if (state.habits.length === 0) {
       return `
         <div id="habit-insights-view" class="flex flex-col gap-5 pb-24 animate-fade-in text-center py-10">
-          <i data-lucide="line-chart" class="w-12 h-12 text-slate-300 mx-auto"></i>
+          <i data-lucide="line-chart" class="w-12 h-12 text-neutral-300 mx-auto"></i>
           <h1 class="text-lg font-bold text-text-primary mt-3">No Habits Found</h1>
           <p class="text-xs text-text-secondary max-w-xs mx-auto mt-1">Please create a habit first on the Add tab to begin tracking detailed insights.</p>
         </div>
@@ -220,7 +220,7 @@ export const HabitInsightPage = {
       <!-- Heatmap Calendar Grid -->
       <div class="relative overflow-hidden bg-surface-card border border-divider rounded-2xl p-5 shadow-sm flex flex-col gap-4">
         <div class="absolute top-0 left-0 right-0 h-1" style="background-color: ${themeHex};"></div>
-        <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+        <div class="flex justify-between items-center border-b border-neutral-100 pb-2">
           <div class="flex items-center gap-3">
             <button 
               type="button"
@@ -251,7 +251,7 @@ export const HabitInsightPage = {
         </div>
         
         <!-- Heatmap Legend -->
-        <div class="flex items-center gap-4 text-[9px] font-bold text-text-secondary uppercase pt-2 border-t border-slate-50">
+        <div class="flex items-center gap-4 text-[9px] font-bold text-text-secondary uppercase pt-2 border-t border-neutral-100">
           <div class="flex items-center gap-1.5">
             <div class="w-3.5 h-3.5 rounded-full border border-divider bg-surface-card"></div>
             <span>Missed</span>
@@ -293,7 +293,7 @@ export const HabitInsightPage = {
             </div>
           </div>
           
-          <div class="grid grid-cols-3 gap-3 border-t border-slate-50 pt-4">
+          <div class="grid grid-cols-3 gap-3 border-t border-neutral-100 pt-4">
             <div class="flex flex-col">
               <span class="text-[8px] font-bold text-text-secondary uppercase">Min Logged</span>
               <span class="text-xs font-bold text-text-primary mt-0.5">${numStats.min}</span>
@@ -308,7 +308,7 @@ export const HabitInsightPage = {
             </div>
           </div>
 
-          <div class="mt-2 py-2 px-3 rounded-xl border border-divider bg-surface-sunken dark:bg-slate-800/40 flex items-center justify-between text-xs font-semibold">
+          <div class="mt-2 py-2 px-3 rounded-xl border border-divider bg-surface-sunken dark:bg-neutral-800/40 flex items-center justify-between text-xs font-semibold">
             <span class="text-text-secondary">Value Trend direction:</span>
             <span class="flex items-center gap-1 text-text-primary font-bold">
               <i data-lucide="${numStats.trend === 'Trending Up' ? 'trending-up' : numStats.trend === 'Trending Down' ? 'trending-down' : 'minus'}" class="w-3.5 h-3.5"></i>
@@ -706,7 +706,7 @@ export const HabitInsightPage = {
                 type="text" 
                 id="edit-goal-name"
                 value="${habit.name}" 
-                class="border border-divider rounded-xl px-3 py-2 text-sm font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
+                class="border border-divider rounded-xl px-3 py-2 text-sm font-bold bg-surface-card text-text-primary focus:outline-none focus:border-neutral-900"
               />
             </div>
 
@@ -784,7 +784,7 @@ export const HabitInsightPage = {
                     id="edit-goal-unit"
                     value="${habit.unit || ''}" 
                     placeholder="e.g. ml, steps"
-                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
+                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-neutral-900"
                   />
                 </div>
                 <div class="flex flex-col gap-1.5">
@@ -794,7 +794,7 @@ export const HabitInsightPage = {
                     id="edit-goal-min"
                     value="${habit.minGoal ?? ''}" 
                     placeholder="None"
-                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
+                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-neutral-900"
                   />
                 </div>
                 <div class="flex flex-col gap-1.5">
@@ -804,7 +804,7 @@ export const HabitInsightPage = {
                     id="edit-goal-max"
                     value="${habit.maxGoal ?? ''}" 
                     placeholder="None"
-                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-slate-900"
+                    class="border border-divider rounded-xl px-3 py-2 text-xs font-bold bg-surface-card text-text-primary focus:outline-none focus:border-neutral-900"
                   />
                 </div>
               </div>
@@ -814,7 +814,7 @@ export const HabitInsightPage = {
             <button 
               type="button" 
               onclick="window.HabitInsightPageSaveGoals('${habit.id}')"
-              class="w-full bg-slate-900 text-white rounded-xl py-2.5 text-xs font-bold hover:bg-slate-850 active:scale-[0.99] transition-all shadow-sm mt-2"
+              class="w-full bg-neutral-900 text-white rounded-xl py-2.5 text-xs font-bold hover:bg-neutral-800 active:scale-[0.99] transition-all shadow-sm mt-2"
             >
               Save Parameters
             </button>

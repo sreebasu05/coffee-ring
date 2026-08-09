@@ -88,7 +88,7 @@ export const Greeting = {
           <div class="relative inline-block">
             <button 
               id="date-dropdown-trigger" 
-              class="flex items-center gap-1.5 text-label-muted hover:text-text-primary dark:hover:text-slate-200 transition-colors"
+              class="flex items-center gap-1.5 text-label-muted hover:text-text-primary dark:hover:text-neutral-200 transition-colors"
             >
               <span>${activeDateLabel}</span>
               <i data-lucide="chevron-down" class="w-3 h-3"></i>

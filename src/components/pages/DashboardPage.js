@@ -63,12 +63,12 @@ export const DashboardPage = {
         <div class="flex gap-3">
           <div class="flex-1 bg-surface-card border border-divider/80 rounded-2xl p-4 flex flex-col gap-1 shadow-sm relative overflow-hidden">
             <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest">Today</span>
-            <span class="text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">${todayPct}<span class="text-lg font-bold text-text-secondary">%</span></span>
+            <span class="text-3xl font-black bg-gradient-to-r from-neutral-900 to-neutral-600 dark:from-neutral-100 dark:to-neutral-300 bg-clip-text text-transparent">${todayPct}<span class="text-lg font-bold text-text-secondary">%</span></span>
             <span class="text-[10px] text-text-secondary">real-time completion</span>
           </div>
           <div class="flex-1 bg-surface-card border border-divider/80 rounded-2xl p-4 flex flex-col gap-1 shadow-sm relative overflow-hidden">
             <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest">On Track</span>
-            <span class="text-3xl font-black bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">${onTrackCount}<span class="text-lg font-bold text-text-secondary">/${totalHabits}</span></span>
+            <span class="text-3xl font-black bg-gradient-to-r from-neutral-900 to-neutral-600 dark:from-neutral-100 dark:to-neutral-300 bg-clip-text text-transparent">${onTrackCount}<span class="text-lg font-bold text-text-secondary">/${totalHabits}</span></span>
             <span class="text-[10px] text-text-secondary">meeting weekly targets</span>
           </div>
         </div>
@@ -117,7 +117,7 @@ export const DashboardPage = {
             <span class="text-3xl font-black text-text-primary tabular-nums">${overallConsistency}<span class="text-lg font-bold text-text-secondary">%</span></span>
           </div>
           <div class="w-full bg-surface-sunken h-2.5 rounded-full overflow-hidden border border-divider/60 p-[1px]">
-            <div class="h-full rounded-full transition-all duration-500 bg-slate-800 dark:bg-slate-200" style="width: ${overallConsistency}%;"></div>
+            <div class="h-full rounded-full transition-all duration-500 bg-neutral-800 dark:bg-neutral-200" style="width: ${overallConsistency}%;"></div>
           </div>
           <span class="text-[9.5px] text-text-secondary leading-relaxed">Average weekly target hit rate across all habits during this period.</span>
         </div>
@@ -264,7 +264,7 @@ export const DashboardPage = {
       const rowsHtml = rankings.map((r, i) => {
         const trendIcon = r.trend === 'up' ? '<i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-emerald-500"></i>' : 
                           r.trend === 'down' ? '<i data-lucide="arrow-down-right" class="w-3.5 h-3.5 text-rose-500"></i>' : 
-                          '<i data-lucide="minus" class="w-3.5 h-3.5 text-slate-300"></i>';
+                          '<i data-lucide="minus" class="w-3.5 h-3.5 text-neutral-300"></i>';
         
         return `
           <div data-go-to-insights-row="${r.habit.id}" class="flex items-center justify-between py-3 border-b border-divider last:border-0 cursor-pointer hover:bg-surface-sunken transition-colors rounded-lg px-2 -mx-2">

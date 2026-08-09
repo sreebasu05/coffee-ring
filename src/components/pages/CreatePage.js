@@ -37,14 +37,14 @@ export const CreatePage = {
       <button 
         type="button"
         id="drawer-custom-habit"
-        class="group relative overflow-hidden w-full p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-surface-card hover:border-slate-900 dark:hover:border-slate-100 hover:shadow-md transition-all duration-300 flex items-center justify-between"
+        class="group relative overflow-hidden w-full p-4 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-600 bg-surface-card hover:border-neutral-900 dark:hover:border-neutral-100 hover:shadow-md transition-all duration-300 flex items-center justify-between"
       >
         <div class="flex items-center gap-3.5">
-          <div class="w-10 h-10 rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
+          <div class="w-10 h-10 rounded-xl bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
             <i data-lucide="plus" class="w-5 h-5"></i>
           </div>
           <div class="flex flex-col text-left">
-            <span class="text-sm font-bold text-text-primary group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Create Custom Habit</span>
+            <span class="text-sm font-bold text-text-primary group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">Create Custom Habit</span>
             <span class="text-[11px] text-text-secondary">Build a habit from scratch with custom goals & schedule</span>
           </div>
         </div>
@@ -109,7 +109,7 @@ export const CreatePage = {
         : '';
       const buttonClass = isSelected
         ? 'icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-sm'
-        : 'icon-grid-btn w-11 h-11 rounded-full border border-divider bg-surface-card text-text-secondary hover:border-slate-400 hover:text-text-primary transition-all flex items-center justify-center';
+        : 'icon-grid-btn w-11 h-11 rounded-full border border-divider bg-surface-card text-text-secondary hover:border-neutral-400 hover:text-text-primary transition-all flex items-center justify-center';
 
       return `
         <button 
@@ -130,7 +130,7 @@ export const CreatePage = {
         
       const chipClass = isSelected
         ? 'border-accentBlue bg-accentBlue text-white shadow-sm'
-        : 'border-divider bg-surface-card text-text-secondary hover:border-slate-400 dark:hover:border-slate-500';
+        : 'border-divider bg-surface-card text-text-secondary hover:border-neutral-400 dark:hover:border-neutral-500';
 
       const circleClass = 'w-2.5 h-2.5 rounded-full inline-block';
       const circleStyle = `background-color: ${themeHex};`;
@@ -227,7 +227,7 @@ export const CreatePage = {
               placeholder="e.g. Gym Workout, Drink Water" 
               required
               autocomplete="off"
-              class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
+              class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-neutral-900 focus:bg-surface-card"
             />
             <!-- Hide suggest list in onboarding mode -->
             ${!prefilled ? `
@@ -328,7 +328,7 @@ export const CreatePage = {
                   id="goal-numeric-min" 
                   value="${prefilled && prefilled.minGoal !== null && prefilled.minGoal !== undefined ? prefilled.minGoal : ''}"
                   placeholder="e.g. 1800"
-                  class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
+                  class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-neutral-900 focus:bg-surface-card"
                 />
               </div>
               <div>
@@ -338,7 +338,7 @@ export const CreatePage = {
                   id="goal-numeric-max" 
                   value="${prefilled && prefilled.maxGoal !== null && prefilled.maxGoal !== undefined ? prefilled.maxGoal : ''}"
                   placeholder="e.g. 2200"
-                  class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
+                  class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-neutral-900 focus:bg-surface-card"
                 />
               </div>
             </div>
@@ -349,7 +349,7 @@ export const CreatePage = {
                 id="goal-numeric-unit" 
                 value="${prefilled ? prefilled.unit || '' : ''}"
                 placeholder="e.g. kcal, glasses, hours"
-                class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-slate-900 focus:bg-surface-card"
+                class="w-full bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-neutral-900 focus:bg-surface-card"
               />
             </div>
           </div>
@@ -365,14 +365,14 @@ export const CreatePage = {
                 placeholder="Add tag (e.g. Legs, Cardio)" 
                 class="bg-surface-sunken border border-divider rounded-xl px-4 py-3 text-xs text-text-primary focus:outline-none w-full"
               />
-              <button type="button" id="form-add-tag-btn" class="bg-slate-880 hover:bg-slate-700 text-white px-4 py-3 text-xs rounded-xl font-semibold">Add</button>
+              <button type="button" id="form-add-tag-btn" class="bg-neutral-800 hover:bg-neutral-600 text-white px-4 py-3 text-xs rounded-xl font-semibold">Add</button>
             </div>
           </div>
 
           <!-- Submit -->
           <button 
             type="submit" 
-            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all text-center mt-2 text-sm"
+            class="w-full bg-neutral-900 hover:bg-neutral-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all text-center mt-2 text-sm"
           >
             ${submitBtnLabel}
           </button>
@@ -468,7 +468,7 @@ export const CreatePage = {
         
         btn.className = isSelected
           ? "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all shadow-sm"
-          : "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-slate-400 hover:text-text-primary";
+          : "icon-grid-btn w-11 h-11 rounded-full border flex items-center justify-center transition-all border-divider bg-surface-card text-text-secondary hover:border-neutral-400 hover:text-text-primary";
         
         btn.style = isSelected
           ? `border-color: ${themeHex}; color: ${themeHex}; background-color: ${themeHex}1a;`
@@ -487,7 +487,7 @@ export const CreatePage = {
       categoryPicker.querySelectorAll('.category-chip-btn').forEach(btn => {
         btn.className = btn.dataset.categorySelect === catId
           ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-accentBlue bg-accentBlue text-white shadow-sm"
-          : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-divider bg-surface-card text-text-secondary hover:border-slate-400 dark:hover:border-slate-500";
+          : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-divider bg-surface-card text-text-secondary hover:border-neutral-400 dark:hover:border-neutral-500";
       });
       // Synchronize the selected icon's border and background color to match the new category color
       selectIcon(currentIcon);
