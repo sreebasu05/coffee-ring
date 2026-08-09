@@ -104,31 +104,35 @@ export const StorageManager = {
     if (!user) return false;
 
     try {
-      // 1. Fetch Profile
-      const { data: profile } = await supabase
-        .from('eva_users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      // 1. Fetch Profile (non-fatal - use maybeSingle to avoid throwing on missing row)
+      try {
+        const { data: profile } = await supabase
+          .from('eva_users')
+          .select('*')
+          .eq('id', user.id)
+          .maybeSingle();
 
-      if (profile) {
-        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name: profile.name, email: profile.email || '' }));
-        if (profile.category_colors) {
-          localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
+        if (profile) {
+          localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name: profile.name, email: profile.email || '' }));
+          if (profile.category_colors) {
+            localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
+          }
+        } else {
+          // Create profile if not exists (e.g. first login after Google OAuth)
+          const name = user.email ? user.email.split('@')[0] : 'user';
+          await supabase.from('eva_users').upsert({
+            id: user.id,
+            name,
+            email: user.email || '',
+            category_colors: getDefaultCategoryColors()
+          });
+          localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name, email: user.email || '' }));
         }
-      } else {
-        // Create profile if not exists (e.g. first login after Google OAuth)
-        const name = user.email ? user.email.split('@')[0] : 'user';
-        await supabase.from('eva_users').insert({
-          id: user.id,
-          name,
-          email: user.email || '',
-          category_colors: getDefaultCategoryColors()
-        });
-        localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name, email: user.email || '' }));
+      } catch (profileErr) {
+        console.warn('Profile fetch failed (non-fatal, continuing sync):', profileErr);
       }
 
-      // 2. Fetch Remote Habits & Bidirectionally Merge
+      // 2. Fetch Remote Habits & Merge (remote wins, local-only pushed to cloud)
       const { data: remoteHabitsRaw } = await supabase
         .from('cr_habits')
         .select('*')
@@ -157,6 +161,7 @@ export const StorageManager = {
       localHabits.forEach(h => {
         if (!habitMap.has(h.id)) {
           habitMap.set(h.id, h);
+          // Push local-only habit to cloud
           supabase.from('cr_habits').upsert({
             id: h.id,
             user_id: user.id,
@@ -180,7 +185,7 @@ export const StorageManager = {
       const mergedHabits = Array.from(habitMap.values());
       localStorage.setItem(KEYS.HABITS, JSON.stringify(mergedHabits));
 
-      // 3. Fetch Remote Check-ins & Bidirectionally Merge
+      // 3. Fetch Remote Check-ins & Merge
       const { data: remoteCheckInsRaw } = await supabase
         .from('cr_check_ins')
         .select('*')
@@ -204,10 +209,9 @@ export const StorageManager = {
 
       localCheckIns.forEach(c => {
         const key = `${c.habitId}_${c.date}`;
-        const existing = checkInMap.get(key);
-
-        if (!existing) {
+        if (!checkInMap.has(key)) {
           checkInMap.set(key, c);
+          // Push local-only check-in to cloud
           supabase.from('cr_check_ins').upsert({
             user_id: user.id,
             habit_id: c.habitId,
@@ -216,24 +220,9 @@ export const StorageManager = {
             notes: c.note || '',
             tags: c.tags || [],
             completed: c.completed !== false
-          }).then(({ error }) => {
+          }, { onConflict: 'user_id,habit_id,date' }).then(({ error }) => {
             if (error) console.error('Error syncing local check-in to cloud:', error);
           });
-        } else {
-          if (c.completed === true && existing.completed !== true) {
-            checkInMap.set(key, c);
-            supabase.from('cr_check_ins').upsert({
-              user_id: user.id,
-              habit_id: c.habitId,
-              date: c.date,
-              value: c.value !== undefined ? c.value : existing.value,
-              notes: c.note || existing.note || '',
-              tags: c.tags || existing.tags || [],
-              completed: true
-            }).then(({ error }) => {
-              if (error) console.error('Error syncing updated check-in to cloud:', error);
-            });
-          }
         }
       });
 
@@ -306,8 +295,9 @@ export const StorageManager = {
           date: c.date,
           value: c.value,
           notes: c.note || '',
-          tags: c.tags || []
-        });
+          tags: c.tags || [],
+          completed: c.completed !== false
+        }, { onConflict: 'user_id,habit_id,date' });
       }
 
       return true;
@@ -475,7 +465,7 @@ export const StorageManager = {
           notes: checkIn.note || '',
           tags: checkIn.tags || [],
           completed: checkIn.completed !== false
-        }).then(({ error }) => {
+        }, { onConflict: 'user_id,habit_id,date' }).then(({ error }) => {
           if (error) console.error('Supabase checkin save error:', error);
         });
       }
