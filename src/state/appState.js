@@ -42,9 +42,14 @@ class AppState {
 
     // Set up Supabase Auth state listener
     if (isSupabaseConfigured && supabase) {
+      this.setupAutoSync();
+
       // Check initial session
       supabase.auth.getSession().then(({ data: { session } }) => {
         this.isCloudSynced = !!session;
+        if (session) {
+          this.setupRealtimeSubscription(session.user.id);
+        }
         this.notify();
       });
 
@@ -56,11 +61,75 @@ class AppState {
           if (success) {
             this.loadStateFromCache();
           }
+          this.setupRealtimeSubscription(session.user.id);
         } else {
           // If logged out, load local guest profile/data
           this.loadStateFromCache();
+          if (this.realtimeChannel) {
+            supabase.removeChannel(this.realtimeChannel);
+            this.realtimeChannel = null;
+          }
         }
       });
+    }
+  }
+
+  async syncCloudState() {
+    if (!isSupabaseConfigured || !supabase || !this.isCloudSynced) return;
+    const user = await StorageManager.getSupabaseUser();
+    if (user) {
+      const success = await StorageManager.fetchFromSupabase();
+      if (success) {
+        this.loadStateFromCache();
+      }
+    }
+  }
+
+  setupAutoSync() {
+    if (this._autoSyncBound) return;
+    this._autoSyncBound = true;
+
+    // Sync when user switches back to this browser tab or window
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.syncCloudState();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      this.syncCloudState();
+    });
+
+    // Periodic silent background sync every 15s when active
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && this.isCloudSynced) {
+        this.syncCloudState();
+      }
+    }, 15000);
+  }
+
+  setupRealtimeSubscription(userId) {
+    if (!isSupabaseConfigured || !supabase || !userId) return;
+    if (this.realtimeChannel) {
+      supabase.removeChannel(this.realtimeChannel);
+    }
+
+    try {
+      this.realtimeChannel = supabase
+        .channel(`public_changes_${userId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'cr_check_ins', filter: `user_id=eq.${userId}` },
+          () => this.syncCloudState()
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'cr_habits', filter: `user_id=eq.${userId}` },
+          () => this.syncCloudState()
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn('Realtime subscription fallback error:', err);
     }
   }
 
