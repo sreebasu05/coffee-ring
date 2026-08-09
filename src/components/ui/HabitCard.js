@@ -71,7 +71,7 @@ export const HabitCard = {
     const log = state.getLogForHabit(habit.id);
     
     // Completion Logic
-    let isCompleted = log !== null && log.completed === true;
+    let isCompleted = log !== null && log.completed !== false;
 
     const isExpanded = this.expandedHabitId === habit.id;
     
@@ -314,7 +314,7 @@ export const HabitCard = {
       checkBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const currentLog = state.getLogForHabit(habitId);
-        const currentlyCompleted = currentLog !== null && currentLog.completed === true;
+        const currentlyCompleted = currentLog !== null && currentLog.completed !== false;
 
         checkBtn.classList.add('active-pulse');
         setTimeout(() => checkBtn.classList.remove('active-pulse'), 150);
