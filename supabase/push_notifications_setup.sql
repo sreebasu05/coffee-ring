@@ -22,14 +22,15 @@ CREATE POLICY "Users can manage their own push subscriptions"
     WITH CHECK (auth.uid() = user_id);
 
 -- 2. Schedule the Edge Function (pg_cron)
+-- Note: Replace YOUR_PROJECT_REF and YOUR_ANON_KEY with your actual project values.
 -- This schedules the job to run every 4 hours.
 SELECT cron.schedule(
   'send-daily-reminders',
   '0 */4 * * *',
   $$
     SELECT net.http_post(
-        url:='https://xpgemlduowqbqkaetupu.supabase.co/functions/v1/send-reminders',
-        headers:='{"Authorization": "Bearer sb_publishable_Jy1oZCwmmfSZ2Jd17NEEMA_K8JrN1cG"}'::jsonb,
+        url:='https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-reminders',
+        headers:='{"Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
         body:='{}'::jsonb
     );
   $$
