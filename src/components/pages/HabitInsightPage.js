@@ -1270,7 +1270,7 @@ export const HabitInsightPage = {
             },
             y: {
               grid: {
-                color: '#f1f5f9',
+                color: document.documentElement.classList.contains('dark') ? '#222222' : '#f1f5f9',
                 drawTicks: false
               },
               ticks: {

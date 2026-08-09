@@ -75,6 +75,13 @@ class AppController {
   render() {
     const navRoot = document.getElementById('nav-root');
     
+    // Save focused element state to prevent keypress interruption
+    const activeEl = document.activeElement;
+    const activeId = activeEl ? activeEl.id : null;
+    const activeHabitId = activeEl ? activeEl.dataset?.habitId : null;
+    const isNoteTextarea = activeEl ? activeEl.classList.contains('card-note-textarea') : false;
+    const isNumericInput = activeEl ? activeEl.classList.contains('card-numeric-input') : false;
+
     // If specifically routing to auth or onboarding (e.g. from onboarding or sign out)
     if (this.currentTab === 'auth') {
       if (navRoot) {
@@ -111,6 +118,31 @@ class AppController {
     
     // Render dynamic page body
     this.renderBody();
+
+    // Call Lucide to compile inline SVG icons dynamically
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
+    // Restore focus and cursor selection position seamlessly
+    if (activeHabitId) {
+      const selector = isNoteTextarea 
+        ? `.card-note-textarea[data-habit-id="${activeHabitId}"]` 
+        : (isNumericInput ? `.card-numeric-input[data-habit-id="${activeHabitId}"]` : null);
+      if (selector) {
+        const inputEl = document.querySelector(selector);
+        if (inputEl) {
+          inputEl.focus();
+          // Move cursor to the end of the text/number
+          const val = inputEl.value;
+          inputEl.value = '';
+          inputEl.value = val;
+        }
+      }
+    } else if (activeId) {
+      const el = document.getElementById(activeId);
+      if (el) el.focus();
+    }
   }
 
   renderAuth() {

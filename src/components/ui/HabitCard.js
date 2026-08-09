@@ -203,6 +203,7 @@ export const HabitCard = {
                   type="number" 
                   value="${log?.value ?? ""}" 
                   placeholder="${numPlaceholder}"
+                  data-habit-id="${habit.id}"
                   class="card-numeric-input flex-grow border rounded-xl px-3 py-2 text-sm font-bold focus:outline-none bg-surface-sunken border-divider text-text-primary focus:bg-surface-card focus:border-neutral-900"
                 />
                 <span class="text-xs ${isCompleted ? c.subTextActive : 'text-text-secondary'} font-semibold flex-shrink-0">${habit.unit || 'units'}</span>
@@ -245,6 +246,7 @@ export const HabitCard = {
             <textarea 
               placeholder="e.g. Squat PR, Read 10 pages..." 
               rows="2" 
+              data-habit-id="${habit.id}"
               class="card-note-textarea w-full border border-divider rounded-xl p-3 text-xs resize-none focus:outline-none bg-surface-sunken text-text-primary focus:bg-surface-card focus:border-neutral-900"
             >${log?.note || ""}</textarea>
           </div>
@@ -287,10 +289,7 @@ export const HabitCard = {
         if (log && log.value !== null && log.value !== undefined) {
           return log.value;
         }
-        if (habit.type === 'number') {
-          return (habit.minGoal !== null && habit.minGoal !== undefined && habit.minGoal !== "") ? parseFloat(habit.minGoal) : 1;
-        }
-        return 1;
+        return null;
       };
 
       // Tapping card header toggles expansion
@@ -407,12 +406,23 @@ export const HabitCard = {
           }
         };
 
-        numInput.addEventListener('input', saveNumValue);
-        numInput.addEventListener('change', saveNumValue);
-        numInput.addEventListener('blur', saveNumValue);
+        let debounceTimer;
+        numInput.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(saveNumValue, 800);
+        });
+        numInput.addEventListener('change', () => {
+          clearTimeout(debounceTimer);
+          saveNumValue();
+        });
+        numInput.addEventListener('blur', () => {
+          clearTimeout(debounceTimer);
+          saveNumValue();
+        });
         numInput.addEventListener('keydown', (e) => { 
           if (e.key === 'Enter') {
             e.preventDefault();
+            clearTimeout(debounceTimer);
             saveNumValue();
             numInput.blur();
           } 
