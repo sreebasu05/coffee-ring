@@ -138,17 +138,30 @@ class AppState {
   }
 
   loadStateFromCache() {
-    this.user = StorageManager.getUserProfile();
-    this.habits = StorageManager.getHabits() || [];
-    this.checkIns = StorageManager.getCheckIns() || [];
+    const newUser = StorageManager.getUserProfile();
+    const newHabits = StorageManager.getHabits() || [];
+    const newCheckIns = StorageManager.getCheckIns() || [];
+    const newColors = StorageManager.getCategoryColors() || {};
+
+    // Check if anything actually changed to prevent redundant UI rerenders
+    const userChanged = JSON.stringify(this.user) !== JSON.stringify(newUser);
+    const habitsChanged = JSON.stringify(this.habits) !== JSON.stringify(newHabits);
+    const checkInsChanged = JSON.stringify(this.checkIns) !== JSON.stringify(newCheckIns);
+    const colorsChanged = JSON.stringify(this.categoryColors) !== JSON.stringify(newColors);
+
+    this.user = newUser;
+    this.habits = newHabits;
+    this.checkIns = newCheckIns;
+    this.categoryColors = newColors;
 
     // Auto-seed history if history is completely empty for local guests
     if (this.habits.length > 0 && this.checkIns.length === 0) {
       this.checkIns = StorageManager.seedHistoryForCurrentHabits();
     }
-    
-    this.categoryColors = StorageManager.getCategoryColors() || {};
-    this.notify();
+
+    if (userChanged || habitsChanged || checkInsChanged || colorsChanged) {
+      this.notify();
+    }
   }
 
   registerUser(name, chosenPresetIds = [], generateHistory = true) {
