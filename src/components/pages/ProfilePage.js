@@ -5,7 +5,8 @@ export const ProfilePage = {
   render(state) {
     const isGuest = !state.isCloudSynced;
     const profile = state.user;
-    const username = profile?.name || 'Guest';
+    const rawUsername = profile?.name || 'Guest';
+    const username = rawUsername.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     const email = profile?.email || '';
 
     // Build initials avatar
@@ -268,6 +269,7 @@ export const ProfilePage = {
         localStorage.removeItem('coffeering_onboarding_completed');
         localStorage.removeItem('coffeering_onboarding_draft');
         localStorage.removeItem('coffeering_category_colors');
+        localStorage.removeItem('coffeering_push_prompt_seen');
         state.user = null;
         state.habits = [];
         state.checkIns = [];

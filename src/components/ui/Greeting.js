@@ -2,7 +2,8 @@ import { APP_CONFIG } from '../../config/appConfig.js';
 
 export const Greeting = {
   render(state) {
-    const user = state.user?.name || "Sree";
+    const rawName = state.user?.name || "Sree";
+    const user = rawName.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
     const hour = new Date().getHours();
     let greet = "Hello";
 

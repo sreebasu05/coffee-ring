@@ -170,7 +170,7 @@ class AppController {
       const modalHtml = `
         <div id="push-soft-prompt" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
           <div class="bg-surface-card border border-divider rounded-3xl p-6 w-full max-w-sm shadow-xl animate-fade-up">
-            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4">
+            <div class="w-12 h-12 rounded-2xl bg-surface-sunken text-text-primary flex items-center justify-center mb-4 border border-divider">
               <i data-lucide="bell-ring" class="w-6 h-6"></i>
             </div>
             <h3 class="text-xl font-black text-text-primary mb-2">Enable Reminders</h3>
@@ -179,7 +179,7 @@ class AppController {
               <button id="push-prompt-decline" class="flex-1 py-3 px-4 rounded-xl font-bold text-text-secondary bg-surface-base border border-divider hover:bg-surface-sunken transition-colors">
                 Not Now
               </button>
-              <button id="push-prompt-accept" class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-md transition-colors">
+              <button id="push-prompt-accept" class="flex-1 py-3 px-4 rounded-xl font-bold bg-neutral-900 text-white hover:bg-neutral-700 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-white transition-colors shadow-md">
                 Yes, Please
               </button>
             </div>
