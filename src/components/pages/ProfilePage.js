@@ -41,7 +41,7 @@ export const ProfilePage = {
         <div class="flex flex-col gap-1.5 px-2 animate-fade-up delay-2">
           <span class="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em]">Storage</span>
           <div class="flex items-center gap-3 p-3.5 bg-surface-card border border-divider rounded-2xl shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-200 flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-surface-base border border-divider text-text-primary flex items-center justify-center flex-shrink-0">
               <i data-lucide="hard-drive" class="w-4.5 h-4.5"></i>
             </div>
             <div>
@@ -54,7 +54,7 @@ export const ProfilePage = {
         <div class="flex flex-col gap-1.5 px-2 animate-fade-up delay-2">
           <span class="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em]">Storage</span>
           <div class="flex items-center gap-3 p-3.5 bg-surface-card border border-divider rounded-2xl shadow-sm">
-            <div class="w-9 h-9 rounded-xl bg-neutral-900 text-white flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-surface-base border border-divider text-text-primary flex items-center justify-center flex-shrink-0">
               <i data-lucide="cloud" class="w-4.5 h-4.5"></i>
             </div>
             <div>
@@ -73,7 +73,7 @@ export const ProfilePage = {
             id="profile-signup-btn"
             class="w-full text-left p-4 border border-divider bg-surface-card rounded-2xl shadow-sm hover:shadow-md hover:border-neutral-700 dark:hover:border-neutral-400 transition-all group flex items-center gap-3"
           >
-            <div class="w-9 h-9 rounded-xl bg-neutral-900 text-white flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-surface-base border border-divider text-text-primary flex items-center justify-center flex-shrink-0">
               <i data-lucide="user-plus" class="w-4.5 h-4.5"></i>
             </div>
             <div class="flex-1">
@@ -109,7 +109,7 @@ export const ProfilePage = {
             id="profile-glossary-btn"
             class="w-full text-left p-4 border border-divider bg-surface-card rounded-2xl shadow-sm hover:shadow-md transition-all group flex items-center gap-3"
           >
-            <div class="w-9 h-9 rounded-xl bg-surface-sunken text-text-primary border border-divider flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 rounded-xl bg-surface-base text-text-primary border border-divider flex items-center justify-center flex-shrink-0">
               <i data-lucide="book-open" class="w-4.5 h-4.5"></i>
             </div>
             <div class="flex-1">
@@ -146,7 +146,7 @@ export const ProfilePage = {
     const signupBtn = document.getElementById('profile-signup-btn');
     if (signupBtn) {
       signupBtn.addEventListener('click', () => {
-        onNavigate('auth');
+        onNavigate('auth', { from: 'profile' });
       });
     }
 

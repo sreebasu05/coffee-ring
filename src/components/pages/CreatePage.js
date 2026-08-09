@@ -129,7 +129,7 @@ export const CreatePage = {
       const themeHex = APP_CONFIG.getHexColor(cat.defaultColor, '#64748b');
         
       const chipClass = isSelected
-        ? 'border-accentBlue bg-accentBlue text-white shadow-sm'
+        ? 'border-accentBlue bg-accentBlue text-white dark:text-neutral-900 shadow-sm'
         : 'border-divider bg-surface-card text-text-secondary hover:border-neutral-400 dark:hover:border-neutral-500';
 
       const circleClass = 'w-2.5 h-2.5 rounded-full inline-block';
@@ -372,7 +372,7 @@ export const CreatePage = {
           <!-- Submit -->
           <button 
             type="submit" 
-            class="w-full bg-neutral-900 hover:bg-neutral-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-md transition-all text-center mt-2 text-sm"
+            class="w-full py-4 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-50 active:scale-[0.98] rounded-2xl font-medium text-base shadow-sm transition-all text-center mt-4"
           >
             ${submitBtnLabel}
           </button>
@@ -440,9 +440,9 @@ export const CreatePage = {
     // --- Tag rendering ---
     const renderFormTags = () => {
       tagsListDiv.innerHTML = currentTags.map(tag => `
-        <span class="px-2.5 py-1 rounded bg-surface-sunken text-xs text-text-secondary font-semibold border border-divider flex items-center gap-1.5 animate-fade-in">
+        <span class="px-2.5 py-1 rounded-full text-xs font-normal border border-divider bg-surface-sunken text-text-secondary flex items-center gap-1.5 animate-fade-in">
           ${tag}
-          <button type="button" data-tag-remove="${tag}" class="text-[10px] text-text-secondary hover:text-text-secondary">✕</button>
+          <button type="button" data-tag-remove="${tag}" class="text-[10px] text-text-secondary hover:text-text-primary transition-colors ml-0.5">✕</button>
         </span>
       `).join('');
       tagsListDiv.querySelectorAll('[data-tag-remove]').forEach(btn => {
@@ -486,7 +486,7 @@ export const CreatePage = {
       categoryInput.value = catId;
       categoryPicker.querySelectorAll('.category-chip-btn').forEach(btn => {
         btn.className = btn.dataset.categorySelect === catId
-          ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-accentBlue bg-accentBlue text-white shadow-sm"
+          ? "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-accentBlue bg-accentBlue text-white dark:text-neutral-900 shadow-sm"
           : "category-chip-btn px-3 py-1.5 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5 whitespace-nowrap border-divider bg-surface-card text-text-secondary hover:border-neutral-400 dark:hover:border-neutral-500";
       });
       // Synchronize the selected icon's border and background color to match the new category color

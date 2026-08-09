@@ -206,7 +206,7 @@ export const AuthPage = {
             <button 
               type="submit" 
               ${this.loading ? 'disabled' : ''} 
-              class="w-full mt-1 bg-neutral-900 hover:bg-neutral-700 active:scale-98 text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+              class="w-full mt-1 py-4 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-50 active:scale-[0.98] rounded-2xl font-medium text-base shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span>${btnText}</span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
@@ -260,6 +260,10 @@ export const AuthPage = {
     const backBtn = document.getElementById('auth-back-btn');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
+        if (AuthPage.navigateOptions && AuthPage.navigateOptions.from === 'profile') {
+          window.appController.navigate('profile');
+          return;
+        }
         const isExistingGuest = localStorage.getItem('coffeering_onboarding_completed') === 'true';
         if (isExistingGuest) {
           window.appController.navigate('today');
@@ -290,7 +294,11 @@ export const AuthPage = {
         const isExistingGuest = localStorage.getItem('coffeering_onboarding_completed') === 'true';
 
         if (isExistingGuest) {
-          window.appController.navigate('today');
+          if (AuthPage.navigateOptions && AuthPage.navigateOptions.from === 'profile') {
+            window.appController.navigate('profile');
+          } else {
+            window.appController.navigate('today');
+          }
           return;
         }
 

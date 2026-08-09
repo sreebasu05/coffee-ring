@@ -65,6 +65,9 @@ class AppController {
       OnboardingPage.step = options.step;
       OnboardingPage.saveState();
     }
+    if (tabName === 'auth') {
+      AuthPage.navigateOptions = options;
+    }
     window.scrollTo(0, 0);
     this.render();
   }
@@ -177,7 +180,7 @@ class AppController {
       ProfilePage.bindEvents(
         appState,
         () => this.navigate('onboarding'),
-        (tab) => this.navigate(tab)
+        (tab, options) => this.navigate(tab, options)
       );
     } else if (this.currentTab === 'auth') {
       root.innerHTML = AuthPage.render();
