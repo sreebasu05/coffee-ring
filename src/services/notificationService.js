@@ -83,31 +83,59 @@ export const NotificationService = {
   },
 
   async saveSubscription(userId) {
-    if (!userId) return false;
+    if (!this.isSupported()) {
+      return { success: false, error: 'Push notifications are not supported by this browser.' };
+    }
+
+    let finalUserId = userId;
+    if (!finalUserId && supabase) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) finalUserId = user.id;
+      } catch (e) {
+        console.warn('Could not fetch supabase user:', e);
+      }
+    }
+
+    if (!finalUserId) {
+      return { success: false, error: 'User is not logged in.' };
+    }
     
     const hasPermission = await this.requestPermission();
     if (!hasPermission) {
-      console.warn('Notification permission not granted.');
-      return false;
+      return { success: false, error: 'Notification permission was denied or blocked.' };
     }
 
-    const subscription = await this.subscribeUser();
-    if (!subscription) return false;
+    const publicVapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    if (!publicVapidKey) {
+      return { success: false, error: 'VAPID public key missing. If you just added it to .env, restart your dev server.' };
+    }
 
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let subscription;
+    try {
+      subscription = await this.subscribeUser();
+    } catch (e) {
+      return { success: false, error: `Subscription failed: ${e.message}` };
+    }
+
+    if (!subscription) {
+      return { success: false, error: 'Could not register push subscription with your browser.' };
+    }
+
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
 
     try {
       const { error } = await supabase.from('cr_push_subscriptions').upsert({
-        user_id: userId,
+        user_id: finalUserId,
         subscription_json: subscription.toJSON(),
         timezone: timezone
       }, { onConflict: 'user_id,subscription_json' });
 
       if (error) throw error;
-      return true;
+      return { success: true };
     } catch (error) {
       console.error('Error saving push subscription:', error);
-      return false;
+      return { success: false, error: `Database save error: ${error.message || error}` };
     }
   }
 };

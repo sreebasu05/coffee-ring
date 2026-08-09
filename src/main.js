@@ -199,7 +199,7 @@ class AppController {
         
         // Dynamically import NotificationService
         const { NotificationService } = await import('./services/notificationService.js');
-        const success = await NotificationService.saveSubscription(appState.user.id);
+        const result = await NotificationService.saveSubscription(appState.user.id);
         
         closeAndRemember();
       });

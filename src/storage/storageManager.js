@@ -154,7 +154,7 @@ export const StorageManager = {
           .maybeSingle();
 
         if (profile) {
-          localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name: profile.name, email: profile.email || '' }));
+          localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ id: user.id, name: profile.name, email: profile.email || '' }));
           if (profile.category_colors) {
             localStorage.setItem(KEYS.CATEGORY_COLORS, JSON.stringify(profile.category_colors));
           }
@@ -166,7 +166,7 @@ export const StorageManager = {
             email: user.email || '',
             category_colors: getDefaultCategoryColors()
           });
-          localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ name, email: user.email || '' }));
+          localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify({ id: user.id, name, email: user.email || '' }));
         }
       } catch (profileErr) {
         console.warn('[Sync] Profile fetch failed (non-fatal):', profileErr);

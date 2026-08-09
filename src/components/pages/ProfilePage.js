@@ -194,14 +194,14 @@ export const ProfilePage = {
           return;
         }
 
-        const success = await NotificationService.saveSubscription(state.user.id);
-        if (success) {
+        const result = await NotificationService.saveSubscription(state.user.id);
+        if (result && result.success) {
           remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
           remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500');
           remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
         } else {
           if (remindersError) {
-            remindersError.textContent = 'Failed to enable reminders. Please ensure you granted permission.';
+            remindersError.textContent = result?.error || 'Failed to enable reminders. Please check browser permissions.';
             remindersError.classList.remove('hidden');
           }
         }
