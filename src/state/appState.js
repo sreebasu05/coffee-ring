@@ -25,6 +25,12 @@ class AppState {
     return `${year}-${month}-${day}`;
   }
 
+  parseLocalDate(dateStr) {
+    if (!dateStr) return new Date();
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+
   init() {
     if (!localStorage.getItem('coffeering_schema_v2')) {
       StorageManager.init(true); // force reset database
@@ -209,7 +215,7 @@ class AppState {
   }
 
   getWeeklyCount(habitId) {
-    const refDate = this.selectedDate ? new Date(this.selectedDate + "T00:00:00") : new Date();
+    const refDate = this.selectedDate ? this.parseLocalDate(this.selectedDate) : new Date();
     const { mondayStr, sundayStr } = this.getCurrentWeekMondayAndSunday(refDate, 0);
     return this.checkIns.filter(log => {
       if (log.habitId !== habitId) return false;
@@ -245,7 +251,7 @@ class AppState {
   }
 
   getCurrentWeekStatus(habitId) {
-    const refDate = this.selectedDate ? new Date(this.selectedDate + "T00:00:00") : new Date();
+    const refDate = this.selectedDate ? this.parseLocalDate(this.selectedDate) : new Date();
     const { start } = this.getCurrentWeekMondayAndSunday(refDate, 0);
     const days = [];
     

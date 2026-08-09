@@ -30,8 +30,14 @@ export const Greeting = {
       return `${year}-${month}-${day}`;
     };
 
+    const parseLocalDate = (dateStr) => {
+      if (!dateStr) return new Date();
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    };
+
     let activeDateLabel = "TODAY";
-    const activeDateObj = new Date(state.selectedDate);
+    const activeDateObj = parseLocalDate(state.selectedDate);
     
     if (state.selectedDate === formatDateKey(today)) {
       activeDateLabel = "TODAY";
