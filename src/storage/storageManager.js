@@ -286,10 +286,9 @@ export const StorageManager = {
     return JSON.parse(localStorage.getItem(KEYS.USER_PROFILE));
   },
 
-  saveUserProfile(profile) {
+  saveProfile(profile) {
     localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
     
-    if (this.isGuestMode()) return;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -319,7 +318,6 @@ export const StorageManager = {
     }
     localStorage.setItem(KEYS.HABITS, JSON.stringify(habits));
 
-    if (this.isGuestMode()) return habits;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -358,7 +356,6 @@ export const StorageManager = {
     const checkIns = this.getCheckIns().filter(c => c.habitId !== id);
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(checkIns));
 
-    if (this.isGuestMode()) return habits;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -400,7 +397,6 @@ export const StorageManager = {
     }
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(logs));
 
-    if (this.isGuestMode()) return logs;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
@@ -425,7 +421,6 @@ export const StorageManager = {
     const logs = this.getCheckIns().filter(log => !(log.habitId === habitId && log.date === date));
     localStorage.setItem(KEYS.CHECK_INS, JSON.stringify(logs));
 
-    if (this.isGuestMode()) return logs;
     // Background cloud update
     this.getSupabaseUser().then(user => {
       if (user && supabase) {
