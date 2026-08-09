@@ -91,71 +91,84 @@ export const OnboardingPage = {
 
   renderStep1() {
     return `
-      <div id="onboarding-page" class="flex flex-col justify-between min-h-[85vh] max-w-sm mx-auto px-3 py-6 animate-fade-in text-text-primary">
-        <!-- Hero Header -->
-        <div class="flex flex-col items-center text-center mt-6 gap-3.5">
-          <div class="w-14 h-14 rounded-2xl bg-surface-card border border-divider flex items-center justify-center shadow-sm text-text-primary">
-            <i data-lucide="target" class="w-7 h-7"></i>
+      <div id="onboarding-page" class="flex flex-col justify-between min-h-[92vh] max-w-sm mx-auto px-4 pt-10 sm:pt-12 pb-6 animate-fade-in text-text-primary">
+        
+        <!-- Header: Larger Two-Line Title Left & Black Icon Squircle Right -->
+        <div class="flex flex-col gap-6 mt-4">
+          <div class="flex items-start justify-between w-full">
+            <h1 class="text-[42px] sm:text-5xl font-light tracking-tight text-text-primary leading-[1.08]">
+              coffee<br/><span class="font-normal">ring</span>
+            </h1>
+            <div class="w-20 h-20 rounded-[26px] bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 flex items-center justify-center shadow-md flex-shrink-0">
+              <i data-lucide="target" class="w-9.5 h-9.5 stroke-[1.75]"></i>
+            </div>
           </div>
-          <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold tracking-tight text-text-primary leading-tight">coffee ring</h1>
-            <p class="text-[10px] font-bold text-text-secondary uppercase tracking-widest">Atomic Habit Builder</p>
+          <p class="text-sm text-text-secondary leading-relaxed font-normal max-w-[310px] pt-1">
+            Build the routines that shape your daily identity — protect streaks and track your progress.
+          </p>
+        </div>
+
+        <!-- Borderless List Items (Icon + Title + Subtitle) -->
+        <div class="flex flex-col gap-7.5 my-7 w-full">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-2xl bg-[#059669]/10 border border-[#059669]/20 text-[#059669] dark:text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
+              <i data-lucide="zap" class="w-4.5 h-4.5 stroke-[2]"></i>
+            </div>
+            <div class="flex flex-col gap-1">
+              <h3 class="text-sm font-medium text-text-primary leading-tight">Build Identity Routines</h3>
+              <p class="text-xs text-text-secondary font-normal leading-relaxed">Protect streaks, calculate bounce-backs, and build consistency.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-2xl bg-[#0284c7]/10 border border-[#0284c7]/20 text-[#0284c7] dark:text-sky-400 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
+              <i data-lucide="refresh-cw" class="w-4.5 h-4.5 stroke-[2]"></i>
+            </div>
+            <div class="flex flex-col gap-1">
+              <h3 class="text-sm font-medium text-text-primary leading-tight">Bounce-Back Strategy</h3>
+              <p class="text-xs text-text-secondary font-normal leading-relaxed">Focus on "Never Miss Twice" psychology to recover routinely.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-2xl bg-[#7e22ce]/10 border border-[#7e22ce]/20 text-[#7e22ce] dark:text-purple-400 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
+              <i data-lucide="bar-chart-2" class="w-4.5 h-4.5 stroke-[2]"></i>
+            </div>
+            <div class="flex flex-col gap-1">
+              <h3 class="text-sm font-medium text-text-primary leading-tight">Behavior Analytics</h3>
+              <p class="text-xs text-text-secondary font-normal leading-relaxed">Unlock detailed metrics, weekend performance slumps, and triggers.</p>
+            </div>
           </div>
         </div>
 
-        <!-- Feature Cards -->
-        <div class="flex flex-col gap-3 my-6 w-full">
-          <div class="flex items-start gap-3.5 p-4 bg-surface-card border border-divider rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-              <i data-lucide="zap" class="w-4.5 h-4.5"></i>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-text-primary">Build Identity Routines</span>
-              <span class="text-[11px] text-text-secondary font-medium leading-relaxed">Protect streaks, calculate bounce-backs, and build lasting consistency.</span>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-3.5 p-4 bg-surface-card border border-divider rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center flex-shrink-0">
-              <i data-lucide="refresh-cw" class="w-4.5 h-4.5"></i>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-text-primary">Bounce-Back Strategy</span>
-              <span class="text-[11px] text-text-secondary font-medium leading-relaxed">Focus on "Never Miss Twice" psychology to recover seamlessly.</span>
-            </div>
-          </div>
-
-          <div class="flex items-start gap-3.5 p-4 bg-surface-card border border-divider rounded-xl shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
-              <i data-lucide="bar-chart-2" class="w-4.5 h-4.5"></i>
-            </div>
-            <div class="flex flex-col gap-0.5">
-              <span class="text-xs font-bold text-text-primary">Behavior Analytics</span>
-              <span class="text-[11px] text-text-secondary font-medium leading-relaxed">Unlock metric trends, weekend performance slumps, and key triggers.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex flex-col gap-3 w-full">
+        <!-- Solid Black Button & Signature Footer (Anchored to Very Bottom) -->
+        <div class="flex flex-col gap-4 items-center w-full mt-auto pt-4">
           <button 
             type="button"
             onclick="window.OnboardingGoToStep(2)"
-            class="w-full py-3.5 bg-text-primary text-surface-card hover:opacity-90 active:scale-98 rounded-xl font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2"
+            class="w-full py-4 bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white active:scale-[0.98] rounded-2xl font-medium text-base shadow-sm transition-all text-center"
           >
-            <span>Get Started</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            Get started
           </button>
-          <div class="text-center">
-            <button id="onboarding-login-btn" class="text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors underline">Already have an account? Sign In</button>
+          
+          <button id="onboarding-login-btn" class="text-xs text-text-secondary hover:text-text-primary transition-colors">Already have an account? Sign In</button>
+
+          <div class="flex items-center justify-end gap-3 w-full opacity-60 mt-1">
+            <div class="h-[1px] bg-divider flex-1"></div>
+            <span class="text-[11px] font-medium text-text-secondary tracking-wide flex items-center gap-1">
+              by sreemoyee <i data-lucide="heart" class="w-3 h-3 text-text-primary fill-text-primary inline-block"></i>
+            </span>
           </div>
         </div>
+
       </div>
     `;
   },
 
   renderStep2() {
-    const isNextDisabled = !this.userName || this.userName.trim() === "";
+    const trimmedName = (this.userName || "").trim();
+    const isNextDisabled = !trimmedName;
+    const btnLabel = trimmedName ? `Nice to meet you, ${trimmedName}` : "Continue";
     const nextBtnClass = isNextDisabled 
       ? "bg-surface-sunken text-text-secondary cursor-not-allowed" 
       : "bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
@@ -196,7 +209,7 @@ export const OnboardingPage = {
             class="w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${nextBtnClass}"
             ${isNextDisabled ? 'disabled' : ''}
           >
-            <span>Continue</span>
+            <span id="onboarding-name-next-label">${btnLabel}</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
         </div>
@@ -377,14 +390,21 @@ export const OnboardingPage = {
           this.userName = e.target.value;
           this.saveState();
           const nextBtn = document.getElementById('onboarding-name-next-btn');
+          const labelSpan = document.getElementById('onboarding-name-next-label');
+          const trimmed = this.userName.trim();
+          const isInvalid = !trimmed;
+
           if (nextBtn) {
-            const isInvalid = !this.userName || this.userName.trim() === "";
             nextBtn.disabled = isInvalid;
             if (isInvalid) {
               nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-surface-sunken text-text-secondary cursor-not-allowed";
             } else {
               nextBtn.className = "w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-850 active:scale-98 text-white shadow-md";
             }
+          }
+
+          if (labelSpan) {
+            labelSpan.textContent = isInvalid ? "Continue" : `Nice to meet you, ${trimmed}`;
           }
         });
         nameInput.focus();
