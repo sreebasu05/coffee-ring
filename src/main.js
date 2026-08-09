@@ -144,6 +144,67 @@ class AppController {
       const el = document.getElementById(activeId);
       if (el) el.focus();
     }
+
+    // 5. Show Push Notification Soft Prompt if needed
+    this.showPushPromptIfNeeded();
+  }
+
+  showPushPromptIfNeeded() {
+    if (this.currentTab !== 'today') return;
+    if (!appState.user || appState.user.name === 'Guest') return;
+    if (localStorage.getItem('coffeering_push_prompt_seen')) return;
+
+    // Wait a couple of seconds so it's not too aggressive
+    setTimeout(() => {
+      // Recheck in case they navigated away
+      if (this.currentTab !== 'today' || document.getElementById('push-soft-prompt')) return;
+
+      const modalHtml = `
+        <div id="push-soft-prompt" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div class="bg-surface-card border border-divider rounded-3xl p-6 w-full max-w-sm shadow-xl animate-fade-up">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4">
+              <i data-lucide="bell-ring" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-xl font-black text-text-primary mb-2">Enable Reminders</h3>
+            <p class="text-sm text-text-secondary mb-6">Want a gentle nudge if you forget to log your habits? We can remind you every evening.</p>
+            <div class="flex gap-3">
+              <button id="push-prompt-decline" class="flex-1 py-3 px-4 rounded-xl font-bold text-text-secondary bg-surface-base border border-divider hover:bg-surface-sunken transition-colors">
+                Not Now
+              </button>
+              <button id="push-prompt-accept" class="flex-1 py-3 px-4 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-md transition-colors">
+                Yes, Please
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+      if (window.lucide) window.lucide.createIcons();
+
+      const modal = document.getElementById('push-soft-prompt');
+      const acceptBtn = document.getElementById('push-prompt-accept');
+      const declineBtn = document.getElementById('push-prompt-decline');
+
+      const closeAndRemember = () => {
+        localStorage.setItem('coffeering_push_prompt_seen', 'true');
+        modal.remove();
+      };
+
+      declineBtn.addEventListener('click', closeAndRemember);
+
+      acceptBtn.addEventListener('click', async () => {
+        acceptBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+        if (window.lucide) window.lucide.createIcons();
+        
+        // Dynamically import NotificationService
+        const { NotificationService } = await import('./services/notificationService.js');
+        const success = await NotificationService.saveSubscription(appState.user.id);
+        
+        closeAndRemember();
+      });
+
+    }, 2000);
   }
 
   renderAuth() {

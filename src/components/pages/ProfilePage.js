@@ -1,4 +1,5 @@
 import { supabase } from '../../db/supabaseClient.js';
+import { NotificationService } from '../../services/notificationService.js';
 
 export const ProfilePage = {
   render(state) {
@@ -64,6 +65,26 @@ export const ProfilePage = {
           </div>
         </div>`;
 
+    const remindersCard = !isGuest ? `
+        <div class="flex flex-col gap-1.5 px-2 animate-fade-up delay-2">
+          <span class="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em]">Notifications</span>
+          <div class="flex items-center justify-between p-4 bg-surface-card border border-divider rounded-2xl shadow-sm">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-surface-base border border-divider text-text-primary flex items-center justify-center flex-shrink-0">
+                <i data-lucide="bell" class="w-4.5 h-4.5"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-text-primary">Daily Reminders</p>
+                <p class="text-[11px] text-text-secondary">Get notified at 8 PM if you forget.</p>
+              </div>
+            </div>
+            <button id="reminders-toggle" class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-neutral-300 dark:bg-neutral-700">
+              <span id="reminders-knob" class="inline-block h-4 w-4 translate-x-1 rounded-full bg-white transition-transform"></span>
+            </button>
+          </div>
+          <p id="reminders-error" class="hidden text-xs text-rose-500 mt-1 px-1"></p>
+        </div>` : '';
+
     const guestCta = isGuest
       ? `
         <div class="flex flex-col gap-1.5 px-2 animate-fade-up delay-3">
@@ -93,10 +114,11 @@ export const ProfilePage = {
           ${identitySection}
         </div>
 
-
-
         <!-- Storage Mode -->
         ${storageCard}
+
+        <!-- Reminders -->
+        ${remindersCard}
 
         <!-- Guest CTA -->
         ${guestCta}
@@ -142,6 +164,49 @@ export const ProfilePage = {
 
   bindEvents(state, onSignOut, onNavigate) {
     if (window.lucide) window.lucide.createIcons();
+
+    const remindersToggle = document.getElementById('reminders-toggle');
+    const remindersKnob = document.getElementById('reminders-knob');
+    const remindersError = document.getElementById('reminders-error');
+
+    if (remindersToggle && state.user) {
+      // Check initial state
+      NotificationService.isSubscribed().then(isSub => {
+        if (isSub) {
+          remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
+          remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500');
+          remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
+        }
+      });
+
+      remindersToggle.addEventListener('click', async () => {
+        if (remindersError) {
+          remindersError.classList.add('hidden');
+          remindersError.textContent = '';
+        }
+
+        const isCurrentlySubscribed = await NotificationService.isSubscribed();
+        if (isCurrentlySubscribed) {
+          if (remindersError) {
+            remindersError.textContent = 'To disable reminders, please use your browser settings.';
+            remindersError.classList.remove('hidden');
+          }
+          return;
+        }
+
+        const success = await NotificationService.saveSubscription(state.user.id);
+        if (success) {
+          remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
+          remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500');
+          remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
+        } else {
+          if (remindersError) {
+            remindersError.textContent = 'Failed to enable reminders. Please ensure you granted permission.';
+            remindersError.classList.remove('hidden');
+          }
+        }
+      });
+    }
 
     const signupBtn = document.getElementById('profile-signup-btn');
     if (signupBtn) {
