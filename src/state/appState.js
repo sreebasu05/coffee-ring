@@ -11,7 +11,7 @@ class AppState {
     
     // Default selected date is today (YYYY-MM-DD local format)
     this.selectedDate = this.formatDate(new Date());
-    this.dashboardWeekOffset = 0; // 0 = Current Week (default)
+    this.dashboardWeekOffset = 1; // 1 = Last Week (default)
     
     // Listeners for reactive UI rendering
     this.listeners = [];
@@ -358,8 +358,8 @@ class AppState {
     return days;
   }
 
-  getWeekLogsCount(habitId, offset = 0) {
-    const { mondayStr, sundayStr } = this.getCurrentWeekMondayAndSunday(this.getDashboardDate(), offset);
+  getWeekLogsCount(habitId, offset = 0, refDate = this.getDashboardDate()) {
+    const { mondayStr, sundayStr } = this.getCurrentWeekMondayAndSunday(refDate, offset);
     return this.checkIns.filter(log => {
       if (log.habitId !== habitId) return false;
       if (log.completed === false) return false;
@@ -409,14 +409,15 @@ class AppState {
     let streak = 0;
     let offset = 0;
     
-    const currentWeekCount = this.getWeekLogsCount(habitId, 0);
+    const todayRef = new Date();
+    const currentWeekCount = this.getWeekLogsCount(habitId, 0, todayRef);
     const currentWeekMet = currentWeekCount >= 1;
     
     if (currentWeekMet) {
       streak = 1;
       offset = 1;
       while (true) {
-        const count = this.getWeekLogsCount(habitId, offset);
+        const count = this.getWeekLogsCount(habitId, offset, todayRef);
         if (count >= 1) {
           streak++;
           offset++;
@@ -427,7 +428,7 @@ class AppState {
     } else {
       offset = 1;
       while (true) {
-        const count = this.getWeekLogsCount(habitId, offset);
+        const count = this.getWeekLogsCount(habitId, offset, todayRef);
         if (count >= 1) {
           streak++;
           offset++;
@@ -445,9 +446,10 @@ class AppState {
     
     let maxStreak = 0;
     let currentStreak = 0;
+    const todayRef = new Date();
     
     for (let offset = 52; offset >= 0; offset--) {
-      const count = this.getWeekLogsCount(habitId, offset);
+      const count = this.getWeekLogsCount(habitId, offset, todayRef);
       if (count >= 1) {
         currentStreak++;
         if (currentStreak > maxStreak) {
@@ -467,19 +469,20 @@ class AppState {
     
     let streak = 0;
     let offset = 0;
+    const todayRef = new Date();
     
-    const { start: currentStart } = this.getWeekStartAndEnd(0);
+    const { start: currentStart } = this.getWeekStartAndEnd(0, todayRef);
     const currentTarget = this.getWeeklyTargetForDate(habitId, this.formatDate(currentStart));
-    const currentWeekCount = this.getWeekLogsCount(habitId, 0);
+    const currentWeekCount = this.getWeekLogsCount(habitId, 0, todayRef);
     const currentWeekMet = currentWeekCount >= currentTarget;
     
     if (currentWeekMet) {
       streak = 1;
       offset = 1;
       while (true) {
-        const { start } = this.getWeekStartAndEnd(offset);
+        const { start } = this.getWeekStartAndEnd(offset, todayRef);
         const target = this.getWeeklyTargetForDate(habitId, this.formatDate(start));
-        const count = this.getWeekLogsCount(habitId, offset);
+        const count = this.getWeekLogsCount(habitId, offset, todayRef);
         if (count >= target) {
           streak++;
           offset++;
@@ -490,9 +493,9 @@ class AppState {
     } else {
       offset = 1;
       while (true) {
-        const { start } = this.getWeekStartAndEnd(offset);
+        const { start } = this.getWeekStartAndEnd(offset, todayRef);
         const target = this.getWeeklyTargetForDate(habitId, this.formatDate(start));
-        const count = this.getWeekLogsCount(habitId, offset);
+        const count = this.getWeekLogsCount(habitId, offset, todayRef);
         if (count >= target) {
           streak++;
           offset++;
