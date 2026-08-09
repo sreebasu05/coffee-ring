@@ -152,7 +152,9 @@ class AppController {
   async showPushPromptIfNeeded() {
     if (this.currentTab !== 'today') return;
     if (!appState.user || appState.user.name === 'Guest') return;
-    if (localStorage.getItem('coffeering_push_prompt_seen')) return;
+    
+    // Only prompt if the user literally just signed in
+    if (!sessionStorage.getItem('coffeering_just_signed_in')) return;
 
     // Check support first to prevent prompting in unsupported browsers (like Safari on iOS)
     const { NotificationService } = await import('./services/notificationService.js');
@@ -160,7 +162,10 @@ class AppController {
 
     // Don't show if already subscribed
     const isSubscribed = await NotificationService.isSubscribed();
-    if (isSubscribed) return;
+    if (isSubscribed) {
+      sessionStorage.removeItem('coffeering_just_signed_in');
+      return;
+    }
 
     // Wait a couple of seconds so it's not too aggressive
     setTimeout(() => {
@@ -195,7 +200,7 @@ class AppController {
       const declineBtn = document.getElementById('push-prompt-decline');
 
       const closeAndRemember = () => {
-        localStorage.setItem('coffeering_push_prompt_seen', 'true');
+        sessionStorage.removeItem('coffeering_just_signed_in');
         modal.remove();
       };
 
@@ -220,6 +225,7 @@ class AppController {
 
     root.innerHTML = AuthPage.render();
     AuthPage.bindEvents(appState, () => {
+      sessionStorage.setItem('coffeering_just_signed_in', 'true');
       appState.loadStateFromCache();
       this.navigate('today');
     });
@@ -285,6 +291,7 @@ class AppController {
     } else if (this.currentTab === 'auth') {
       root.innerHTML = AuthPage.render();
       AuthPage.bindEvents(appState, () => {
+        sessionStorage.setItem('coffeering_just_signed_in', 'true');
         appState.loadStateFromCache();
         this.navigate('today');
       });
