@@ -47,7 +47,8 @@ export const NotificationService = {
   },
 
   async subscribeUser() {
-    const registration = await this.registerServiceWorker();
+    await this.registerServiceWorker();
+    const registration = await navigator.serviceWorker.ready;
     if (!registration) return null;
 
     // VAPID public key from env variables

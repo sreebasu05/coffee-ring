@@ -186,13 +186,27 @@ export const ProfilePage = {
         }
 
         const isCurrentlySubscribed = await NotificationService.isSubscribed();
+        
+        // Disable the toggle button during the asynchronous operation
+        remindersToggle.style.pointerEvents = 'none';
+        remindersKnob.classList.add('opacity-50');
+
         if (isCurrentlySubscribed) {
+          // Optimistically show it turning off
+          remindersToggle.classList.replace('bg-emerald-500', 'bg-neutral-300');
+          remindersToggle.classList.add('dark:bg-neutral-700');
+          remindersKnob.classList.replace('translate-x-6', 'translate-x-1');
+
           const result = await NotificationService.unsubscribeUser();
-          if (result && result.success) {
-            remindersToggle.classList.replace('bg-emerald-500', 'bg-neutral-300');
-            remindersToggle.classList.add('dark:bg-neutral-700'); // ensure dark mode fallback is restored
-            remindersKnob.classList.replace('translate-x-6', 'translate-x-1');
-          } else {
+          
+          remindersToggle.style.pointerEvents = 'auto';
+          remindersKnob.classList.remove('opacity-50');
+
+          if (!result || !result.success) {
+            // Rollback to turned ON state on failure
+            remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
+            remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500');
+            remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
             if (remindersError) {
               remindersError.textContent = result?.error || 'Failed to disable reminders.';
               remindersError.classList.remove('hidden');
@@ -201,12 +215,21 @@ export const ProfilePage = {
           return;
         }
 
+        // Optimistically show it turning on
+        remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
+        remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500');
+        remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
+
         const result = await NotificationService.saveSubscription(state.user.id);
-        if (result && result.success) {
-          remindersToggle.classList.replace('bg-neutral-300', 'bg-emerald-500');
-          remindersToggle.classList.replace('dark:bg-neutral-700', 'dark:bg-emerald-500'); // remove dark bg fallback when active
-          remindersKnob.classList.replace('translate-x-1', 'translate-x-6');
-        } else {
+        
+        remindersToggle.style.pointerEvents = 'auto';
+        remindersKnob.classList.remove('opacity-50');
+
+        if (!result || !result.success) {
+          // Rollback to turned OFF state on failure
+          remindersToggle.classList.replace('bg-emerald-500', 'bg-neutral-300');
+          remindersToggle.classList.add('dark:bg-neutral-700');
+          remindersKnob.classList.replace('translate-x-6', 'translate-x-1');
           if (remindersError) {
             remindersError.textContent = result?.error || 'Failed to enable reminders. Please check browser permissions.';
             remindersError.classList.remove('hidden');
