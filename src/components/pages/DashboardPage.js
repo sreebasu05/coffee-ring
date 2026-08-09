@@ -282,8 +282,8 @@ export const DashboardPage = {
                 <div class="flex items-center gap-1.5 flex-wrap">
                   ${advancedInsights.habitTags[r.habit.id] ? `<span class="${advancedInsights.habitTags[r.habit.id].classes} text-[8px] px-1.5 py-0.5 rounded font-bold">${advancedInsights.habitTags[r.habit.id].label}</span>` : ''}
                   ${streakCount > 0 ? `
-                    <span class="inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-500 text-[9px] font-bold">
-                      <i data-lucide="flame" class="w-3 h-3 fill-current"></i>
+                    <span class="inline-flex items-center gap-1 text-text-secondary text-[9px] font-medium opacity-80">
+                      <i data-lucide="flame" class="w-3 h-3 text-text-secondary"></i>
                       <span>${streakCount}${streakUnit} streak</span>
                     </span>
                   ` : ''}

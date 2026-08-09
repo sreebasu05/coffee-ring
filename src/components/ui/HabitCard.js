@@ -181,9 +181,9 @@ export const HabitCard = {
               <div class="text-[10px] mt-0.5 flex items-center gap-1.5 text-text-secondary">
                 ${cautionText}
                 ${streakCount > 0 ? `
-                  <span class="text-text-secondary/40">•</span>
-                  <span class="inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-500 font-bold">
-                    <i data-lucide="flame" class="w-3 h-3 fill-current"></i>
+                  <span class="text-text-secondary/30">•</span>
+                  <span class="inline-flex items-center gap-1 text-text-secondary text-[10px] font-medium opacity-80">
+                    <i data-lucide="flame" class="w-3 h-3 text-text-secondary"></i>
                     <span>${streakCount}${streakUnit} streak</span>
                   </span>
                 ` : ''}
